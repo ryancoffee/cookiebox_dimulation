@@ -50,10 +50,13 @@ def main():
     filelist = glob.glob(filematch)
 
     for f in filelist[:10]:
+
+        ## processing images 
         m = re.search('(.+).txt$',f)
         fi = open(f, "r")
         outname_spect = m.group(1) + '.spect.dat'
         outname_time = m.group(1) + '.time.dat'
+        outname_simTOF = m.group(1) + '.simTOF.dat'
         for i in range(6):
             headline = '# ' + fi.readline()
         (t,v) = fi.readline().split()
@@ -78,7 +81,6 @@ def main():
         values = choice(n_vec_ft[chooseinds,0],len(replaceinds))
         n_vec_ft[replaceinds,0] = values
 
-
         noiseamp = np.power(np.mean(np.abs(values)),int(2))
         sigamp = np.power(np.mean(np.array([i for i,nu in enumerate(f) if np.abs(nu)< 3.5])),int(2))
         vout = np.copy(v_vec_ft)
@@ -87,6 +89,33 @@ def main():
         spect = np.abs(v_vec_ft)
         out = np.column_stack((f,spect,np.abs(n_vec_ft),np.abs(vout)))
         np.savetxt(outname_spect,out,fmt='%.4f')
+
+
+
+
+        ## setting up to do synthetic waveforms 
+        nelectrons = int(10)
+        e_retardation = 300
+        v_vec_ft[:,0] *= Weiner(f,sigamp,noiseamp,cut = 5,p = 4)
+        v_vec_ft[:,0] = fourier_delay(f,v_vec_ft[:,0],-40) ## pre-advancing the t0 up by 40ns to register it early in the trace
+        v_sim_ft = np.tile(v_vec_ft,nelectrons)
+        # first sum all the Weiner filtered and foureir_delay() signals, then add the single noise vector back
+
+        nphotos = nelectrons//3
+        npistars = nelectrons//3
+        nsigstars = nelectrons//3
+        evec = fillcollection(e_photon = 700,e_ret = 0,nphotos=nphotos,npistars=npistars,nsigstars=nsigstars)
+        sim_times = energy2time(evec,r=e_retardation)
+
+        for i,t in enumerate(sim_times):
+            v_sim_ft[:,i] = fourier_delay(f,v_sim_ft[:,i],t)
+        v_simsum_ft = np.sum(v_sim_ft,axis=1) + n_vec_ft[:,0]
+        print('v_simsum_ft.shape = ', v_simsum_ft.shape)
+        v_simsum = np.real(IFFT(v_simsum_ft,axis=0))
+        out = np.column_stack((t_vec,v_vec,v_simsum))
+        np.savetxt(outname_simTOF,out,fmt='%4f')
+
+
         v_copy = np.copy(vout)
         v_copy = fourier_delay(f,v_copy,10)
         v_back = np.real(IFFT(v_vec_ft,axis=0))
@@ -105,7 +134,7 @@ def main():
 
     ## OK, and now I have my fillcollection() method for getting energies
     e_retardation = 520
-    totalelectrons = int(10e3)
+    totalelectrons = int(1e3)
     nphotos = totalelectrons//3
     npistars = totalelectrons//3
     nsigstars = totalelectrons//3
