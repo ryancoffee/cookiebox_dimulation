@@ -7,9 +7,23 @@ import numpy.random as rand
 from numpy.fft import fft as FFT
 from numpy.fft import ifft as IFFT
 from numpy.fft import fftfreq as FREQ
+from scipy.constants import c
 
 from cmath import rect
 nprect = np.vectorize(rect)
+
+def energy2time(e,r=0,d1=5,d2=5,d3=30):
+    #distances are in centimiters and energies are in eV and times are in ns
+    C_cmPns = c*100.*1e-9
+    mc2 = float(0.511e6)
+    t = 1.e6;
+    if r==0:
+        t = (d1+d2+d3)/C_cmPns * np.sqrt(mc2/(2.*e))
+    if r>0:
+        t = d1/C_cmPns * np.sqrt(mc2/(2.*e))
+        t += d3/C_cmPns * np.sqrt(mc2/(2.*(e-r)))
+        t += d2/C_cmPns * np.sqrt(2)*(mc2/r)*(np.sqrt(e/mc2) - np.sqrt((e-r)/mc2))
+    return t
 
 def Weiner(f,s,n,cut,p):
     w=np.zeros(f.shape[0])
@@ -78,6 +92,13 @@ def main():
         v_filter_copy_back = np.real(IFFT(v_copy+n_vec_ft,axis=0))
         out = np.column_stack((t_vec,v_back,v_filter_back,v_filter_copy_back))
         np.savetxt(outname_time,out,fmt='%.4f')
+
+        ## OK, now I have my energy to time
+        ens = np.array([5,10,25,50,100])
+        print(energy2time(ens))
+        ens += 500
+        print(energy2time(ens,r=500))
+
 
     return 0
 
