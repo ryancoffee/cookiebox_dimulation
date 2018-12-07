@@ -3,11 +3,13 @@
 import glob
 import re
 import numpy as np
-import numpy.random as rand
+from numpy.random import choice, shuffle
 from numpy.fft import fft as FFT
 from numpy.fft import ifft as IFFT
 from numpy.fft import fftfreq as FREQ
 from scipy.constants import c
+
+from generate_distribution import fillcollection
 
 from cmath import rect
 nprect = np.vectorize(rect)
@@ -29,7 +31,7 @@ def Weiner(f,s,n,cut,p):
     w=np.zeros(f.shape[0])
     #print(w.shape)
     p = int(4)
-    inds = [i for i,nu in enumerate(f) if abs(nu)<cut]
+    inds = [i for i,nu in enumerate(f) if np.abs(nu)<cut]
     w[inds] = s*np.power(np.cos(np.pi/2. * f[inds] / cut) , p)
     return w/(w+n)
 
@@ -71,14 +73,14 @@ def main():
         n_vec_ft = np.copy(v_vec_ft)
         # find indices where there is only noise in the power, and indices with predominantly signal
         # replace the signal elements in the noise vector with a random sampling from the noise portion
-        chooseinds = np.array([i for i,nu in enumerate(f) if (abs(nu)> 6.5 and abs(nu)<(20))])
-        replaceinds = np.array([i for i,nu in enumerate(f) if abs(nu)< 6.5])
-        values = rand.choice(n_vec_ft[chooseinds,0],len(replaceinds))
+        chooseinds = np.array([i for i,nu in enumerate(f) if (np.abs(nu)> 6.5 and np.abs(nu)<(20))])
+        replaceinds = np.array([i for i,nu in enumerate(f) if np.abs(nu)< 6.5])
+        values = choice(n_vec_ft[chooseinds,0],len(replaceinds))
         n_vec_ft[replaceinds,0] = values
 
 
         noiseamp = np.power(np.mean(np.abs(values)),int(2))
-        sigamp = np.power(np.mean(np.array([i for i,nu in enumerate(f) if abs(nu)< 3.5])),int(2))
+        sigamp = np.power(np.mean(np.array([i for i,nu in enumerate(f) if np.abs(nu)< 3.5])),int(2))
         vout = np.copy(v_vec_ft)
         vout[:,0] *= Weiner(f,sigamp,noiseamp,cut = 5,p = 4)
 
@@ -94,11 +96,21 @@ def main():
         np.savetxt(outname_time,out,fmt='%.4f')
 
         ## OK, now I have my energy to time
+        """
         ens = np.array([5,10,25,50,100])
         print(energy2time(ens))
         ens += 500
         print(energy2time(ens,r=500))
+        """
 
+    ## OK, and now I have my fillcollection() method for getting energies
+    e_retardation = 520
+    totalelectrons = int(10e3)
+    nphotos = totalelectrons//3
+    npistars = totalelectrons//3
+    nsigstars = totalelectrons//3
+    v = fillcollection(e_photon = 600,e_ret = 0,nphotos=nphotos,npistars=npistars,nsigstars=nsigstars)
+    np.savetxt('../data_fs/extern/timedistribution.dat',energy2time(v,r=e_retardation),fmt='%4f')
 
     return 0
 
