@@ -72,6 +72,11 @@ def main():
         #FFT the vector
         v_vec_ft = FFT(v_vec,axis=0)
         f = FREQ(v_vec_ft.shape[0],dt)
+        m_extend = 20
+        f_extend = FREQ(v_vec_ft.shape[0]*m_extend,dt)
+        print(f_extend.shape)
+        t_extend = np.arange(t_vec[0]*m_extend,(t_vec[-1]+dt)*m_extend,dt)
+        print(t_extend.shape)
         # deep copy for the noise extimation 
         n_vec_ft = np.copy(v_vec_ft)
         # find indices where there is only noise in the power, and indices with predominantly signal
@@ -97,8 +102,23 @@ def main():
         nelectrons = int(10)
         e_retardation = 300
         v_vec_ft[:,0] *= Weiner(f,sigamp,noiseamp,cut = 5,p = 4)
-        v_vec_ft[:,0] = fourier_delay(f,v_vec_ft[:,0],-40) ## pre-advancing the t0 up by 40ns to register it early in the trace
-        v_sim_ft = np.tile(v_vec_ft,nelectrons)
+        v_vec_ft_r = np.abs(v_vec_ft)
+        v_vec_ft_phi = np.angle(v_vec_ft)
+        # sort inds for f and use for interp to extend in fourier domain
+        inds = np.argsort(f)
+        v_extend_ft_r = np.interp(f_extend,f[inds],v_vec_ft_r[inds,0])
+        v_extend_ft_phi = np.interp(f_extend,f[inds],np.unwrap(v_vec_ft_phi[inds,0]))
+        v_extend_vec_ft = nprect(v_extend_ft_r,v_extend_ft_phi)
+        v_extend_vec_ft = fourier_delay(f_extend,v_extend_vec_ft,-800) ## pre-advancing the t0 up by 40ns to register it early in the trace
+
+        n_extend_ft_r = np.interp(f_extend,f[inds],np.abs(n_vec_ft[inds,0]))
+        n_extend_ft_phi = choice(np.angle(n_vec_ft[:,0]),f_extend.shape[0])
+        n_extend_vec_ft = nprect(n_extend_ft_r,n_extend_ft_phi)
+        n_extend_vec_ft.shape = (n_extend_vec_ft.shape[0],1)
+
+        v_extend_vec_ft.shape = (v_extend_vec_ft.shape[0],1)
+        v_sim_ft = np.tile(v_extend_vec_ft,nelectrons)
+        print('v_sim_ft.shape = ', v_sim_ft.shape)
         # first sum all the Weiner filtered and foureir_delay() signals, then add the single noise vector back
 
         nphotos = nelectrons//3
@@ -108,11 +128,11 @@ def main():
         sim_times = energy2time(evec,r=e_retardation)
 
         for i,t in enumerate(sim_times):
-            v_sim_ft[:,i] = fourier_delay(f,v_sim_ft[:,i],t)
-        v_simsum_ft = np.sum(v_sim_ft,axis=1) + n_vec_ft[:,0]
+            v_sim_ft[:,i] = fourier_delay(f_extend,v_sim_ft[:,i],t)
+        v_simsum_ft = np.sum(v_sim_ft,axis=1) + n_extend_vec_ft[:,0]
         print('v_simsum_ft.shape = ', v_simsum_ft.shape)
         v_simsum = np.real(IFFT(v_simsum_ft,axis=0))
-        out = np.column_stack((t_vec,v_vec,v_simsum))
+        out = np.column_stack((t_extend,v_simsum))
         np.savetxt(outname_simTOF,out,fmt='%4f')
 
 
