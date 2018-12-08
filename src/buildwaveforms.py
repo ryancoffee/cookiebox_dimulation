@@ -100,12 +100,13 @@ def main():
 
         ## setting up to do synthetic waveforms 
         nelectrons = int(10)
-        e_retardation = 300
+        e_retardation = 500
         v_vec_ft[:,0] *= Weiner(f,sigamp,noiseamp,cut = 5,p = 4)
         v_vec_ft_r = np.abs(v_vec_ft)
         v_vec_ft_phi = np.angle(v_vec_ft)
         # sort inds for f and use for interp to extend in fourier domain
         inds = np.argsort(f)
+        
         v_extend_ft_r = np.interp(f_extend,f[inds],v_vec_ft_r[inds,0])
         v_extend_ft_phi = np.interp(f_extend,f[inds],np.unwrap(v_vec_ft_phi[inds,0]))
         v_extend_vec_ft = nprect(v_extend_ft_r,v_extend_ft_phi)
