@@ -18,13 +18,14 @@ def energy2time(e,r=0,d1=5,d2=5,d3=30):
     #distances are in centimiters and energies are in eV and times are in ns
     C_cmPns = c*100.*1e-9
     mc2 = float(0.511e6)
-    t = 1.e6;
+    t = 1.e3 + np.zeros(e.shape,dtype=float);
     if r==0:
         t = (d1+d2+d3)/C_cmPns * np.sqrt(mc2/(2.*e))
-    if r>0:
-        t = d1/C_cmPns * np.sqrt(mc2/(2.*e))
-        t += d3/C_cmPns * np.sqrt(mc2/(2.*(e-r)))
-        t += d2/C_cmPns * np.sqrt(2)*(mc2/r)*(np.sqrt(e/mc2) - np.sqrt((e-r)/mc2))
+        return t
+    inds = np.argwhere(e>r)
+    t[inds] = d1/C_cmPns * np.sqrt(mc2/(2.*e[inds]))
+    t[inds] += d3/C_cmPns * np.sqrt(mc2/(2.*(e[inds]-r)))
+    t[inds] += d2/C_cmPns * np.sqrt(2)*(mc2/r)*(np.sqrt(e[inds]/mc2) - np.sqrt((e[inds]-r)/mc2))
     return t
 
 def Weiner(f,s,n,cut,p):
@@ -35,13 +36,12 @@ def Weiner(f,s,n,cut,p):
     w[inds] = s*np.power(np.cos(np.pi/2. * f[inds] / cut) , p)
     return w/(w+n)
 
-def fourier_delay(f,v,dt):
+def fourier_delay(f,dt):
+    #print('f.shape = ',f.shape)
     ## int f(t) exp(i*w*t) dt
     ## int f(t+tau) exp(i*w*t) dt --> int f(t)exp(i*w*t)exp(-i*w*tau) dt
     ## IFFT{ F(w) exp(-i*w*tau) }
-    phase = nprect(np.ones(v.shape).T,-f*2.*np.pi*dt).T
-    return v * phase
-
+    return nprect(np.ones(f.shape),-f*2.*np.pi*dt)
 
 def main():
     #filepath = '/data/projects/slac/hamamatsu/dec2018/ave1/'
@@ -49,6 +49,7 @@ def main():
     filematch = filepath + 'C1--LowPulseHighRes-in-100-out1700-an2100--*.txt'
     filelist = glob.glob(filematch)
 
+    collection = np.array((0,1,2),dtype=float)
     for f in filelist[:10]:
 
         ## processing images 
@@ -72,11 +73,9 @@ def main():
         #FFT the vector
         v_vec_ft = FFT(v_vec,axis=0)
         f = FREQ(v_vec_ft.shape[0],dt)
-        m_extend = 20
+        m_extend = 10
         f_extend = FREQ(v_vec_ft.shape[0]*m_extend,dt)
-        print(f_extend.shape)
-        t_extend = np.arange(t_vec[0]*m_extend,(t_vec[-1]+dt)*m_extend,dt)
-        print(t_extend.shape)
+        t_extend = np.arange(0,((t_vec[-1]-t_vec[0])+dt)*m_extend,dt)
         # deep copy for the noise extimation 
         n_vec_ft = np.copy(v_vec_ft)
         # find indices where there is only noise in the power, and indices with predominantly signal
@@ -88,38 +87,34 @@ def main():
 
         noiseamp = np.power(np.mean(np.abs(values)),int(2))
         sigamp = np.power(np.mean(np.array([i for i,nu in enumerate(f) if np.abs(nu)< 3.5])),int(2))
-        vout = np.copy(v_vec_ft)
-        vout[:,0] *= Weiner(f,sigamp,noiseamp,cut = 5,p = 4)
+        s_vec_ft = np.copy(v_vec_ft)
+        s_vec_ft[:,0] *= Weiner(f,sigamp,noiseamp,cut = 5,p = 4)
 
         spect = np.abs(v_vec_ft)
-        out = np.column_stack((f,spect,np.abs(n_vec_ft),np.abs(vout)))
+        out = np.column_stack((f,spect,np.abs(v_vec_ft),np.abs(n_vec_ft),np.abs(s_vec_ft)))
         np.savetxt(outname_spect,out,fmt='%.4f')
 
-
-
+        ## generate a noise waveform from the spectral data, then tile() it to be as long as 1 musec
+        ## Same for the filtered waveform, but for that one, just add zeros to be 1 musec long
 
         ## setting up to do synthetic waveforms 
-        nelectrons = int(10)
-        e_retardation = 500
-        v_vec_ft[:,0] *= Weiner(f,sigamp,noiseamp,cut = 5,p = 4)
-        v_vec_ft_r = np.abs(v_vec_ft)
-        v_vec_ft_phi = np.angle(v_vec_ft)
-        # sort inds for f and use for interp to extend in fourier domain
+        nelectrons = int(12)
+        e_retardation = 531
+        s_vec_ft[:,0] *= fourier_delay(f,-40) ## dial back by 40 ns
+        s_vec = np.real(IFFT(s_vec_ft,axis=0))
+        s_vec_extend = np.zeros((f_extend.shape[0],1),dtype=float) 
+        s_vec_extend[:s_vec.shape[0],0] = s_vec[:,0]
+        s_vec_extend_ft = FFT(s_vec_extend,axis=0)
+
+        # sort inds for f and use for interp to extend noise in fourier domain
         inds = np.argsort(f)
-        
-        v_extend_ft_r = np.interp(f_extend,f[inds],v_vec_ft_r[inds,0])
-        v_extend_ft_phi = np.interp(f_extend,f[inds],np.unwrap(v_vec_ft_phi[inds,0]))
-        v_extend_vec_ft = nprect(v_extend_ft_r,v_extend_ft_phi)
-        v_extend_vec_ft = fourier_delay(f_extend,v_extend_vec_ft,-800) ## pre-advancing the t0 up by 40ns to register it early in the trace
+        n_vec_extend_ft_r = np.interp(f_extend,f[inds],np.abs(n_vec_ft[inds,0]))
+        n_vec_extend_ft_phi = choice(np.angle(n_vec_ft[:,0]),f_extend.shape[0])
+        n_vec_extend_ft = nprect(n_vec_extend_ft_r,n_vec_extend_ft_phi)
+        n_vec_extend_ft.shape = (n_vec_extend_ft.shape[0],1)
 
-        n_extend_ft_r = np.interp(f_extend,f[inds],np.abs(n_vec_ft[inds,0]))
-        n_extend_ft_phi = choice(np.angle(n_vec_ft[:,0]),f_extend.shape[0])
-        n_extend_vec_ft = nprect(n_extend_ft_r,n_extend_ft_phi)
-        n_extend_vec_ft.shape = (n_extend_vec_ft.shape[0],1)
-
-        v_extend_vec_ft.shape = (v_extend_vec_ft.shape[0],1)
-        v_sim_ft = np.tile(v_extend_vec_ft,nelectrons)
-        print('v_sim_ft.shape = ', v_sim_ft.shape)
+        v_sim_ft = np.tile(s_vec_extend_ft,nelectrons)
+        #print('v_sim_ft.shape = ', v_sim_ft.shape)
         # first sum all the Weiner filtered and foureir_delay() signals, then add the single noise vector back
 
         nphotos = nelectrons//3
@@ -127,41 +122,23 @@ def main():
         nsigstars = nelectrons//3
         evec = fillcollection(e_photon = 700,e_ret = 0,nphotos=nphotos,npistars=npistars,nsigstars=nsigstars)
         sim_times = energy2time(evec,r=e_retardation)
+        print(sim_times.shape)
+        sim_times = np.row_stack((0,sim_times))
+        print('(shortest, longest) times [ns]\t(%i, %i)'%(np.min(sim_times),np.max(sim_times)))
 
+        v_simsum_ft = np.zeros(s_vec_extend_ft.shape,dtype=complex)
         for i,t in enumerate(sim_times):
-            v_sim_ft[:,i] = fourier_delay(f_extend,v_sim_ft[:,i],t)
-        v_simsum_ft = np.sum(v_sim_ft,axis=1) + n_extend_vec_ft[:,0]
-        print('v_simsum_ft.shape = ', v_simsum_ft.shape)
+            #delayvec = fourier_delay(f_extend,float(i**2)*30.)
+            v_simsum_ft[:,0] += s_vec_extend_ft[:,0] * fourier_delay(f_extend,t) #* fourier_delay(f_extend,10)#float(i**2)*10.)
+        v_simsum_ft += n_vec_extend_ft * nelectrons
         v_simsum = np.real(IFFT(v_simsum_ft,axis=0))
+        if collection.shape[0] < v_simsum.shape[0]:
+            collection = t_extend
+        collection = np.column_stack((collection,v_simsum))
         out = np.column_stack((t_extend,v_simsum))
         np.savetxt(outname_simTOF,out,fmt='%4f')
-
-
-        v_copy = np.copy(vout)
-        v_copy = fourier_delay(f,v_copy,10)
-        v_back = np.real(IFFT(v_vec_ft,axis=0))
-        v_filter_back = np.real(IFFT(vout,axis=0))
-        v_filter_copy_back = np.real(IFFT(v_copy+n_vec_ft,axis=0))
-        out = np.column_stack((t_vec,v_back,v_filter_back,v_filter_copy_back))
-        np.savetxt(outname_time,out,fmt='%.4f')
-
-        ## OK, now I have my energy to time
-        """
-        ens = np.array([5,10,25,50,100])
-        print(energy2time(ens))
-        ens += 500
-        print(energy2time(ens,r=500))
-        """
-
-    ## OK, and now I have my fillcollection() method for getting energies
-    e_retardation = 520
-    totalelectrons = int(1e3)
-    nphotos = totalelectrons//3
-    npistars = totalelectrons//3
-    nsigstars = totalelectrons//3
-    v = fillcollection(e_photon = 600,e_ret = 0,nphotos=nphotos,npistars=npistars,nsigstars=nsigstars)
-    np.savetxt('../data_fs/extern/timedistribution.dat',energy2time(v,r=e_retardation),fmt='%4f')
-
+    collection_name = '../data_fs/extern/waveforms.dat'
+    np.savetxt(collection_name,collection,fmt='%4f')
     return 0
 
 if __name__ == '__main__':
