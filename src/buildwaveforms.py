@@ -44,20 +44,32 @@ def fourier_delay(f,dt):
     return nprect(np.ones(f.shape),-f*2.*np.pi*dt)
 
 def main():
+    nelectrons = int(12)
+
     #filepath = '/data/projects/slac/hamamatsu/dec2018/ave1/'
     filepath = '../data_fs/ave1/'
     filematch = filepath + 'C1--LowPulseHighRes-in-100-out1700-an2100--*.txt'
     filelist = glob.glob(filematch)
 
     collection = np.array((0,1,2),dtype=float)
-    for f in filelist[:10]:
+    s_collection_ft = np.array((0,1,2),dtype=complex)
+    n_collection_ft = np.array((0,1,2),dtype=complex)
+    print('num files = ',len(filelist))
+    for i,f in enumerate(filelist[:10]):
+
+        ## HERE HERE HERE HERE ##
+        ## allow more waveforms than len(filelist)
 
         ## processing images 
+        samplefiles = False
         m = re.search('(.+).txt$',f)
+        if (i%10 == 0):
+            samplefiles = True
+            outname_spect = m.group(1) + '.spect.dat'
+            outname_time = m.group(1) + '.time.dat'
+            outname_simTOF = m.group(1) + '.simTOF.dat'
+
         fi = open(f, "r")
-        outname_spect = m.group(1) + '.spect.dat'
-        outname_time = m.group(1) + '.time.dat'
-        outname_simTOF = m.group(1) + '.simTOF.dat'
         for i in range(6):
             headline = '# ' + fi.readline()
         (t,v) = fi.readline().split()
@@ -91,20 +103,27 @@ def main():
         s_vec_ft[:,0] *= Weiner(f,sigamp,noiseamp,cut = 5,p = 4)
 
         spect = np.abs(v_vec_ft)
-        out = np.column_stack((f,spect,np.abs(v_vec_ft),np.abs(n_vec_ft),np.abs(s_vec_ft)))
-        np.savetxt(outname_spect,out,fmt='%.4f')
+        if samplefiles:
+            out = np.column_stack((f,spect,np.abs(v_vec_ft),np.abs(n_vec_ft),np.abs(s_vec_ft)))
+            np.savetxt(outname_spect,out,fmt='%.4f')
 
         ## generate a noise waveform from the spectral data, then tile() it to be as long as 1 musec
         ## Same for the filtered waveform, but for that one, just add zeros to be 1 musec long
 
         ## setting up to do synthetic waveforms 
-        nelectrons = int(12)
         e_retardation = 531
         s_vec_ft[:,0] *= fourier_delay(f,-40) ## dial back by 40 ns
         s_vec = np.real(IFFT(s_vec_ft,axis=0))
         s_vec_extend = np.zeros((f_extend.shape[0],1),dtype=float) 
         s_vec_extend[:s_vec.shape[0],0] = s_vec[:,0]
         s_vec_extend_ft = FFT(s_vec_extend,axis=0)
+        if s_collection_ft.shape[0] < s_vec_extend_ft.shape[0]:
+            s_collection_ft = np.copy(s_vec_extend_ft)
+           # s_collection_ft.shape = (s_collection_ft.shape[0],1)
+        else:
+            s_collection_ft = np.column_stack((s_collection_ft,s_vec_extend_ft))
+        s_collection_colinds = choice(np.arange(s_collection_ft.shape[1],dtype=int),nelectrons+1) # add one for prompt
+        #print(s_collection_colinds)
 
         # sort inds for f and use for interp to extend noise in fourier domain
         inds = np.argsort(f)
@@ -112,9 +131,14 @@ def main():
         n_vec_extend_ft_phi = choice(np.angle(n_vec_ft[:,0]),f_extend.shape[0])
         n_vec_extend_ft = nprect(n_vec_extend_ft_r,n_vec_extend_ft_phi)
         n_vec_extend_ft.shape = (n_vec_extend_ft.shape[0],1)
+        
+        if n_collection_ft.shape[0] < n_vec_extend_ft.shape[0]:
+            n_collection_ft = np.copy(n_vec_extend_ft)
+           # s_collection_ft.shape = (s_collection_ft.shape[0],1)
+        else:
+            n_collection_ft = np.column_stack((n_collection_ft,n_vec_extend_ft))
+        n_collection_colinds = choice(np.arange(n_collection_ft.shape[1],dtype=int),nelectrons+1) # add one for prompt
 
-        v_sim_ft = np.tile(s_vec_extend_ft,nelectrons)
-        #print('v_sim_ft.shape = ', v_sim_ft.shape)
         # first sum all the Weiner filtered and foureir_delay() signals, then add the single noise vector back
 
         nphotos = nelectrons//3
@@ -122,23 +146,31 @@ def main():
         nsigstars = nelectrons//3
         evec = fillcollection(e_photon = 700,e_ret = 0,nphotos=nphotos,npistars=npistars,nsigstars=nsigstars)
         sim_times = energy2time(evec,r=e_retardation)
-        print(sim_times.shape)
-        sim_times = np.row_stack((0,sim_times))
-        print('(shortest, longest) times [ns]\t(%i, %i)'%(np.min(sim_times),np.max(sim_times)))
+        sim_times = np.row_stack((0,sim_times)) # adds a prompt
+        print('(shortest, longest) times [ns]\t(%i, %i)'%(np.min(sim_times[1:]),np.max(sim_times[1:])))
 
-        v_simsum_ft = np.zeros(s_vec_extend_ft.shape,dtype=complex)
+        v_simsum_ft = np.zeros((s_collection_ft.shape[0],1),dtype=complex)
+        #print(s_collection_ft.shape)
         for i,t in enumerate(sim_times):
-            #delayvec = fourier_delay(f_extend,float(i**2)*30.)
-            v_simsum_ft[:,0] += s_vec_extend_ft[:,0] * fourier_delay(f_extend,t) #* fourier_delay(f_extend,10)#float(i**2)*10.)
-        v_simsum_ft += n_vec_extend_ft * nelectrons
+            #print(i,s_collection_colinds[i])
+            v_simsum_ft[:,0] += s_collection_ft[:,s_collection_colinds[i]] * fourier_delay(f_extend,t) 
+            v_simsum_ft[:,0] += n_collection_ft[:,n_collection_colinds[i]] 
+
+        #v_simsum_ft += n_vec_extend_ft * nelectrons
         v_simsum = np.real(IFFT(v_simsum_ft,axis=0))
         if collection.shape[0] < v_simsum.shape[0]:
             collection = t_extend
         collection = np.column_stack((collection,v_simsum))
-        out = np.column_stack((t_extend,v_simsum))
-        np.savetxt(outname_simTOF,out,fmt='%4f')
-    collection_name = '../data_fs/extern/waveforms.dat'
+        if samplefiles: 
+            out = np.column_stack((t_extend,v_simsum))
+            np.savetxt(outname_simTOF,out,fmt='%4f')
+    collection_name = '../data_fs/extern/waveforms.randomsources.dat'
     np.savetxt(collection_name,collection,fmt='%4f')
+
+
+    integration_name = '../data_fs/extern/integration.randomsources.dat'
+    np.savetxt(integration_name,np.column_stack((collection[:,0],np.sum(collection[:,1:],axis=1))),fmt='%4f')
+
     return 0
 
 if __name__ == '__main__':
