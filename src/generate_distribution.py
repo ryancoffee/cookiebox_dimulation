@@ -17,7 +17,10 @@ def samplegamma(a,c,loc,scale,n):
 def fillcollection(e_photon = 600., e_ret = 500. , nphotos=10,nsigstars=10,npistars=20):
     ph_a = 2.
     ph_scale = 1.
-    ph_ip = 20.
+    ph_ip = 540.
+    v_ip = 20.
+    v_scale = 1.
+    v_a = 2.
     sigstar_a = 5.
     sigstar_e=542.
     sigstar_scale = 0.5
@@ -27,6 +30,9 @@ def fillcollection(e_photon = 600., e_ret = 500. , nphotos=10,nsigstars=10,npist
     c , loc = 1. , 0.
     e = e_photon - ph_ip - e_ret + ph_a
     v =  e - samplegamma(a=ph_a,c=c,loc=loc,scale=ph_scale,n=nphotos)
+    #e = e_photon - v_ip - e_ret + sigstar_a
+    #if e>0:
+    #    v = row_stack( (v, e - samplegamma(a = v_a,c=c,loc=loc,scale=v_scale,n=nphotos//10)) )
     #print(v.shape)
     e = sigstar_e - e_ret + sigstar_a
     v = row_stack( (v, e - samplegamma(a = sigstar_a,c=1.,loc=0,scale=sigstar_scale,n=nsigstars)) )

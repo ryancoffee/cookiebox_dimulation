@@ -150,7 +150,13 @@ def simulate_tof(nwaveforms=10,nelectrons=12,e_retardation=530,e_photon=600):
         npistars = nelectrons//3
         nsigstars = nelectrons//3
         evec = fillcollection(e_photon = e_photon,e_ret = 0,nphotos=nphotos,npistars=npistars,nsigstars=nsigstars)
-        sim_times = energy2time(evec,r=e_retardation)
+        # d1-3 based on CookieBoxLayout_v2.3.dxf
+        d1 = 7.6/2.
+        d2 = 17.6/2.
+        d3 = 58.4/2. 
+        d3 -= d2
+        d2 -= d1
+        sim_times = energy2time(evec,r=15.) #,r=e_retardation) #,d1=d1,d2=d2,d3=d3)
         sim_times = np.row_stack((0,sim_times)) # adds a prompt
         print('(shortest, longest) times [ns]\t(%i, %i)'%(np.min(sim_times[1:]),np.max(sim_times[1:])))
 
@@ -178,7 +184,7 @@ def simulate_tof(nwaveforms=10,nelectrons=12,e_retardation=530,e_photon=600):
     return 0
 
 def main():
-    return simulate_tof(nwaveforms=200,nelectrons=12,e_retardation=520,e_photon=560)
+    return simulate_tof(nwaveforms=20,nelectrons=12,e_retardation=520,e_photon=560)
 
 if __name__ == '__main__':
     main()
