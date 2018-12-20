@@ -20,13 +20,14 @@ def energy2time(e,r=0,d1=2.5,d2=5,d3=35):
     mc2 = float(0.511e6)
     t = 1.e3 + np.zeros(e.shape,dtype=float);
     if r==0:
-        t = (d1+d2+d3)/C_cmPns * np.sqrt(mc2/(2.*e))
-        return t
+        return np.array([ (d1+d2+d3)/C_cmPns * np.sqrt(mc2/(2.*en)) for en in e if en > 0])
+    return np.array([d1/C_cmPns * np.sqrt(mc2/(2.*en)) + d3/C_cmPns * np.sqrt(mc2/(2.*(en-r))) + d2/C_cmPns * np.sqrt(2)*(mc2/r)*(np.sqrt(en/mc2) - np.sqrt((en-r)/mc2)) for en in e if en>r])
+    """
     inds = np.argwhere(e>r)
     t[inds] = d1/C_cmPns * np.sqrt(mc2/(2.*e[inds]))
     t[inds] += d3/C_cmPns * np.sqrt(mc2/(2.*(e[inds]-r)))
     t[inds] += d2/C_cmPns * np.sqrt(2)*(mc2/r)*(np.sqrt(e[inds]/mc2) - np.sqrt((e[inds]-r)/mc2))
-    return t
+    """
 
 def Weiner(f,s,n,cut,p):
     w=np.zeros(f.shape[0])
@@ -51,7 +52,7 @@ def fillimpulseresponses(s_collection_ft,n_collection_ft):
 
     print('num files = ',len(filelist))
 
-    for i,f in enumerate(filelist[:10]):
+    for i,f in enumerate(filelist):
 
         ## processing images 
         samplefiles = False
@@ -129,62 +130,67 @@ def fillimpulseresponses(s_collection_ft,n_collection_ft):
     return (s_collection_ft,n_collection_ft,f_extend,t_extend)
 
 
-def simulate_tof(nwaveforms=10,nelectrons=12,e_retardation=530,e_photon=600):
-    collection = np.array((0,1,2),dtype=float)
-    s_collection_ft = np.array((0,1,2),dtype=complex)
-    n_collection_ft = np.array((0,1,2),dtype=complex)
+def simulate_tof(nwaveforms=16,nelectrons=12,e_retardation=530,e_photon=600):
+    collection = np.array([0,1,2],dtype=float)
+    s_collection_ft = np.array([0,1,2],dtype=complex)
+    n_collection_ft = np.array([0,1,2],dtype=complex)
     (s_collection_ft,n_collection_ft,f_extend,t_extend) = fillimpulseresponses(s_collection_ft,n_collection_ft)
+    print(s_collection_ft.shape)
     dt = t_extend[1]-t_extend[0]
 
     #nwaveforms=10 # now a method input
     for i in range(nwaveforms):
         # this is for the incremental output as the collection is building
-        nelectrons = int(12)
-        s_collection_colinds = choice(np.arange(s_collection_ft.shape[1],dtype=int),nelectrons+1) # add one for prompt
-        n_collection_colinds = choice(np.arange(n_collection_ft.shape[1],dtype=int),nelectrons+1) # add one for prompt
-        #print(s_collection_colinds)
+        #nelectrons = int(16)
 
 
         #e_retardation = 530 ## now a method input
         nphotos = nelectrons//3
         npistars = nelectrons//3
         nsigstars = nelectrons//3
-        evec = fillcollection(e_photon = e_photon,e_ret = 0,nphotos=nphotos,npistars=npistars,nsigstars=nsigstars)
         # d1-3 based on CookieBoxLayout_v2.3.dxf
         d1 = 7.6/2.
         d2 = 17.6/2.
         d3 = 58.4/2. 
         d3 -= d2
         d2 -= d1
-        sim_times = energy2time(evec,r=15.) #,r=e_retardation) #,d1=d1,d2=d2,d3=d3)
-        sim_times = np.row_stack((0,sim_times)) # adds a prompt
-        print('(shortest, longest) times [ns]\t(%i, %i)'%(np.min(sim_times[1:]),np.max(sim_times[1:])))
+        evec = fillcollection(e_photon = e_photon,nphotos=nphotos,npistars=npistars,nsigstars=nsigstars)
+        sim_times = energy2time(evec,r=15.,d1=d1,d2=d2,d3=d3)
+        sim_times = np.append(sim_times,0.) # adds a prompt
 
-        v_simsum_ft = np.zeros((s_collection_ft.shape[0],1),dtype=complex)
+        s_collection_colinds = choice(s_collection_ft.shape[1],sim_times.shape[0]) 
+        n_collection_colinds = choice(n_collection_ft.shape[1],sim_times.shape[0]) 
+
+        v_simsum_ft = np.zeros(s_collection_ft.shape[0],dtype=complex)
+        
         for i,t in enumerate(sim_times):
-            #print(i,s_collection_colinds[i])
-            v_simsum_ft[:,0] += s_collection_ft[:,s_collection_colinds[i]] * fourier_delay(f_extend,t) 
-            v_simsum_ft[:,0] += n_collection_ft[:,n_collection_colinds[i]] 
+            #samplestring = 'enumerate sim_times returns\t%i\t%f' % (i,t)
+            #print(samplestring)
+            v_simsum_ft += s_collection_ft[:,s_collection_colinds[i]] * fourier_delay(f_extend,t) 
+            v_simsum_ft += n_collection_ft[:,n_collection_colinds[i]] 
 
         v_simsum = np.real(IFFT(v_simsum_ft,axis=0))
         if collection.shape[0] < v_simsum.shape[0]:
             collection = t_extend
         collection = np.column_stack((collection,v_simsum))
 
-    collection_name = '../data_fs/extern/waveforms.randomsources.dat'
+
+    return collection
+
+def main():
+
+    collection = simulate_tof(nwaveforms=16,nelectrons=12,e_retardation=530,e_photon=600)
+
+    ### Writing output files ###
+    collection_name = '../data_fs/extern/CookieBox_waveforms.randomsources.dat'
     np.savetxt(collection_name,collection,fmt='%4f')
 
-    collection_name = '../data_fs/extern/waveforms.randomsources'
+    collection_name = '../data_fs/extern/CookieBox_waveforms.randomsources'
     np.save(collection_name,collection)
 
     integration_name = '../data_fs/extern/integration.randomsources.dat'
     out = np.column_stack((collection[:,0],np.sum(collection[:,1:],axis=1)))
     np.savetxt(integration_name,out,fmt='%4f')
-
-    return 0
-
-def main():
-    return simulate_tof(nwaveforms=20,nelectrons=12,e_retardation=520,e_photon=560)
 
 if __name__ == '__main__':
     main()
