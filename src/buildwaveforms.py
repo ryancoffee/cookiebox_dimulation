@@ -6,6 +6,7 @@ import numpy as np
 from numpy import array as nparray
 from numpy import power as nppower
 from numpy import save as npsave
+from numpy import load as npload
 from numpy import abs as npabs
 from numpy import angle as npangle
 from numpy import sqrt as npsqrt
@@ -47,7 +48,8 @@ def fourier_delay(f,dt):
     ## IFFT{ F(w) exp(-i*w*tau) }
     return nprect(ones(f.shape),-f*2.*pi*dt)
 
-def fillimpulseresponses(s_collection_ft,n_collection_ft,printfiles = True,samplefiles = False):
+def fillimpulseresponses(printfiles = True,samplefiles = False):
+    (s_collection_ft,n_collection_ft) = (nparray([0,0,0],dtype=complex),nparray([0,0,0],dtype=complex))
     filepath = '../data_fs/ave1/'
     filematch = filepath + 'C1--LowPulseHighRes-in-100-out1700-an2100--*.txt'
     filelist = glob.glob(filematch)
@@ -142,12 +144,33 @@ def fillimpulseresponses(s_collection_ft,n_collection_ft,printfiles = True,sampl
 
     return (s_collection_ft,n_collection_ft,f_extend,t_extend)
 
+def readimpulseresponses(filepath='../data_fs/extern/'):
+    name = filepath + 'signal_collection_ft.npy'
+    s = npload(name)
+    name = filepath + 'noise_collection_ft.npy'
+    n = npload(name)
+    name = filepath + 'times_collection.npy'
+    t = npload(name)
+    name = filepath + 'frequencies_collection.npy'
+    f = npload(name)
+    return (s,n,f,t)
 
-def simulate_tof(nwaveforms=16,nelectrons=12,e_retardation=530,e_photon=600):
+def resimulate_tof(s,n,f,t):
+    '''
+    Same as below for simulate_tof()
+    Just this time we are inputing the alread built collection_ft etc.
+    '''
+    return collection
+
+def simulate_tof(nwaveforms=16,nelectrons=12,e_retardation=530,e_photon=600,printfiles=True):
     collection = nparray([0,1,2],dtype=float)
     s_collection_ft = nparray([0,1,2],dtype=complex)
     n_collection_ft = nparray([0,1,2],dtype=complex)
-    (s_collection_ft,n_collection_ft,f_extend,t_extend) = fillimpulseresponses(s_collection_ft,n_collection_ft,printfiles=True)
+    if printfiles:
+        (s_collection_ft,n_collection_ft,f_extend,t_extend) = fillimpulseresponses(printfiles=printfiles)
+    else:
+        infilepath = '../data_fs/extern/'
+        (s_collection_ft,n_collection_ft,f_extend,t_extend) = readimpulseresponses(infilepath)
     print(s_collection_ft.shape)
     dt = t_extend[1]-t_extend[0]
 
@@ -192,7 +215,8 @@ def simulate_tof(nwaveforms=16,nelectrons=12,e_retardation=530,e_photon=600):
 
 def main():
 
-    collection = simulate_tof(nwaveforms=16,nelectrons=12,e_retardation=530,e_photon=600)
+    ## set the printfiles option to false and you will simply read in the s_collection_ft etc. from ../data_fs/exter/*.npy
+    collection = simulate_tof(nwaveforms=16,nelectrons=12,e_retardation=530,e_photon=600,printfiles = False)
 
     ### Writing output files ###
     collection_name = '../data_fs/extern/CookieBox_waveforms.randomsources.dat'
