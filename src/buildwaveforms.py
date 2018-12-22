@@ -165,9 +165,9 @@ def simulate_cb(signal_ft,noise_ft,freqs,times,retardations,transmissions,intens
     imput also the retardations and transmissions as vectors
     '''
     angles = np.arange(retardations.shape[0])*2*pi/float(transmissions.shape[0])
-    nphotos = 20*gamma(transmissions*nppower(cos(angles),int(2))*intensity).astype(int)
-    npistars = 20*gamma(transmissions*intensity).astype(int)
-    nsigstars = 20*gamma(transmissions*intensity).astype(int)
+    nphotos = 50*gamma(transmissions*nppower(cos(angles),int(2))*intensity).astype(int)
+    npistars = 50*gamma(transmissions*intensity).astype(int)
+    nsigstars = 50*gamma(transmissions*intensity).astype(int)
     for i in range(retardations.shape[0]):
         evec = fillcollection(e_photon = photonenergy,nphotos=nphotos[i],npistars=npistars[i],nsigstars=nsigstars[i])
         # d1-3 based on CookieBoxLayout_v2.3.dxf
@@ -277,7 +277,7 @@ def main():
     imageoutpath = '../data_fs/raw/'
     nimages = int(10)
     xrayintensities = gengamma.rvs(a=2,c=1,loc=0,scale=1,size=nimages)
-    (nu_center, nu_width) = (600.,2.5)
+    (nu_center, nu_width) = (560.,2.5)
     photonenergies = nu_center+nu_width*randn(nimages)
 
     (s,n,f,t) = readimpulseresponses('../data_fs/extern/')
@@ -291,7 +291,11 @@ def main():
     print('### Writing output files ###')
     collection_name = imageoutpath + 'CookieBox_waveforms.image%04i.dat' % img
     print(collection_name)
-    savetxt(collection_name,collection,fmt='%4f')
+    savetxt(collection_name,collection[:,1:],fmt='%4f')
+
+    collection_name = imageoutpath + 'CookieBox_waveforms.times.dat'
+    print(collection_name)
+    savetxt(collection_name,collection[:,0],fmt='%4f')
 
 
 if __name__ == '__main__':
