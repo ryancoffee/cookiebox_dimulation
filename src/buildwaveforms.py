@@ -18,21 +18,27 @@ from numpy.fft import fft as FFT
 from numpy.fft import ifft as IFFT
 from numpy.fft import fftfreq as FREQ
 from scipy.constants import c
+from scipy.constants import physical_constants as pc
 from scipy.stats import gengamma
+
+(e_mc2,unit,err) = pc["electron mass energy equivalent in MeV"]
+e_mc2 *= 1e6 # eV now
+(re,unit,err) = pc["classical electron radius"]
+re *= 1e2 # in centimeters now
+
 
 from generate_distribution import fillcollection
 
 from cmath import rect
 nprect = vectorize(rect)
 
-def energy2time(e,r=0,d1=2.5,d2=5,d3=35):
+def energy2time(e,r=0,d1=3.75,d2=5,d3=35):
     #distances are in centimiters and energies are in eV and times are in ns
     C_cmPns = c*100.*1e-9
-    mc2 = float(0.511e6)
     t = 1.e3 + zeros(e.shape,dtype=float);
     if r==0:
-        return nparray([ (d1+d2+d3)/C_cmPns * npsqrt(mc2/(2.*en)) for en in e if en > 0])
-    return nparray([d1/C_cmPns * npsqrt(mc2/(2.*en)) + d3/C_cmPns * npsqrt(mc2/(2.*(en-r))) + d2/C_cmPns * npsqrt(2)*(mc2/r)*(npsqrt(en/mc2) - npsqrt((en-r)/mc2)) for en in e if en>r])
+        return nparray([ (d1+d2+d3)/C_cmPns * npsqrt(e_mc2/(2.*en)) for en in e if en > 0])
+    return nparray([d1/C_cmPns * npsqrt(e_mc2/(2.*en)) + d3/C_cmPns * npsqrt(e_mc2/(2.*(en-r))) + d2/C_cmPns * npsqrt(2)*(e_mc2/r)*(npsqrt(en/e_mc2) - npsqrt((en-r)/e_mc2)) for en in e if en>r])
 
 def Weiner(f,s,n,cut,p):
     w=zeros(f.shape[0])
