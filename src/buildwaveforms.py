@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 import glob
-import re
+import re as regexp
 import numpy as np
 from numpy import array as nparray
 from numpy import power as nppower
@@ -55,9 +55,14 @@ def fourier_delay(f,dt):
     ## IFFT{ F(w) exp(-i*w*tau) }
     return nprect(ones(f.shape),-f*2.*pi*dt)
 
+def fourier_delay_matrix(f,t):
+    fmat = np.tile(f,(t.shape[0],1)).T
+    tmat = np.tile(t,(f.shape[0],1))
+    return nprect(ones((f.shape[0],t.shape[0])),-2.*pi*fmat*tmat)
+
 def fillimpulseresponses(printfiles = True,samplefiles = False):
     (s_collection_ft,n_collection_ft) = (nparray([0,0,0],dtype=complex),nparray([0,0,0],dtype=complex))
-    filepath = '../data_fs/ave1/'
+    filepath = './data_fs/ave1/'
     filematch = filepath + 'C1--LowPulseHighRes-in-100-out1700-an2100--*.txt'
     filelist = glob.glob(filematch)
 
@@ -68,7 +73,7 @@ def fillimpulseresponses(printfiles = True,samplefiles = False):
 
         ## processing images 
         ## samplefiles = False
-        m = re.search('(.+).txt$',f)
+        m = regexp.search('(.+).txt$',f)
         if (i%10 == 0 and samplefiles):
             outname_spect = m.group(1) + '.spect.dat'
             outname_time = m.group(1) + '.time.dat'
@@ -139,7 +144,7 @@ def fillimpulseresponses(printfiles = True,samplefiles = False):
 
         # first sum all the Weiner filtered and foureir_delay() signals, then add the single noise vector back
     if printfiles:
-        outpath = '../data_fs/extern/'
+        outpath = './data_fs/extern/'
         filename = outpath + 'signal_collection_ft'
         npsave(filename,s_collection_ft)
         filename = outpath + 'noise_collection_ft'
@@ -151,7 +156,7 @@ def fillimpulseresponses(printfiles = True,samplefiles = False):
 
     return (s_collection_ft,n_collection_ft,f_extend,t_extend)
 
-def readimpulseresponses(filepath='../data_fs/extern/'):
+def readimpulseresponses(filepath='./data_fs/extern/'):
     name = filepath + 'signal_collection_ft.npy'
     s = npload(name)
     name = filepath + 'noise_collection_ft.npy'
@@ -187,16 +192,13 @@ def simulate_cb(signal_ft,noise_ft,freqs,times,retardations,transmissions,intens
         signal_colinds = choice(signal_ft.shape[1],sim_times.shape[0]) 
         noise_colinds = choice(noise_ft.shape[1],sim_times.shape[0]) 
         v_simsum_ft = zeros(signal_ft.shape[0],dtype=complex)
-        for i,t in enumerate(sim_times):
-            v_simsum_ft += signal_ft[:,signal_colinds[i]] * fourier_delay(freqs,t) 
-            v_simsum_ft += noise_ft[:,noise_colinds[i]] 
+        vmat_ft = signal_ft[:,signal_colinds] * fourier_delay_matrix(freqs,sim_times) 
+        nmat_ft = noise_ft[:,noise_colinds]
+        v_simsum = real(IFFT(npsum(vmat_ft + nmat_ft,axis=1),axis=0))
 
-        v_simsum = real(IFFT(v_simsum_ft,axis=0))
         if collection.shape[0] < v_simsum.shape[0]:
             collection = times
         collection = column_stack((collection,v_simsum))
-
-
 
     return collection
 
@@ -208,7 +210,7 @@ def simulate_tof(nwaveforms=16,nelectrons=12,e_retardation=530,e_photon=600,prin
     if printfiles:
         (s_collection_ft,n_collection_ft,f_extend,t_extend) = fillimpulseresponses(printfiles=printfiles)
     else:
-        infilepath = '../data_fs/extern/'
+        infilepath = './data_fs/extern/'
         (s_collection_ft,n_collection_ft,f_extend,t_extend) = readimpulseresponses(infilepath)
     print(s_collection_ft.shape)
     dt = t_extend[1]-t_extend[0]
@@ -261,32 +263,32 @@ def simulate_tof(nwaveforms=16,nelectrons=12,e_retardation=530,e_photon=600,prin
 
 def main():
 
-    ## set the printfiles option to false and you will simply read in the s_collection_ft etc. from ../data_fs/exter/*.npy
+    ## set the printfiles option to false and you will simply read in the s_collection_ft etc. from ./data_fs/exter/*.npy
     collection = simulate_tof(nwaveforms=16,nelectrons=12,e_retardation=530,e_photon=600,printfiles = False)
 
     ### Writing output files ###
     print('### Writing output files ###')
-    collection_name = '../data_fs/extern/CookieBox_waveforms.randomsources.dat'
+    collection_name = './data_fs/extern/CookieBox_waveforms.randomsources.dat'
     print(collection_name)
     savetxt(collection_name,collection,fmt='%4f')
 
-    collection_name = '../data_fs/extern/CookieBox_waveforms.randomsources'
+    collection_name = './data_fs/extern/CookieBox_waveforms.randomsources'
     print(collection_name)
     npsave(collection_name,collection)
 
-    integration_name = '../data_fs/extern/integration.randomsources.dat'
+    integration_name = './data_fs/extern/integration.randomsources.dat'
     print(integration_name)
     out = column_stack((collection[:,0],npsum(collection[:,1:],axis=1)))
     savetxt(integration_name,out,fmt='%4f')
 
 
-    imageoutpath = '../data_fs/raw/'
+    imageoutpath = './data_fs/raw/'
     nimages = int(10)
     xrayintensities = gengamma.rvs(a=2,c=1,loc=0,scale=1,size=nimages)
     (nu_center, nu_width) = (560.,2.5)
     photonenergies = nu_center+nu_width*randn(nimages)
 
-    (s,n,f,t) = readimpulseresponses('../data_fs/extern/')
+    (s,n,f,t) = readimpulseresponses('./data_fs/extern/')
     img = int(0)
     nwaveforms = int(16)
     retvec = ones(nwaveforms,dtype=float) * 520.
