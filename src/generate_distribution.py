@@ -4,9 +4,9 @@ from scipy.stats import gengamma as gamma
 from numpy import row_stack
 from numpy import concatenate as npconcatenate
 from numpy import array as nparray
-from numpy.random import shuffle
+from numpy.random import shuffle,rand
 from numpy import savetxt
-from numpy import save
+from numpy import save,cos,sin,pi
 from numpy import max as npmax
 
 
@@ -17,7 +17,7 @@ def samplegamma(a,c,loc,scale,n):
     #v = gamma.rvs(a=a,c=c,loc=loc,scale=scale,size=n)
     return gamma.rvs(a=a,c=c,loc=loc,scale=scale,size=n)
 
-def fillcollection(e_photon = 600., nphotos=10,nvalence=1,nsigstars=10,npistars=20):
+def fillcollection(e_photon = 600., nphotos=10,nvalence=1,nsigstars=10,npistars=20,angle = 0.):
     ph_a = 2.
     ph_scale = 1.
     ph_ip = 540.
@@ -31,7 +31,7 @@ def fillcollection(e_photon = 600., nphotos=10,nvalence=1,nsigstars=10,npistars=
     pistar_e=532.
     pistar_scale = 0.5
     c , loc = 1. , 0.
-    e = e_photon - ph_ip + ph_a - samplegamma(a=ph_a,c=c,loc=loc,scale=ph_scale,n=nphotos)
+    e = e_photon - ph_ip + ph_a - samplegamma(a=ph_a,c=c,loc=loc,scale=ph_scale,n=nphotos) + 40.*cos(angle)
     v = nparray([val for val in e if val >0])
     e = e_photon - v_ip  + v_a - samplegamma(a = v_a,c=c,loc=0,scale=v_scale,n=nvalence)
     v = npconcatenate( (v, nparray([val for val in e if val >0])))

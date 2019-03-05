@@ -12,8 +12,8 @@ from numpy import angle as npangle
 from numpy import sqrt as npsqrt
 from numpy import copy as npcopy
 from numpy import sum as npsum
-from numpy import column_stack, row_stack, mean, diff, savetxt, append, vectorize, pi, cos, ones, zeros, arange, argsort, interp, real, imag
-from numpy.random import choice, shuffle, gamma, randn
+from numpy import column_stack, row_stack, mean, diff, savetxt, append, vectorize, pi, cos, sin, ones, zeros, arange, argsort, interp, real, imag
+from numpy.random import choice, shuffle, gamma, randn,rand
 from numpy.fft import fft as FFT
 from numpy.fft import ifft as IFFT
 from numpy.fft import fftfreq as FREQ
@@ -177,10 +177,10 @@ def simulate_cb(signal_ft,noise_ft,freqs,times,retardations,transmissions,intens
     '''
     angles = np.arange(retardations.shape[0])*2*pi/float(transmissions.shape[0])
     nphotos = 50*gamma(transmissions*nppower(cos(angles),int(2))*intensity).astype(int)
-    npistars = 50*gamma(transmissions*intensity).astype(int)
-    nsigstars = 50*gamma(transmissions*intensity).astype(int)
+    npistars = 0*gamma(transmissions*intensity).astype(int)
+    nsigstars = 0*gamma(transmissions*intensity).astype(int)
     for i in range(retardations.shape[0]):
-        evec = fillcollection(e_photon = photonenergy,nphotos=nphotos[i],npistars=npistars[i],nsigstars=nsigstars[i])
+        evec = fillcollection(e_photon = photonenergy+25*cos(angles+2*pi*rand()),nphotos=nphotos[i],npistars=npistars[i],nsigstars=nsigstars[i],angle = i*2*pi/retardations.shape[0])
         # d1-3 based on CookieBoxLayout_v2.3.dxf
         d1 = 7.6/2.
         d2 = 17.6/2.
@@ -216,22 +216,25 @@ def simulate_tof(nwaveforms=16,nelectrons=12,e_retardation=530,e_photon=600,prin
     dt = t_extend[1]-t_extend[0]
 
     #nwaveforms=10 # now a method input
+    offset = 2*pi*rand()
     for i in range(nwaveforms):
         # this is for the incremental output as the collection is building
         #nelectrons = int(16)
 
 
         #e_retardation = 530 ## now a method input
-        nphotos = nelectrons//3
-        npistars = nelectrons//3
-        nsigstars = nelectrons//3
+        angle = i*2*pi/nwaveforms
+
+        nphotos = int(1. + float(nelectrons) * nppower(sin(angle+0.125),int(2)))
+        npistars = nelectrons//30
+        nsigstars = nelectrons//30
         # d1-3 based on CookieBoxLayout_v2.3.dxf
         d1 = 7.6/2.
         d2 = 17.6/2.
         d3 = 58.4/2. 
         d3 -= d2
         d2 -= d1
-        evec = fillcollection(e_photon = e_photon,nphotos=nphotos,npistars=npistars,nsigstars=nsigstars)
+        evec = fillcollection(e_photon = e_photon,nphotos=nphotos,npistars=npistars,nsigstars=nsigstars,angle = offset + angle)
         sim_times = energy2time(evec,r=15.,d1=d1,d2=d2,d3=d3)
         sim_times = append(sim_times,0.) # adds a prompt
 
@@ -264,15 +267,18 @@ def simulate_tof(nwaveforms=16,nelectrons=12,e_retardation=530,e_photon=600,prin
 def main():
 
     ## set the printfiles option to false and you will simply read in the s_collection_ft etc. from ./data_fs/exter/*.npy
-    collection = simulate_tof(nwaveforms=16,nelectrons=12,e_retardation=530,e_photon=600,printfiles = False)
+    collection = simulate_tof(nwaveforms=16,nelectrons=24,e_retardation=530,e_photon=605,printfiles = False)
+    collection += simulate_tof(nwaveforms=16,nelectrons=24,e_retardation=530,e_photon=610,printfiles = False)
+    collection += simulate_tof(nwaveforms=16,nelectrons=48,e_retardation=530,e_photon=620,printfiles = False)
+    collection += simulate_tof(nwaveforms=16,nelectrons=48,e_retardation=530,e_photon=600,printfiles = False)
 
     ### Writing output files ###
     print('### Writing output files ###')
-    collection_name = './data_fs/extern/CookieBox_waveforms.randomsources.dat'
+    collection_name = './data_fs/extern/CookieBox_waveforms.randomsources.sum4.1.dat'
     print(collection_name)
     savetxt(collection_name,collection,fmt='%4f')
 
-    collection_name = './data_fs/extern/CookieBox_waveforms.randomsources'
+    collection_name = './data_fs/extern/CookieBox_waveforms.randomsources.sum4.1'
     print(collection_name)
     npsave(collection_name,collection)
 
