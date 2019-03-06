@@ -297,8 +297,8 @@ def main():
     (s,n,f,t) = readimpulseresponses('./data_fs/extern/')
     img = int(0)
     nwaveforms = int(16)
-    retvec = ones(nwaveforms,dtype=float) * 520.
-    transvec = ones(nwaveforms,dtype=float)
+    retvec = ones((nwaveforms,1),dtype=float) * 520.
+    transvec = ones((nwaveforms,1),dtype=float)
     collection = simulate_cb(s,n,f,t,retardations=retvec,transmissions=transvec,intensity = xrayintensities[img],photonenergy=photonenergies[img])
 
     ### Writing output files ###
