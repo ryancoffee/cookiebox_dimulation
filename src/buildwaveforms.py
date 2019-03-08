@@ -4,6 +4,7 @@ import glob
 import re as regexp
 import numpy as np
 from numpy import array as nparray
+from numpy import concatenate as npconcatenate
 from numpy import power as nppower
 from numpy import save as npsave
 from numpy import load as npload
@@ -13,13 +14,14 @@ from numpy import sqrt as npsqrt
 from numpy import copy as npcopy
 from numpy import sum as npsum
 from numpy import column_stack, row_stack, mean, diff, savetxt, append, vectorize, pi, cos, sin, ones, zeros, arange, argsort, interp, real, imag
-from numpy.random import choice, shuffle, gamma, randn,rand
+from numpy.random import choice, shuffle, gamma, randn,rand,random_integers,permutation
 from numpy.fft import fft as FFT
 from numpy.fft import ifft as IFFT
 from numpy.fft import fftfreq as FREQ
 from scipy.constants import c
 from scipy.constants import physical_constants as pc
 from scipy.stats import gengamma
+from scipy.sparse import coo_matrix,csr_matrix,find
 
 (e_mc2,unit,err) = pc["electron mass energy equivalent in MeV"]
 e_mc2 *= 1e6 # eV now
@@ -203,7 +205,7 @@ def simulate_cb(signal_ft,noise_ft,freqs,times,retardations,transmissions,intens
     return collection
 
 
-def simulate_tof(nwaveforms=16,nelectrons=12,e_retardation=530,e_photon=600,printfiles=True):
+def simulate_tof(self,nwaveforms=16,nelectrons=12,e_retardation=530,e_photon=600,printfiles=True):
     collection = nparray([0,1,2],dtype=float)
     s_collection_ft = nparray([0,1,2],dtype=complex)
     n_collection_ft = nparray([0,1,2],dtype=complex)
@@ -220,8 +222,6 @@ def simulate_tof(nwaveforms=16,nelectrons=12,e_retardation=530,e_photon=600,prin
     for i in range(nwaveforms):
         # this is for the incremental output as the collection is building
         #nelectrons = int(16)
-
-
         #e_retardation = 530 ## now a method input
         angle = i*2*pi/nwaveforms
 
@@ -255,16 +255,114 @@ def simulate_tof(nwaveforms=16,nelectrons=12,e_retardation=530,e_photon=600,prin
         collection = column_stack((collection,v_simsum))
 
 
-    return collection
+    return self._collection
 
+def simulate_timeenergy(timeenergy,nchannels=16,e_retardation=0,energywin=(590,610),max_streak=20,printfiles = False):
+    # d1-3 based on CookieBoxLayout_v2.3.dxf
+    d1 = 7.6/2.
+    d2 = 17.6/2.
+    d3 = 58.4/2. 
+    d3 -= d2
+    d2 -= d1
+
+    _waveforms = nparray([0],dtype=float)
+    _times = nparray([0],dtype=float)
+    s_collection_ft = nparray([0],dtype=complex)
+    n_collection_ft = nparray([0],dtype=complex)
+    (tinds,einds,nelectrons)=find(timeenergy)
+    if printfiles:
+        (s_collection_ft,n_collection_ft,f_extend,t_extend) = fillimpulseresponses(printfiles=printfiles)
+    else:
+        infilepath = './data_fs/extern/'
+        (s_collection_ft,n_collection_ft,f_extend,t_extend) = readimpulseresponses(infilepath)
+
+    dt = t_extend[1]-t_extend[0]
+    carrier_phase = 2.*pi*rand()
+    sim_times = nparray([0],dtype=float)
+    waveforms=np.zeros((nchannels,len(t_extend)),dtype=float)
+    ToFs=nparray([],dtype=float)
+    Ens=nparray([],dtype=float)
+    for pulse in range(tinds.shape[0]):
+        #loop on pulse
+        carrier_phase += 2.*pi*(tinds[pulse]/timeenergy.shape[0])
+        photon_energy = energywin[0] + (energywin[1]-energywin[0])*einds[pulse]/timeenergy.shape[1]
+        tdata=nparray([],dtype=float)
+        edata=nparray([],dtype=float)
+        trowinds=nparray([],dtype=int)
+        erowinds=nparray([],dtype=int)
+        tindptr=nparray([0],int)
+        eindptr=nparray([0],int)
+        for chan in range(nchannels):
+            #loop on channels
+            angle = 2.*pi*chan/nchannels
+            nphotos = int(1.+ float(nelectrons[pulse]) * nppower(sin(angle+0.0625),int(2)))
+            evec = fillcollection(e_photon = photon_energy,nphotos=nphotos,npistars=0,nsigstars=0,nvalence=0,angle = carrier_phase + angle,max_streak = max_streak)
+            sim_times = energy2time(evec,r=15.,d1=d1,d2=d2,d3=d3)
+            edata = npconcatenate((edata,evec),axis=None)
+            tdata = npconcatenate((tdata,sim_times),axis=None)
+            trowinds = npconcatenate((trowinds,np.arange(sim_times.shape[0])),axis=None)
+            erowinds = npconcatenate((erowinds,np.arange(evec.shape[0])),axis=None)
+            tindptr = npconcatenate((tindptr,trowinds.shape[0]),axis=None)
+            eindptr = npconcatenate((eindptr,erowinds.shape[0]),axis=None)
+
+            #sim_times = append(sim_times,0.) # adds a prompt
+            s_collection_colinds = choice(s_collection_ft.shape[1],sim_times.shape[0]) 
+            n_collection_colinds = choice(n_collection_ft.shape[1],sim_times.shape[0]) 
+
+            v_simsum_ft = zeros(s_collection_ft.shape[0],dtype=complex)
+        
+            for i,t in enumerate(sim_times):
+                #samplestring = 'enumerate sim_times returns\t%i\t%f' % (i,t)
+                #print(samplestring)
+                v_simsum_ft += s_collection_ft[:,s_collection_colinds[i]] * fourier_delay(f_extend,t) 
+                v_simsum_ft += n_collection_ft[:,n_collection_colinds[i]] 
+
+            v_simsum = real(IFFT(v_simsum_ft,axis=0))
+            waveforms[chan,:] += v_simsum
+        if (ToFs.shape[0] < nchannels):
+            ToFs = csr_matrix((tdata,trowinds,tindptr),shape=(nchannels,max(trowinds)+1)).toarray()
+            Ens = csr_matrix((edata,erowinds,eindptr),shape=(nchannels,max(erowinds)+1)).toarray()
+        else:
+            ToFs = column_stack((ToFs,csr_matrix((tdata,trowinds,tindptr),shape=(nchannels,max(trowinds)+1)).toarray()))
+            Ens = column_stack((Ens,csr_matrix((edata,erowinds,eindptr),shape=(nchannels,max(erowinds)+1)).toarray()))
+
+    return (waveforms,ToFs,Ens)
 
 '''
+data = [10,20,30,40,50,60,70,80,90,100]
+inds = [1,2,3,1,3,2,3,4,1,2]
+indptr = [0,3,5,8,10]
+csr_matrix((data, inds, indptr), dtype=int).toarray()
+array([[  0,  10,  20,  30,   0],
+       [  0,  40,   0,  50,   0],
+       [  0,   0,  60,  70,  80],
+       [  0,  90, 100,   0,   0]])
+>>>
+'''
+
+'''
+
         ############
         HERE IS MAIN
         ############
 '''
 
 def main():
+    nimages = int(4)
+    ntbins=10
+    nebins=5
+    npulses = random_integers(1,3,nimages)
+    for img in range(nimages):
+        tinds = random_integers(0,ntbins-1,npulses[img])
+        einds = random_integers(0,nebins-1,npulses[img])
+        nelectrons = random_integers(1,3,npulses[img])
+        timeenergy = coo_matrix((nelectrons, (tinds,einds)),shape=(ntbins,nebins),dtype=int)
+        print(timeenergy.toarray())
+        (WaveForms,ToFs,Energies) = simulate_timeenergy(timeenergy,nchannels=16,e_retardation=0,energywin=(600,620),max_streak=50,printfiles = False)
+        print("ToFs = {}".format(ToFs))
+        print("Energies = {}".format(Energies))
+
+    return
 
     ## set the printfiles option to false and you will simply read in the s_collection_ft etc. from ./data_fs/exter/*.npy
     collection = simulate_tof(nwaveforms=16,nelectrons=24,e_retardation=530,e_photon=605,printfiles = False)
@@ -287,12 +385,12 @@ def main():
     out = column_stack((collection[:,0],npsum(collection[:,1:],axis=1)))
     savetxt(integration_name,out,fmt='%4f')
 
-
     imageoutpath = './data_fs/raw/'
-    nimages = int(10)
     xrayintensities = gengamma.rvs(a=2,c=1,loc=0,scale=1,size=nimages)
     (nu_center, nu_width) = (560.,2.5)
     photonenergies = nu_center+nu_width*randn(nimages)
+
+
 
     (s,n,f,t) = readimpulseresponses('./data_fs/extern/')
     img = int(0)
