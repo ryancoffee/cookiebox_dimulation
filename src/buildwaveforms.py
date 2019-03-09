@@ -169,94 +169,6 @@ def readimpulseresponses(filepath='./data_fs/extern/'):
     f = npload(name)
     return (s,n,f,t)
 
-def simulate_cb(signal_ft,noise_ft,freqs,times,retardations,transmissions,intensity=1.,photonenergy=600.,angle=0.,amplitude=50.):
-    collection = nparray([0,1,2],dtype=float)
-    '''
-    Same as below for simulate_tof()
-    Just this time we are inputing the alread built collection_ft etc.
-    input also the angle of streaking and amplitude of streaking
-    imput also the retardations and transmissions as vectors
-    '''
-    angles = np.arange(retardations.shape[0])*2*pi/float(transmissions.shape[0])
-    nphotos = 50*gamma(transmissions*nppower(cos(angles),int(2))*intensity).astype(int)
-    npistars = 0*gamma(transmissions*intensity).astype(int)
-    nsigstars = 0*gamma(transmissions*intensity).astype(int)
-    for i in range(retardations.shape[0]):
-        evec = fillcollection(e_photon = photonenergy+25*cos(angles+2*pi*rand()),nphotos=nphotos[i],npistars=npistars[i],nsigstars=nsigstars[i],angle = i*2*pi/retardations.shape[0])
-        # d1-3 based on CookieBoxLayout_v2.3.dxf
-        d1 = 7.6/2.
-        d2 = 17.6/2.
-        d3 = 58.4/2. 
-        d3 -= d2
-        d2 -= d1
-        sim_times = energy2time(evec,r=retardations[i],d1=d1,d2=d2,d3=d3)
-        sim_times = append(sim_times,0.) # adds a prompt
-        signal_colinds = choice(signal_ft.shape[1],sim_times.shape[0]) 
-        noise_colinds = choice(noise_ft.shape[1],sim_times.shape[0]) 
-        v_simsum_ft = zeros(signal_ft.shape[0],dtype=complex)
-        vmat_ft = signal_ft[:,signal_colinds] * fourier_delay_matrix(freqs,sim_times) 
-        nmat_ft = noise_ft[:,noise_colinds]
-        v_simsum = real(IFFT(npsum(vmat_ft + nmat_ft,axis=1),axis=0))
-
-        if collection.shape[0] < v_simsum.shape[0]:
-            collection = times
-        collection = column_stack((collection,v_simsum))
-
-    return collection
-
-
-def simulate_tof(self,nwaveforms=16,nelectrons=12,e_retardation=530,e_photon=600,printfiles=True):
-    collection = nparray([0,1,2],dtype=float)
-    s_collection_ft = nparray([0,1,2],dtype=complex)
-    n_collection_ft = nparray([0,1,2],dtype=complex)
-    if printfiles:
-        (s_collection_ft,n_collection_ft,f_extend,t_extend) = fillimpulseresponses(printfiles=printfiles)
-    else:
-        infilepath = './data_fs/extern/'
-        (s_collection_ft,n_collection_ft,f_extend,t_extend) = readimpulseresponses(infilepath)
-    print(s_collection_ft.shape)
-    dt = t_extend[1]-t_extend[0]
-
-    #nwaveforms=10 # now a method input
-    offset = 2*pi*rand()
-    for i in range(nwaveforms):
-        # this is for the incremental output as the collection is building
-        #nelectrons = int(16)
-        #e_retardation = 530 ## now a method input
-        angle = i*2*pi/nwaveforms
-
-        nphotos = int(1. + float(nelectrons) * nppower(sin(angle+0.125),int(2)))
-        npistars = nelectrons//30
-        nsigstars = nelectrons//30
-        # d1-3 based on CookieBoxLayout_v2.3.dxf
-        d1 = 7.6/2.
-        d2 = 17.6/2.
-        d3 = 58.4/2. 
-        d3 -= d2
-        d2 -= d1
-        evec = fillcollection(e_photon = e_photon,nphotos=nphotos,npistars=npistars,nsigstars=nsigstars,angle = offset + angle)
-        sim_times = energy2time(evec,r=15.,d1=d1,d2=d2,d3=d3)
-        sim_times = append(sim_times,0.) # adds a prompt
-
-        s_collection_colinds = choice(s_collection_ft.shape[1],sim_times.shape[0]) 
-        n_collection_colinds = choice(n_collection_ft.shape[1],sim_times.shape[0]) 
-
-        v_simsum_ft = zeros(s_collection_ft.shape[0],dtype=complex)
-        
-        for i,t in enumerate(sim_times):
-            #samplestring = 'enumerate sim_times returns\t%i\t%f' % (i,t)
-            #print(samplestring)
-            v_simsum_ft += s_collection_ft[:,s_collection_colinds[i]] * fourier_delay(f_extend,t) 
-            v_simsum_ft += n_collection_ft[:,n_collection_colinds[i]] 
-
-        v_simsum = real(IFFT(v_simsum_ft,axis=0))
-        if collection.shape[0] < v_simsum.shape[0]:
-            collection = t_extend
-        collection = column_stack((collection,v_simsum))
-
-
-    return self._collection
-
 def simulate_timeenergy(timeenergy,nchannels=16,e_retardation=0,energywin=(590,610),max_streak=20,printfiles = False):
     # d1-3 based on CookieBoxLayout_v2.3.dxf
     d1 = 7.6/2.
@@ -265,8 +177,6 @@ def simulate_timeenergy(timeenergy,nchannels=16,e_retardation=0,energywin=(590,6
     d3 -= d2
     d2 -= d1
 
-    _waveforms = nparray([0],dtype=float)
-    _times = nparray([0],dtype=float)
     s_collection_ft = nparray([0],dtype=complex)
     n_collection_ft = nparray([0],dtype=complex)
     (tinds,einds,nelectrons)=find(timeenergy)
@@ -328,20 +238,8 @@ def simulate_timeenergy(timeenergy,nchannels=16,e_retardation=0,energywin=(590,6
 
     return (waveforms,ToFs,Ens)
 
-'''
-data = [10,20,30,40,50,60,70,80,90,100]
-inds = [1,2,3,1,3,2,3,4,1,2]
-indptr = [0,3,5,8,10]
-csr_matrix((data, inds, indptr), dtype=int).toarray()
-array([[  0,  10,  20,  30,   0],
-       [  0,  40,   0,  50,   0],
-       [  0,   0,  60,  70,  80],
-       [  0,  90, 100,   0,   0]])
->>>
-'''
 
 '''
-
         ############
         HERE IS MAIN
         ############
@@ -352,62 +250,27 @@ def main():
     ntbins=10
     nebins=5
     npulses = random_integers(1,3,nimages)
+    imageoutpath = './data_fs/raw/'
     for img in range(nimages):
         tinds = random_integers(0,ntbins-1,npulses[img])
         einds = random_integers(0,nebins-1,npulses[img])
-        nelectrons = random_integers(1,3,npulses[img])
+        nelectrons = random_integers(10,30,npulses[img])
         timeenergy = coo_matrix((nelectrons, (tinds,einds)),shape=(ntbins,nebins),dtype=int)
-        print(timeenergy.toarray())
-        (WaveForms,ToFs,Energies) = simulate_timeenergy(timeenergy,nchannels=16,e_retardation=0,energywin=(600,620),max_streak=50,printfiles = False)
-        print("ToFs = {}".format(ToFs))
-        print("Energies = {}".format(Energies))
-
+        (WaveForms,ToFs,Energies) = simulate_timeenergy(timeenergy,nchannels=16,e_retardation=0,energywin=(600,610),max_streak=50,printfiles = False)
+        print('### Writing output files for image {}###'.format(img))
+        filename = '%sCookieBox_waveforms.image%04i.dat' % (imageoutpath,img)
+        print(filename)
+        savetxt(filename,WaveForms,fmt='%.4f')
+        filename = '%sCookieBox_ToFs.image%04i.dat' % (imageoutpath,img)
+        print(filename)
+        savetxt(filename,ToFs,fmt='%.4f')
+        filename = '%sCookieBox_Energies.image%04i.dat' % (imageoutpath,img)
+        print(filename)
+        savetxt(filename,Energies,fmt='%.4f')
+        filename = '%sCookieBox_timeenergy.image%04i.dat' % (imageoutpath,img)
+        print(filename)
+        savetxt(filename,timeenergy.toarray(),fmt='%i')
     return
-
-    ## set the printfiles option to false and you will simply read in the s_collection_ft etc. from ./data_fs/exter/*.npy
-    collection = simulate_tof(nwaveforms=16,nelectrons=24,e_retardation=530,e_photon=605,printfiles = False)
-    collection += simulate_tof(nwaveforms=16,nelectrons=24,e_retardation=530,e_photon=610,printfiles = False)
-    collection += simulate_tof(nwaveforms=16,nelectrons=48,e_retardation=530,e_photon=620,printfiles = False)
-    collection += simulate_tof(nwaveforms=16,nelectrons=48,e_retardation=530,e_photon=600,printfiles = False)
-
-    ### Writing output files ###
-    print('### Writing output files ###')
-    collection_name = './data_fs/extern/CookieBox_waveforms.randomsources.sum4.1.dat'
-    print(collection_name)
-    savetxt(collection_name,collection,fmt='%4f')
-
-    collection_name = './data_fs/extern/CookieBox_waveforms.randomsources.sum4.1'
-    print(collection_name)
-    npsave(collection_name,collection)
-
-    integration_name = './data_fs/extern/integration.randomsources.dat'
-    print(integration_name)
-    out = column_stack((collection[:,0],npsum(collection[:,1:],axis=1)))
-    savetxt(integration_name,out,fmt='%4f')
-
-    imageoutpath = './data_fs/raw/'
-    xrayintensities = gengamma.rvs(a=2,c=1,loc=0,scale=1,size=nimages)
-    (nu_center, nu_width) = (560.,2.5)
-    photonenergies = nu_center+nu_width*randn(nimages)
-
-
-
-    (s,n,f,t) = readimpulseresponses('./data_fs/extern/')
-    img = int(0)
-    nwaveforms = int(16)
-    retvec = ones((nwaveforms,1),dtype=float) * 520.
-    transvec = ones((nwaveforms,1),dtype=float)
-    collection = simulate_cb(s,n,f,t,retardations=retvec,transmissions=transvec,intensity = xrayintensities[img],photonenergy=photonenergies[img])
-
-    ### Writing output files ###
-    print('### Writing output files ###')
-    collection_name = imageoutpath + 'CookieBox_waveforms.image%04i.dat' % img
-    print(collection_name)
-    savetxt(collection_name,collection[:,1:],fmt='%4f')
-
-    collection_name = imageoutpath + 'CookieBox_waveforms.times.dat'
-    print(collection_name)
-    savetxt(collection_name,collection[:,0],fmt='%4f')
 
 
 if __name__ == '__main__':
