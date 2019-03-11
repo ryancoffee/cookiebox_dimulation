@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+from timeit import timeit
+from timeit import default_timer as timer
 import sys
 import glob
 import re as regexp
@@ -247,22 +249,24 @@ def simulate_timeenergy(timeenergy,nchannels=16,e_retardation=0,energywin=(590,6
 '''
 
 def main():
-    nimages = int(100)
+    nimages = int(10)
     if len(sys.argv)>1:
-        nimages = sys.argv[1]
-    print(nimages)
-    return
+        nimages = int(sys.argv[1])
+    print('building {} image files'.format(nimages))
     ntbins=8
     nebins=8
     npulses = random_integers(1,4,nimages)
     imageoutpath = './data_fs/raw/'
+    start = timer()
     for img in range(nimages):
+        imstart = timer()
         tinds = random_integers(0,ntbins-1,npulses[img])
         einds = random_integers(0,nebins-1,npulses[img])
         nelectrons = random_integers(10,30,npulses[img])
         timeenergy = coo_matrix((nelectrons, (tinds,einds)),shape=(ntbins,nebins),dtype=int)
         (WaveForms,ToFs,Energies) = simulate_timeenergy(timeenergy,nchannels=16,e_retardation=0,energywin=(600,610),max_streak=50,printfiles = False)
-        print('### Writing output files for image {}###'.format(img))
+        imstop = timer() 
+        comptime = float(imstop - imstart)
         filename = '%sCookieBox_waveforms.%ipulses.image%04i.dat' % (imageoutpath,npulses[img],img)
         savetxt(filename,WaveForms,fmt='%.4f')
         filename = '%sCookieBox_ToFs.%ipulses.image%04i.dat' % (imageoutpath,npulses[img],img)
@@ -271,6 +275,10 @@ def main():
         savetxt(filename,Energies,fmt='%.4f')
         filename = '%sCookieBox_timeenergy.%ipulses.image%04i.dat' % (imageoutpath,npulses[img],img)
         savetxt(filename,timeenergy.toarray(),fmt='%i')
+        wstop = timer()
+        writetime = float(wstop - imstop)*1e3
+        print('### Output files for image %i took %.4f s to generate and %.1f ms to write ###' % (img,comptime,writetime))
+    print('### Whole loop of {} images took {}s'.format(nimages,timer()-start))
     return
 
 
