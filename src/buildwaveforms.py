@@ -18,6 +18,7 @@ from numpy import copy as npcopy
 from numpy import sum as npsum
 from numpy import column_stack, row_stack, mean, diff, savetxt, append, vectorize, pi, cos, sin, ones, zeros, arange, argsort, interp, real, imag
 from numpy.random import choice, shuffle, gamma, randn,rand,random_integers,permutation
+from random import randrange, randint
 from numpy.fft import fft as FFT
 from numpy.fft import ifft as IFFT
 from numpy.fft import fftfreq as FREQ
@@ -255,25 +256,25 @@ def main():
     print('building {} image files'.format(nimages))
     ntbins=8
     nebins=8
-    npulses = random_integers(1,4,nimages)
     imageoutpath = './data_fs/raw/'
     start = timer()
     for img in range(nimages):
+        npulses = randrange(1,5)
         imstart = timer()
-        tinds = random_integers(0,ntbins-1,npulses[img])
-        einds = random_integers(0,nebins-1,npulses[img])
-        nelectrons = random_integers(10,30,npulses[img])
+        tinds = [randrange(ntbins) for i in range(npulses)]
+        einds = [randrange(nebins) for i in range(npulses)]
+        nelectrons = [randrange(10,30) for i in range(npulses)]
         timeenergy = coo_matrix((nelectrons, (tinds,einds)),shape=(ntbins,nebins),dtype=int)
         (WaveForms,ToFs,Energies) = simulate_timeenergy(timeenergy,nchannels=16,e_retardation=0,energywin=(600,610),max_streak=50,printfiles = False)
         imstop = timer() 
         comptime = float(imstop - imstart)
-        filename = '%sCookieBox_waveforms.%ipulses.image%04i.dat' % (imageoutpath,npulses[img],img)
+        filename = '%sCookieBox_waveforms.%ipulses.image%04i.dat' % (imageoutpath,npulses,img)
         savetxt(filename,WaveForms,fmt='%.4f')
-        filename = '%sCookieBox_ToFs.%ipulses.image%04i.dat' % (imageoutpath,npulses[img],img)
+        filename = '%sCookieBox_ToFs.%ipulses.image%04i.dat' % (imageoutpath,npulses,img)
         savetxt(filename,ToFs,fmt='%.4f')
-        filename = '%sCookieBox_Energies.%ipulses.image%04i.dat' % (imageoutpath,npulses[img],img)
+        filename = '%sCookieBox_Energies.%ipulses.image%04i.dat' % (imageoutpath,npulses,img)
         savetxt(filename,Energies,fmt='%.4f')
-        filename = '%sCookieBox_timeenergy.%ipulses.image%04i.dat' % (imageoutpath,npulses[img],img)
+        filename = '%sCookieBox_timeenergy.%ipulses.image%04i.dat' % (imageoutpath,npulses,img)
         savetxt(filename,timeenergy.toarray(),fmt='%i')
         wstop = timer()
         writetime = float(wstop - imstop)*1e3
