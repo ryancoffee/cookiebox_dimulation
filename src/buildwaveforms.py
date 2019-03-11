@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import sys
 import glob
 import re as regexp
 import numpy as np
@@ -247,6 +248,10 @@ def simulate_timeenergy(timeenergy,nchannels=16,e_retardation=0,energywin=(590,6
 
 def main():
     nimages = int(100)
+    if len(sys.argv)>1:
+        nimages = sys.argv[1]
+    print(nimages)
+    return
     ntbins=8
     nebins=8
     npulses = random_integers(1,4,nimages)
