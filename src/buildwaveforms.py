@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+from multiprocessing import Process, cpu_count, Pool
 from timeit import timeit
 from timeit import default_timer as timer
 import sys
@@ -249,16 +250,10 @@ def simulate_timeenergy(timeenergy,nchannels=16,e_retardation=0,energywin=(590,6
         ############
 '''
 
-def main():
-    nimages = int(10)
-    if len(sys.argv)>1:
-        nimages = int(sys.argv[1])
-    print('building {} image files'.format(nimages))
-    ntbins=8
-    nebins=8
-    imageoutpath = './data_fs/raw/'
-    start = timer()
-    for img in range(nimages):
+def computeImages(img):
+        ntbins=8
+        nebins=8
+        imageoutpath = './data_fs/raw/'
         npulses = randrange(1,5)
         imstart = timer()
         tinds = [randrange(ntbins) for i in range(npulses)]
@@ -277,9 +272,21 @@ def main():
         filename = '%sCookieBox_timeenergy.%ipulses.image%04i.dat' % (imageoutpath,npulses,img)
         savetxt(filename,timeenergy.toarray(),fmt='%i')
         wstop = timer()
-        writetime = float(wstop - imstop)*1e3
-        print('### Output files for image %i took %.4f s to generate and %.1f ms to write ###' % (img,comptime,writetime))
-    print('### Whole loop of {} images took {}s'.format(nimages,timer()-start))
+        writetime = float(wstop - imstop)
+        print('### Output files for image %i took %.3f s to generate and %.3f s to write ###' % (img,comptime,writetime))
+
+def main():
+    nimages = int(10)
+    if len(sys.argv)>1:
+        nimages = int(sys.argv[1])
+    print('building {} image files'.format(nimages))
+    start = timer()
+    imglist = [(i,) for i in range(nimages)]
+    print('Num cpus used: {}'.format(cpu_count()*3//4))
+    pool = Pool(cpu_count()*3//4)
+    pool.starmap(computeImages, imglist)
+    stop = timer()
+    print('### Whole loop of %i images took %.3f s' % (nimages,stop-start))
     return
 
 
