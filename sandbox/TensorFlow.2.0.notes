@@ -1,0 +1,78 @@
+First impressions:
+Python developer... too much boiler plate
+	2.0 is trying to improve user experience and feels more pythonic
+	@dynamicwebpaige
+	Paige Bailey
+
+Alpha Fold for pretein folding
+	DeepMind beat the scientific folding
+	Working on MedicalBrain from Google AI
+
+	TensorFlow 2.0
+	pip install --pre -U tensorflow
+
+	supports cuda10 and up likely
+
+	Committed to migrate to python3
+
+	tf.keras as recommended high level API
+		Could still use estimators
+		
+
+	Eager execution by default, don't have to initialize all variable
+
+
+	tf.raw_ops to access the low level ops
+
+	Inheritable interfaces.
+
+	TensorFlow datasets tfds
+
+
+	tesnsorboard is now incoorporated in jupyterlab and google collab
+	Also perfomace metrics also 
+
+	Specific TPUStrategy() is coming soon... still have to do quantization yourself
+
+	tf.upgrade
+
+
+	Final release ~ summer.
+
+	http://tiny.cc/tensorflow-gsoc for students to apply... maybe Li?  Work on opensource projects for stipend.
+		Let Arora know about this too.
+
+Try to get Paige to come to SLAC to host a course series for the ML effort.	
+
+
+#PoweredByTF Challenge
+
+
+EdgeTPU kits using TF Lite, need to port with savemodel, then TFLite can push model to the EdgeTPU
+
+Coral.withgoodle.com/models
+
+Model compiler is proprietary but custom models can compiled to EdgeTPU
+
+
+Data privacy:
+	github.com/tensorflow/federated
+	train models on data that the user has no access to see.
+
+	Emoji scavenger hunt...
+
+
+
+Look up TensorFlow Extended
+	www.tensorflow.org/tfx
+
+
+
+Look up KDD 2017, Applied Data Science Paper
+Stevenwhang.com/tfx_paper.pdf
+
+
+
+Constraint for ONNX... frameworks are still evolving, so proting model will likely fail or won't achieve performance if porting from the native framework to a new framework.
+
+

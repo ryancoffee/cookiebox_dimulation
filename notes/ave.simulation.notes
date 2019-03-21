@@ -1,0 +1,9 @@
+Original Pulse 
+Generated in ~1ms
+Projected onto VN basis functions in .0625s
+VN coefficients visualized as a 10x10 time frequency grid spanning the space:
+Time to set-up computation for a given streak field intesity: 14s
+Constructed original probability function (once computation is set up) in .67s:
+Assembled projected probability function in .1875s
+Time to generate 3 samplings of 1600 hits spread over 16 detectors is: .25s
+
