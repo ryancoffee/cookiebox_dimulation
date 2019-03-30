@@ -28,6 +28,9 @@ from scipy.constants import physical_constants as pc
 from scipy.stats import gengamma
 from scipy.sparse import coo_matrix,csr_matrix,find
 
+from tensorflow import python_io as tf_python_io
+from tensorflow import train as tf_train
+
 (e_mc2,unit,err) = pc["electron mass energy equivalent in MeV"]
 e_mc2 *= 1e6 # eV now
 (re,unit,err) = pc["classical electron radius"]
@@ -251,6 +254,7 @@ def simulate_timeenergy(timeenergy,nchannels=16,e_retardation=0,energywin=(590,6
 '''
 
 def computeImages(img):
+        nchannels = 16
         ntbins=8
         nebins=8
         imageoutpath = './data_fs/raw/'
@@ -260,7 +264,7 @@ def computeImages(img):
         einds = [randrange(nebins) for i in range(npulses)]
         nelectrons = [randrange(10,30) for i in range(npulses)]
         timeenergy = coo_matrix((nelectrons, (tinds,einds)),shape=(ntbins,nebins),dtype=int)
-        (WaveForms,ToFs,Energies) = simulate_timeenergy(timeenergy,nchannels=16,e_retardation=0,energywin=(600,610),max_streak=50,printfiles = False)
+        (WaveForms,ToFs,Energies) = simulate_timeenergy(timeenergy,nchannels=nchannels,e_retardation=0,energywin=(600,610),max_streak=50,printfiles = False)
         imstop = timer() 
         comptime = float(imstop - imstart)
         filename = '%sCookieBox_waveforms.%ipulses.image%04i.dat' % (imageoutpath,npulses,img)
@@ -274,17 +278,42 @@ def computeImages(img):
         wstop = timer()
         writetime = float(wstop - imstop)
         print('### Output files for image %i took %.3f s to generate and %.3f s to write ###' % (img,comptime,writetime))
+        return (nchannels,ntbins,nebins,npulses,WaveForms,ToFs,Energies,timeenergy.toarray())
 
 def main():
-    nimages = int(10)
+    nimages = int(4)
     if len(sys.argv)>1:
         nimages = int(sys.argv[1])
     print('building {} image files'.format(nimages))
     start = timer()
+    tfrecordoutpath = './data_fs/raw/'
+    filename = '%sCookieBox.tfrecords' % (tfrecordoutpath)
+    writer = tf_python_io.TFRecordWriter(filename)
+    for i in range(nimages):
+        (nchannels,ntbins,nebins,npulses,WaveForms,ToFs,Energies,timeenergy) = computeImages(i)
+        waveforms_tf = WaveForms.tostring()
+        ToFs_tf = ToFs.tostring()
+        Energies_tf = Energies.tostring()
+        simsample_tf = tf_train.Example(features = tf_train.Features(feature={
+        'nangles': tf_train.Feature(int64_list=tf_train.Int64List(value = [nchannels])),
+        'ntbins': tf_train.Feature(int64_list=tf_train.Int64List(value = [ntbins])),
+        'nebins': tf_train.Feature(int64_list=tf_train.Int64List(value = [nebins])),
+        'npulses': tf_train.Feature(int64_list=tf_train.Int64List(value = [npulses])),
+        'waveforms': tf_train.Feature(bytes_list=tf_train.BytesList(value = [WaveForms.tostring()])),
+        'tofs': tf_train.Feature(bytes_list=tf_train.BytesList(value = [ToFs.tostring()])),
+        'energies': tf_train.Feature(bytes_list=tf_train.BytesList(value = [Energies.tostring()])),
+        'timeenergy': tf_train.Feature(bytes_list=tf_train.BytesList(value = [timeenergy.tostring()]))
+        }
+        ))
+    writer.write(simsample_tf.SerializeToString())
+    writer.close()
+
+    '''
     imglist = [(i,) for i in range(nimages)]
     print('Num cpus used: {}'.format(cpu_count()*3//4))
     pool = Pool(cpu_count()*3//4)
     pool.starmap(computeImages, imglist)
+    '''
     stop = timer()
     print('### Whole loop of %i images took %.3f s' % (nimages,stop-start))
     return
