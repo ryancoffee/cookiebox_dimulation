@@ -329,6 +329,7 @@ def main():
     coord = tf_train.Coordinator()
     processes = []
     tfrecordoutpath = './data_fs/raw/tf_record_files/'
+    metafilename = '%sCookieBox.metadata' % (tfrecordoutpath)
     for i in range(nimages):
         filename = '%sCookieBox.tfrecord.%06i' % (tfrecordoutpath,i)
         writer = tf_python_io.TFRecordWriter(filename)
