@@ -246,7 +246,11 @@ def simulate_timeenergy(timeenergy,nchannels=16,e_retardation=0,energywin=(590,6
 
     return (waveforms,ToFs,Ens)
 
-def computeImages(nelectronsrange=(10,30),nchannels=16,ntbins=8,nebins=8):
+def computeImages(nchannels):
+        nelectronsrange = (5,10)
+        nchannels=nchannels
+        ntbins=8
+        nebins=8
         npulses = randrange(1,5)
         tinds = [randrange(ntbins) for i in range(npulses)]
         einds = [randrange(nebins) for i in range(npulses)]
@@ -255,6 +259,7 @@ def computeImages(nelectronsrange=(10,30),nchannels=16,ntbins=8,nebins=8):
         (WaveForms,ToFs,Energies) = simulate_timeenergy(timeenergy,nchannels=nchannels,e_retardation=0,energywin=(600,610),max_streak=50,printfiles = False)
         return (nchannels,ntbins,nebins,npulses,WaveForms,ToFs,Energies,timeenergy.toarray())
 
+'''
 def computeImages(img): ## depricated
         nchannels = 16
         ntbins=8
@@ -281,31 +286,16 @@ def computeImages(img): ## depricated
         writetime = float(wstop - imstop)
         print('### Output files for image %i took %.3f s to generate and %.3f s to write ###' % (img,comptime,writetime))
         return (nchannels,ntbins,nebins,npulses,WaveForms,ToFs,Energies,timeenergy.toarray())
-
-'''
-        ############
-        HERE IS MAIN
-        ############
 '''
 
-
-def main():
-    nimages = int(4)
-    if len(sys.argv)>1:
-        nimages = int(sys.argv[1])
-    print('building {} image files'.format(nimages))
-    start = timer()
-    tfrecordoutpath = './data_fs/raw/'
-    filename = '%sCookieBox.tfrecords' % (tfrecordoutpath)
-    writer = tf_python_io.TFRecordWriter(filename)
-    #coord = tf.train.Coordinator()
-    #processes = []
-    for i in range(nimages):
-        (nchannels,ntbins,nebins,npulses,WaveForms,ToFs,Energies,timeenergy) = computeImages((40,60),16,8,8)
-        waveforms_tf = WaveForms.tostring()
-        ToFs_tf = ToFs.tostring()
-        Energies_tf = Energies.tostring()
-        simsample_tf = tf_train.Example(features = tf_train.Features(feature={
+def spawnprocess(nchannels=16):
+    print('starting image')
+    (nchannels,ntbins,nebins,npulses,WaveForms,ToFs,Energies,timeenergy) = computeImages(nchannels)
+    waveforms_tf = WaveForms.tostring()
+    ToFs_tf = ToFs.tostring()
+    Energies_tf = Energies.tostring()
+    print('building TFRecord for image')
+    simsample_tf = tf_train.Example(features = tf_train.Features(feature={
         'nangles': tf_train.Feature(int64_list=tf_train.Int64List(value = [nchannels])),
         'ntbins': tf_train.Feature(int64_list=tf_train.Int64List(value = [ntbins])),
         'nebins': tf_train.Feature(int64_list=tf_train.Int64List(value = [nebins])),
@@ -316,8 +306,36 @@ def main():
         'timeenergy': tf_train.Feature(bytes_list=tf_train.BytesList(value = [timeenergy.tostring()]))
         }
         ))
-    #coord.join(processes)
     writer.write(simsample_tf.SerializeToString())
+    print('finished image')
+
+'''
+https://www.tensorflow.org/guide/datasets#preprocessing_data_with_datasetmap
+'''
+
+'''
+        ############
+        HERE IS MAIN
+        ############
+'''
+	
+
+def main():
+    nimages = int(4)
+    if len(sys.argv)>1:
+        nimages = int(sys.argv[1])
+    print('building {} image files'.format(nimages))
+    start = timer()
+    coord = tf_train.Coordinator()
+    processes = []
+    tfrecordoutpath = './data_fs/raw/tf_record_files/'
+    for i in range(nimages):
+        filename = '%sCookieBox.tfrecord.%06i' % (tfrecordoutpath,i)
+        writer = tf_python_io.TFRecordWriter(filename)
+        p = Process(target=spawnprocess, args=[16])
+        p.start()
+        processes.append(p)
+    coord.join(processes)
     writer.close()
 
     '''
