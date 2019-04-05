@@ -288,8 +288,11 @@ def computeImages(img): ## depricated
         return (nchannels,ntbins,nebins,npulses,WaveForms,ToFs,Energies,timeenergy.toarray())
 '''
 
-def spawnprocess(nchannels=16):
+def spawnprocess(nchannels=16,i = 0,tfrecordoutpath = './data_fs/raw/tf_record_files/'):
     print('starting image')
+    metafilename = '%sCookieBox.metadata' % (tfrecordoutpath)
+    filename = '%sCookieBox.tfrecord.%06i' % (tfrecordoutpath,i)
+    writer = tf_python_io.TFRecordWriter(filename)
     (nchannels,ntbins,nebins,npulses,WaveForms,ToFs,Energies,timeenergy) = computeImages(nchannels)
     waveforms_tf = WaveForms.tostring()
     ToFs_tf = ToFs.tostring()
@@ -307,6 +310,7 @@ def spawnprocess(nchannels=16):
         }
         ))
     writer.write(simsample_tf.SerializeToString())
+    writer.close()
     print('finished image')
 
 '''
@@ -322,30 +326,28 @@ https://www.tensorflow.org/guide/datasets#preprocessing_data_with_datasetmap
 
 def main():
     nimages = int(4)
+    nchannels = 16
+    tfrecordoutpath = './data_fs/raw/tf_record_files/'
     if len(sys.argv)>1:
         nimages = int(sys.argv[1])
     print('building {} image files'.format(nimages))
     start = timer()
+    '''
     coord = tf_train.Coordinator()
     processes = []
-    tfrecordoutpath = './data_fs/raw/tf_record_files/'
-    metafilename = '%sCookieBox.metadata' % (tfrecordoutpath)
+
     for i in range(nimages):
-        filename = '%sCookieBox.tfrecord.%06i' % (tfrecordoutpath,i)
-        writer = tf_python_io.TFRecordWriter(filename)
-        p = Process(target=spawnprocess, args=[16])
+        p = Process(target=spawnprocess, args=[nchannels, i, tfrecordoutpath])
         p.start()
         processes.append(p)
     coord.join(processes)
-    writer.close()
 
     '''
-    imglist = [(i,) for i in range(nimages)]
+    argslist = [(nchannels,i,tfrecordoutpath) for i in range(nimages)]
     print('Num cpus used: {}'.format(cpu_count()*3//4))
     pool = Pool(cpu_count()*3//4)
-    pool.starmap(computeImages, imglist)
+    pool.starmap(spawnprocess, argslist)
 
-    '''
     stop = timer()
     print('### Whole loop of %i images took %.3f s' % (nimages,stop-start))
     return
