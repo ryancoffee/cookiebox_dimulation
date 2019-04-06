@@ -1,6 +1,9 @@
 #!/usr/bin/python3
 
-from multiprocessing import Process, cpu_count, Pool
+from hashlib import sha1,sha256
+from multiprocessing import Process,cpu_count,Pool
+from ctypes import Structure,c_double,c_int,c_uint,c_wchar_p
+from multiprocessing.sharedctypes import Value,Array
 from timeit import timeit
 from timeit import default_timer as timer
 import sys
@@ -259,35 +262,6 @@ def computeImages(nchannels):
         (WaveForms,ToFs,Energies) = simulate_timeenergy(timeenergy,nchannels=nchannels,e_retardation=0,energywin=(600,610),max_streak=50,printfiles = False)
         return (nchannels,ntbins,nebins,npulses,WaveForms,ToFs,Energies,timeenergy.toarray())
 
-'''
-def computeImages(img): ## depricated
-        nchannels = 16
-        ntbins=8
-        nebins=8
-        imageoutpath = './data_fs/raw/'
-        npulses = randrange(1,5)
-        imstart = timer()
-        tinds = [randrange(ntbins) for i in range(npulses)]
-        einds = [randrange(nebins) for i in range(npulses)]
-        nelectrons = [randrange(10,30) for i in range(npulses)]
-        timeenergy = coo_matrix((nelectrons, (tinds,einds)),shape=(ntbins,nebins),dtype=int)
-        (WaveForms,ToFs,Energies) = simulate_timeenergy(timeenergy,nchannels=nchannels,e_retardation=0,energywin=(600,610),max_streak=50,printfiles = False)
-        imstop = timer() 
-        comptime = float(imstop - imstart)
-        filename = '%sCookieBox_waveforms.%ipulses.image%04i.dat' % (imageoutpath,npulses,img)
-        savetxt(filename,WaveForms,fmt='%.4f')
-        filename = '%sCookieBox_ToFs.%ipulses.image%04i.dat' % (imageoutpath,npulses,img)
-        savetxt(filename,ToFs,fmt='%.4f')
-        filename = '%sCookieBox_Energies.%ipulses.image%04i.dat' % (imageoutpath,npulses,img)
-        savetxt(filename,Energies,fmt='%.4f')
-        filename = '%sCookieBox_timeenergy.%ipulses.image%04i.dat' % (imageoutpath,npulses,img)
-        savetxt(filename,timeenergy.toarray(),fmt='%i')
-        wstop = timer()
-        writetime = float(wstop - imstop)
-        print('### Output files for image %i took %.3f s to generate and %.3f s to write ###' % (img,comptime,writetime))
-        return (nchannels,ntbins,nebins,npulses,WaveForms,ToFs,Energies,timeenergy.toarray())
-'''
-
 def spawnprocess(nchannels=16,i = 0,tfrecordout = './data_fs/raw/tf_record_files/default.tfrecord',tfmetafileout = './data_fs/raw/tf_record_files/default.metadata'):
     print('starting image')
     writer = tf_python_io.TFRecordWriter(tfrecordout)
@@ -309,51 +283,49 @@ def spawnprocess(nchannels=16,i = 0,tfrecordout = './data_fs/raw/tf_record_files
         ))
     writer.write(simsample_tf.SerializeToString())
     writer.close()
+    metastrings = '{}\t{}\n'.format(tfrecordout,npulses)
     outline = np.concatenate((nparray([npulses]),timeenergy.reshape(timeenergy.size)))
     np.savetxt(tfmetafileout,outline)
+    npulsesarray[i] = npulses
+    print(metastrings)
     print('finished image')
-
-'''
-https://www.tensorflow.org/guide/datasets#preprocessing_data_with_datasetmap
-'''
 
 '''
         ############
         HERE IS MAIN
         ############
-'''
-	
 
+https://www.tensorflow.org/guide/datasets#preprocessing_data_with_datasetmap
+'''
+
+
+class MetaData(Structure):
+    _fields_ = [('fname',c_wchar_p),('npulses',c_uint)]
+
+	
 def main():
-    nimages = int(4)
     nchannels = 16
     tfrecordoutpath = './data_fs/raw/tf_record_files/'
     #metafilename = '%sCookieBox.metadata' % (tfrecordoutpath)
     #filename = '%sCookieBox.tfrecord.%06i' % (tfrecordoutpath,i)
-    if len(sys.argv)>1:
-        nimages = int(sys.argv[1])
     print('building {} image files'.format(nimages))
     start = timer()
-    '''
-    coord = tf_train.Coordinator()
-    processes = []
-
-    for i in range(nimages):
-        p = Process(target=spawnprocess, args=[nchannels, i, tfrecordoutpath])
-        p.start()
-        processes.append(p)
-    coord.join(processes)
-
-    '''
     argslist = [(nchannels,i,'%sCookieBox.tfrecord.%06i'%(tfrecordoutpath,i),'%sCookieBox.metadata.%06i'%(tfrecordoutpath,i)) for i in range(nimages)]
     print('Num cpus used: {}'.format(cpu_count()*3//4))
     pool = Pool(cpu_count()*3//4)
     pool.starmap(spawnprocess, argslist)
+    pool.close()
 
     stop = timer()
     print('### Whole loop of %i images took %.3f s' % (nimages,stop-start))
     return
 
-
 if __name__ == '__main__':
+    nimages = int(4)
+    if len(sys.argv)>1:
+        nimages = int(sys.argv[1])
+    npulsesarray = Array('i',np.zeros(nimages,dtype=int))
+    # HERE HERE HERE HERE #
+    # Still need to find a way to get this list of strings our of the multithread section #
     main()
+    print(npulsesarray[:])
