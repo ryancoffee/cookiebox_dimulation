@@ -288,11 +288,9 @@ def computeImages(img): ## depricated
         return (nchannels,ntbins,nebins,npulses,WaveForms,ToFs,Energies,timeenergy.toarray())
 '''
 
-def spawnprocess(nchannels=16,i = 0,tfrecordoutpath = './data_fs/raw/tf_record_files/'):
+def spawnprocess(nchannels=16,i = 0,tfrecordout = './data_fs/raw/tf_record_files/default.tfrecord',tfmetafileout = './data_fs/raw/tf_record_files/default.metadata'):
     print('starting image')
-    metafilename = '%sCookieBox.metadata' % (tfrecordoutpath)
-    filename = '%sCookieBox.tfrecord.%06i' % (tfrecordoutpath,i)
-    writer = tf_python_io.TFRecordWriter(filename)
+    writer = tf_python_io.TFRecordWriter(tfrecordout)
     (nchannels,ntbins,nebins,npulses,WaveForms,ToFs,Energies,timeenergy) = computeImages(nchannels)
     waveforms_tf = WaveForms.tostring()
     ToFs_tf = ToFs.tostring()
@@ -311,6 +309,8 @@ def spawnprocess(nchannels=16,i = 0,tfrecordoutpath = './data_fs/raw/tf_record_f
         ))
     writer.write(simsample_tf.SerializeToString())
     writer.close()
+    outline = np.concatenate((nparray([npulses]),timeenergy.reshape(timeenergy.size)))
+    np.savetxt(tfmetafileout,outline)
     print('finished image')
 
 '''
@@ -328,6 +328,8 @@ def main():
     nimages = int(4)
     nchannels = 16
     tfrecordoutpath = './data_fs/raw/tf_record_files/'
+    #metafilename = '%sCookieBox.metadata' % (tfrecordoutpath)
+    #filename = '%sCookieBox.tfrecord.%06i' % (tfrecordoutpath,i)
     if len(sys.argv)>1:
         nimages = int(sys.argv[1])
     print('building {} image files'.format(nimages))
@@ -343,7 +345,7 @@ def main():
     coord.join(processes)
 
     '''
-    argslist = [(nchannels,i,tfrecordoutpath) for i in range(nimages)]
+    argslist = [(nchannels,i,'%sCookieBox.tfrecord.%06i'%(tfrecordoutpath,i),'%sCookieBox.metadata.%06i'%(tfrecordoutpath,i)) for i in range(nimages)]
     print('Num cpus used: {}'.format(cpu_count()*3//4))
     pool = Pool(cpu_count()*3//4)
     pool.starmap(spawnprocess, argslist)
