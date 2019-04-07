@@ -4,6 +4,7 @@ from hashlib import sha1,sha256
 from multiprocessing import Process,cpu_count,Pool
 from ctypes import Structure,c_double,c_int,c_uint,c_wchar_p
 from multiprocessing.sharedctypes import Value,Array
+from time import time
 from timeit import timeit
 from timeit import default_timer as timer
 import sys
@@ -20,6 +21,7 @@ from numpy import angle as npangle
 from numpy import sqrt as npsqrt
 from numpy import copy as npcopy
 from numpy import sum as npsum
+from numpy import max as npmax
 from numpy import column_stack, row_stack, mean, diff, savetxt, append, vectorize, pi, cos, sin, ones, zeros, arange, argsort, interp, real, imag
 from numpy.random import choice, shuffle, gamma, randn,rand,random_integers,permutation
 from random import randrange, randint
@@ -262,14 +264,15 @@ def computeImages(nchannels):
         (WaveForms,ToFs,Energies) = simulate_timeenergy(timeenergy,nchannels=nchannels,e_retardation=0,energywin=(600,610),max_streak=50,printfiles = False)
         return (nchannels,ntbins,nebins,npulses,WaveForms,ToFs,Energies,timeenergy.toarray())
 
-def spawnprocess(nchannels=16,i = 0,tfrecordout = './data_fs/raw/tf_record_files/default.tfrecord',tfmetafileout = './data_fs/raw/tf_record_files/default.metadata'):
-    print('starting image')
-    writer = tf_python_io.TFRecordWriter(tfrecordout)
+def spawnprocess(nchannels=16,i = 0,tfrecordfile = './data_fs/raw/tf_record_files/tfrecord.default'):
+    print('working image {}'.format(i))
     (nchannels,ntbins,nebins,npulses,WaveForms,ToFs,Energies,timeenergy) = computeImages(nchannels)
+    strengtharray[i] = npsum(timeenergy)
+    purityarray[i] = npmax(timeenergy)/npsum(timeenergy)
+    npulsesarray[i] = npulses
     waveforms_tf = WaveForms.tostring()
     ToFs_tf = ToFs.tostring()
     Energies_tf = Energies.tostring()
-    print('building TFRecord for image')
     simsample_tf = tf_train.Example(features = tf_train.Features(feature={
         'nangles': tf_train.Feature(int64_list=tf_train.Int64List(value = [nchannels])),
         'ntbins': tf_train.Feature(int64_list=tf_train.Int64List(value = [ntbins])),
@@ -281,14 +284,9 @@ def spawnprocess(nchannels=16,i = 0,tfrecordout = './data_fs/raw/tf_record_files
         'timeenergy': tf_train.Feature(bytes_list=tf_train.BytesList(value = [timeenergy.tostring()]))
         }
         ))
+    writer = tf_python_io.TFRecordWriter(tfrecordfile)
     writer.write(simsample_tf.SerializeToString())
     writer.close()
-    metastrings = '{}\t{}\n'.format(tfrecordout,npulses)
-    outline = np.concatenate((nparray([npulses]),timeenergy.reshape(timeenergy.size)))
-    np.savetxt(tfmetafileout,outline)
-    npulsesarray[i] = npulses
-    print(metastrings)
-    print('finished image')
 
 '''
         ############
@@ -306,18 +304,22 @@ class MetaData(Structure):
 def main():
     nchannels = 16
     tfrecordoutpath = './data_fs/raw/tf_record_files/'
-    #metafilename = '%sCookieBox.metadata' % (tfrecordoutpath)
-    #filename = '%sCookieBox.tfrecord.%06i' % (tfrecordoutpath,i)
+    hashstrings = [sha256(str.encode( '{}{}{}'.format(time(), i, nchannels) )).hexdigest() for i in range(nimages)]
+    tfrecordfiles = ['{}tfrecord.{}'.format(tfrecordoutpath,hashstrings[i]) for i in range(nimages)]
     print('building {} image files'.format(nimages))
     start = timer()
-    argslist = [(nchannels,i,'%sCookieBox.tfrecord.%06i'%(tfrecordoutpath,i),'%sCookieBox.metadata.%06i'%(tfrecordoutpath,i)) for i in range(nimages)]
+    argslist = [(nchannels,i,tfrecordfiles[i],) for i in range(nimages)]
     print('Num cpus used: {}'.format(cpu_count()*3//4))
     pool = Pool(cpu_count()*3//4)
     pool.starmap(spawnprocess, argslist)
     pool.close()
-
     stop = timer()
     print('### Whole loop of %i images took %.3f s' % (nimages,stop-start))
+    f = open('{}{}'.format(tfrecordoutpath,'tfrecord.index'),'a')
+    print('#npulses strength purity hash',file=f)
+    for i in range(nimages):
+        print('{} {} {} {}'.format(npulsesarray[i],strengtharray[i],purityarray[i],hashstrings[i]),file=f)
+    f.close()
     return
 
 if __name__ == '__main__':
@@ -325,7 +327,6 @@ if __name__ == '__main__':
     if len(sys.argv)>1:
         nimages = int(sys.argv[1])
     npulsesarray = Array('i',np.zeros(nimages,dtype=int))
-    # HERE HERE HERE HERE #
-    # Still need to find a way to get this list of strings our of the multithread section #
+    strengtharray = Array('i',np.zeros(nimages,dtype=int))
+    purityarray = Array('d',np.zeros(nimages,dtype=float))
     main()
-    print(npulsesarray[:])
