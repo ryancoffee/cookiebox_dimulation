@@ -172,33 +172,59 @@ wave_file(n,i) = sprintf('../data_fs/raw/CookieBox_waveforms.%ipulses.image%04i.
 timeenergy_file(n,i) = sprintf('../data_fs/raw/CookieBox_timeenergy.%ipulses.image%04i.dat',n,i)
 X(tof,theta) = tof*cos(theta*2.*pi/16)
 Y(tof,theta) = tof*sin(theta*2.*pi/16)
-set term png size 1200,1200
-set output 'plotting.ToFs.png'
+#set term png size 1200,1200
+#set output 'plotting.ToFs.png'
+set term post enhanced size 12in,12in color eps
+set output 'plotting.ToFs.eps'
 set multiplot
 set size .333,.333
+set xlabel 'ToF [ns]'
+set ylabel 'ToF [ns]'
+set xrange [-900:900]
+set yrange [-900:900]
 set origin 0,.667
+set label 1 'individual electron hits' center at 500,800
 plot tof_file(1,15) u (X(abs($3),$2)):(Y(abs($3),$2)) mat pt 7 notitle
 set origin 0,.333
 plot tof_file(2,36) u (X(abs($3),$2)):(Y(abs($3),$2)) mat pt 7 notitle
 set origin 0,0
-plot tof_file(3,15) u (X(abs($3),$2)):(Y(abs($3),$2)) mat pt 7 notitle
-set xrange [0:1e4]
+#plot tof_file(3,15) u (X(abs($3),$2)):(Y(abs($3),$2)) mat pt 7 notitle
+plot tof_file(4,812) u (X(abs($3),$2)):(Y(abs($3),$2)) mat pt 7 notitle
+set xrange [0:1e3]
 set yrange [-.5:15.5]
 set origin .667,.667
-plot wave_file(1,15) u ($1-2e3):($2-$3) mat w lines lw 2 lc rgb 'black' notitle
+set xlabel 'ToF [ns]'
+set ylabel 'channel'
+unset label 1
+set label 2 'simulated waveforms' center at 800,14.5
+plot wave_file(1,15) u (($1-2e3)/10.):($2-$3) mat w lines lw 2 lc rgb 'black' notitle
 set origin .667,.333
-plot wave_file(2,36) u ($1-2e3):($2-$3) mat w lines lw 2 lc rgb 'black' notitle
+plot wave_file(2,36) u (($1-2e3)/10.):($2-$3) mat w lines lw 2 lc rgb 'black' notitle
 set origin .667,0.
-plot wave_file(3,15) u ($1-2e3):($2-$3) mat w lines lw 2 lc rgb 'black' notitle
+#plot wave_file(3,15) u (($1-2e3)/10.):($2-$3) mat w lines lw 2 lc rgb 'black' notitle
+plot wave_file(4,812) u (($1-2e3)/10.):($2-$3) mat w lines lw 2 lc rgb 'black' notitle
 set auto
-set pm3d
-set view map
-set style data image
+#set pm3d
+#set view map
+#set style data image
 set origin .333,.667
-splot timeenergy_file(1,15) mat
+set xlabel 'carrier scaled time [arb]'
+set ylabel 'relative energy [arb]'
+set cblabel 'relative intensity [arb]'
+#splot timeenergy_file(1,15) mat
+set style data points
+set xrange [-.5:7.5]
+set yrange [-.5:7.5]
+set cbrange [0:30]
+unset label 2
+set label 3 'multi-pulse energy distribution' center at 5.5,7
+plot timeenergy_file(1,15) mat u 1:(($3>2?$2:0./0)):($3/2.):3 palette pt 7 ps var notitle
 set origin .333,.333
-splot timeenergy_file(2,36) mat
+#splot timeenergy_file(2,36) mat
+plot timeenergy_file(2,36) mat u 1:(($3>2?$2:0./0)):($3/2.):3 palette pt 7 ps var notitle
 set origin .333,0.0
-splot timeenergy_file(3,15) mat
+#splot timeenergy_file(3,15) mat
+#plot timeenergy_file(3,15) mat u 1:(($3>2?$2:0./0)):($3/2.):3 palette pt 7 ps var notitle
+plot timeenergy_file(4,812) mat u 1:(($3>2?$2:0./0)):($3/2.):3 palette pt 7 ps var notitle
 unset multiplot
 #    EOF
