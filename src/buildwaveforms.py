@@ -1,6 +1,10 @@
 #!/usr/bin/python3
 
-from multiprocessing import Process, cpu_count, Pool
+from hashlib import sha1,sha256
+from multiprocessing import Process,cpu_count,Pool
+from ctypes import Structure,c_double,c_int,c_uint,c_wchar_p
+from multiprocessing.sharedctypes import Value,Array
+from time import time
 from timeit import timeit
 from timeit import default_timer as timer
 import sys
@@ -17,6 +21,7 @@ from numpy import angle as npangle
 from numpy import sqrt as npsqrt
 from numpy import copy as npcopy
 from numpy import sum as npsum
+from numpy import max as npmax
 from numpy import column_stack, row_stack, mean, diff, savetxt, append, vectorize, pi, cos, sin, ones, zeros, arange, argsort, interp, real, imag
 from numpy.random import choice, shuffle, gamma, randn,rand,random_integers,permutation
 from random import randrange, randint
@@ -246,7 +251,11 @@ def simulate_timeenergy(timeenergy,nchannels=16,e_retardation=0,energywin=(590,6
 
     return (waveforms,ToFs,Ens)
 
-def computeImages(nelectronsrange=(10,30),nchannels=16,ntbins=8,nebins=8):
+def computeImages(nchannels):
+        nelectronsrange = (5,10)
+        nchannels=nchannels
+        ntbins=8
+        nebins=8
         npulses = randrange(1,5)
         tinds = [randrange(ntbins) for i in range(npulses)]
         einds = [randrange(nebins) for i in range(npulses)]
@@ -255,57 +264,16 @@ def computeImages(nelectronsrange=(10,30),nchannels=16,ntbins=8,nebins=8):
         (WaveForms,ToFs,Energies) = simulate_timeenergy(timeenergy,nchannels=nchannels,e_retardation=0,energywin=(600,610),max_streak=50,printfiles = False)
         return (nchannels,ntbins,nebins,npulses,WaveForms,ToFs,Energies,timeenergy.toarray())
 
-def computeImages(img): ## depricated
-        nchannels = 16
-        ntbins=8
-        nebins=8
-        imageoutpath = './data_fs/raw/'
-        npulses = randrange(1,5)
-        imstart = timer()
-        tinds = [randrange(ntbins) for i in range(npulses)]
-        einds = [randrange(nebins) for i in range(npulses)]
-        nelectrons = [randrange(10,30) for i in range(npulses)]
-        timeenergy = coo_matrix((nelectrons, (tinds,einds)),shape=(ntbins,nebins),dtype=int)
-        (WaveForms,ToFs,Energies) = simulate_timeenergy(timeenergy,nchannels=nchannels,e_retardation=0,energywin=(600,610),max_streak=50,printfiles = False)
-        imstop = timer() 
-        comptime = float(imstop - imstart)
-        filename = '%sCookieBox_waveforms.%ipulses.image%04i.dat' % (imageoutpath,npulses,img)
-        savetxt(filename,WaveForms,fmt='%.4f')
-        filename = '%sCookieBox_ToFs.%ipulses.image%04i.dat' % (imageoutpath,npulses,img)
-        savetxt(filename,ToFs,fmt='%.4f')
-        filename = '%sCookieBox_Energies.%ipulses.image%04i.dat' % (imageoutpath,npulses,img)
-        savetxt(filename,Energies,fmt='%.4f')
-        filename = '%sCookieBox_timeenergy.%ipulses.image%04i.dat' % (imageoutpath,npulses,img)
-        savetxt(filename,timeenergy.toarray(),fmt='%i')
-        wstop = timer()
-        writetime = float(wstop - imstop)
-        print('### Output files for image %i took %.3f s to generate and %.3f s to write ###' % (img,comptime,writetime))
-        return (nchannels,ntbins,nebins,npulses,WaveForms,ToFs,Energies,timeenergy.toarray())
-
-'''
-        ############
-        HERE IS MAIN
-        ############
-'''
-
-
-def main():
-    nimages = int(4)
-    if len(sys.argv)>1:
-        nimages = int(sys.argv[1])
-    print('building {} image files'.format(nimages))
-    start = timer()
-    tfrecordoutpath = './data_fs/raw/'
-    filename = '%sCookieBox.tfrecords' % (tfrecordoutpath)
-    writer = tf_python_io.TFRecordWriter(filename)
-    #coord = tf.train.Coordinator()
-    #processes = []
-    for i in range(nimages):
-        (nchannels,ntbins,nebins,npulses,WaveForms,ToFs,Energies,timeenergy) = computeImages((40,60),16,8,8)
-        waveforms_tf = WaveForms.tostring()
-        ToFs_tf = ToFs.tostring()
-        Energies_tf = Energies.tostring()
-        simsample_tf = tf_train.Example(features = tf_train.Features(feature={
+def spawnprocess(nchannels=16,i = 0,tfrecordfile = './data_fs/raw/tf_record_files/tfrecord.default'):
+    print('working image {}'.format(i))
+    (nchannels,ntbins,nebins,npulses,WaveForms,ToFs,Energies,timeenergy) = computeImages(nchannels)
+    strengtharray[i] = npsum(timeenergy)
+    purityarray[i] = npmax(timeenergy)/npsum(timeenergy)
+    npulsesarray[i] = npulses
+    waveforms_tf = WaveForms.tostring()
+    ToFs_tf = ToFs.tostring()
+    Energies_tf = Energies.tostring()
+    simsample_tf = tf_train.Example(features = tf_train.Features(feature={
         'nangles': tf_train.Feature(int64_list=tf_train.Int64List(value = [nchannels])),
         'ntbins': tf_train.Feature(int64_list=tf_train.Int64List(value = [ntbins])),
         'nebins': tf_train.Feature(int64_list=tf_train.Int64List(value = [nebins])),
@@ -316,21 +284,49 @@ def main():
         'timeenergy': tf_train.Feature(bytes_list=tf_train.BytesList(value = [timeenergy.tostring()]))
         }
         ))
-    #coord.join(processes)
+    writer = tf_python_io.TFRecordWriter(tfrecordfile)
     writer.write(simsample_tf.SerializeToString())
     writer.close()
 
-    '''
-    imglist = [(i,) for i in range(nimages)]
+'''
+        ############
+        HERE IS MAIN
+        ############
+
+https://www.tensorflow.org/guide/datasets#preprocessing_data_with_datasetmap
+'''
+
+
+class MetaData(Structure):
+    _fields_ = [('fname',c_wchar_p),('npulses',c_uint)]
+
+	
+def main():
+    nchannels = 16
+    tfrecordoutpath = './data_fs/raw/tf_record_files/'
+    hashstrings = [sha256(str.encode( '{}{}{}'.format(time(), i, nchannels) )).hexdigest() for i in range(nimages)]
+    tfrecordfiles = ['{}tfrecord.{}'.format(tfrecordoutpath,hashstrings[i]) for i in range(nimages)]
+    print('building {} image files'.format(nimages))
+    start = timer()
+    argslist = [(nchannels,i,tfrecordfiles[i],) for i in range(nimages)]
     print('Num cpus used: {}'.format(cpu_count()*3//4))
     pool = Pool(cpu_count()*3//4)
-    pool.starmap(computeImages, imglist)
-
-    '''
+    pool.starmap(spawnprocess, argslist)
+    pool.close()
     stop = timer()
     print('### Whole loop of %i images took %.3f s' % (nimages,stop-start))
+    f = open('{}{}'.format(tfrecordoutpath,'tfrecord.index'),'a')
+    print('#npulses strength purity hash',file=f)
+    for i in range(nimages):
+        print('{} {} {} {}'.format(npulsesarray[i],strengtharray[i],purityarray[i],hashstrings[i]),file=f)
+    f.close()
     return
 
-
 if __name__ == '__main__':
+    nimages = int(4)
+    if len(sys.argv)>1:
+        nimages = int(sys.argv[1])
+    npulsesarray = Array('i',np.zeros(nimages,dtype=int))
+    strengtharray = Array('i',np.zeros(nimages,dtype=int))
+    purityarray = Array('d',np.zeros(nimages,dtype=float))
     main()
