@@ -268,6 +268,7 @@ def spawnprocess(nchannels=16,i = 0,tfrecordfile = './data_fs/raw/tf_record_file
     print('working image {}'.format(i))
     (nchannels,ntbins,nebins,npulses,WaveForms,ToFs,Energies,timeenergy) = computeImages(nchannels)
     strengtharray[i] = npsum(timeenergy)
+    print("processing inside PID {}".formad(pid()))
     purityarray[i] = npmax(timeenergy)/npsum(timeenergy)
     npulsesarray[i] = npulses
     waveforms_tf = WaveForms.tostring()
