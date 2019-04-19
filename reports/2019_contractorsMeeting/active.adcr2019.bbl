@@ -1,0 +1,31 @@
+\begin{thebibliography}{1}
+
+\bibitem{Nick2018}
+N.~Hartmann, G.~Hartmann, R.~Heider, M.~S. Wagner, M.~Ilchen, J.~Buck,
+  A.~Lindahl, C.~Benko, C.~Bostedt, J.~Gruenert, J.~Krzywinski, J.~Liu,
+  A.~Lutman, A.~Marinelli, T.~Maxwell, A.~Miahnahri, S.~Moeller, M.~Planas,
+  J.~Robinson, J.~Viefhaus, T.~Feurer, R.~Kienberger, R.~N. Coffee, and
+  W.~Helml.
+\newblock Attosecond time–energy structure of x-ray free-electron laser
+  pulses.
+\newblock {\em Nat. Photon.}, 12:1749, 2018.
+
+\bibitem{Siqi2018}
+Siqi Li, Zhaoheng Guo, Ryan~N. Coffee, Kareem Hegazy, Zhirong Huang, Adi Natan,
+  Timur Osipov, Dipanwita Ray, Agostino Marinelli, and James~P. Cryan.
+\newblock Characterizing isolated attosecond pulses with angular streaking.
+\newblock {\em Opt. Express}, 26(4):4531--4547, Feb 2018.
+
+\bibitem{MarkusUpdate2019}
+Markus Ilchen.
+\newblock private communication, 2019.
+
+\bibitem{spatial}
+Kunle Olukotun~\textit{et al.} Matt~Feldman.
+\newblock Spatial--a high-level language for programming accelerators.
+
+\bibitem{hackernoon}
+www.hackernoon.com.
+\newblock The future of machine learning hardware, 2016.
+
+\end{thebibliography}

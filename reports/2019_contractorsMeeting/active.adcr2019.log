@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015/Debian) (preloaded format=latex 2018.10.16)  16 APR 2019 23:51
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015/Debian) (preloaded format=latex 2018.10.16)  18 APR 2019 23:46
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -578,20 +578,6 @@ File: pstricks.tex 2015/14/11 v2.64b `PSTricks' (tvz,hv)
 (/usr/share/texlive/texmf-dist/tex/generic/pstricks/pst-fp.tex)
 File: pst-fp.tex 2015/14/11 v2.64b `PST-fp' (hv)
 )
-(/usr/share/texlive/texmf-dist/tex/latex/footmisc/footmisc.sty
-Package: footmisc 2011/06/06 v5.5b a miscellany of footnote facilities
-\FN@temptoken=\toks37
-\footnotemargin=\dimen153
-\c@pp@next@reset=\count137
-Package footmisc Info: Declaring symbol style bringhurst on input line 855.
-Package footmisc Info: Declaring symbol style chicago on input line 863.
-Package footmisc Info: Declaring symbol style wiley on input line 872.
-Package footmisc Info: Declaring symbol style lamport-robust on input line 883.
-
-Package footmisc Info: Declaring symbol style lamport* on input line 903.
-Package footmisc Info: Declaring symbol style lamport*-robust on input line 924
-.
-)
 (/usr/share/texlive/texmf-dist/tex/latex/psnfss/times.sty
 Package: times 2005/04/12 PSNFSS-v9.2a (SPQR) 
 )
@@ -623,217 +609,39 @@ File: ot1ptm.fd 2001/06/04 font definitions for OT1/ptm.
 Class revtex4 Info: Patching LaTeX tabular. on input line 43.
 Class revtex4 Info: cite was not loaded (OK!) on input line 43.
 Class revtex4 Info: multicol was not loaded (OK!) on input line 43.
-\c@figscount=\count138
 \figwidth=\skip48
+
+
+Class revtex4 Warning: Assuming \noaffiliation for Audrey Corbeil-Therrien, Deb
+adri Das, Matt Feldman, Averell Gatton, Kunle Olukotun, Amedeo Perazzo, Omar Qu
+ijano, Peter Walter, and Ryan N. Coffee.
+
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <12> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 54.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <9> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 73.
-File: ./figs/dynamic.kernel.motivation.eps Graphic file (type eps)
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 57.
+LaTeX Font Info:    Try loading font information for TS1+ptm on input line 63.
+(/usr/share/texlive/texmf-dist/tex/latex/psnfss/ts1ptm.fd
+File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
+)
+File: ./figs/FlangeAssembly2.eps Graphic file (type eps)
 
-<./figs/dynamic.kernel.motivation.eps>
-File: ./figs/dynamic.kernel.motivation.multi.eps Graphic file (type eps)
-
-<./figs/dynamic.kernel.motivation.multi.eps>
-
-Package wrapfig Warning: Stationary wrapfigure forced to float on input line 94
-.
-
+<./figs/FlangeAssembly2.eps>
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <10> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 99.
-
-Package natbib Warning: Citation `Nick2018' on page 1 undefined on input line 9
-9.
-
-
-Package natbib Warning: Citation `Siqi2018' on page 1 undefined on input line 9
-9.
-
-[1]
-File: ./figs/Composite_Ave.ps Graphic file (type eps)
- <./figs/Composite_Ave.ps>
-! Undefined control sequence.
-<argument> ...counter {figscount}{1} \manuallabel 
-                                                  {fig::Potentials}{\arabic ...
-l.114 }
-       
-? 
-
-Overfull \hbox (273.0pt too wide) in paragraph at lines 103--115
-[] 
- []
-
-
-LaTeX Warning: Reference `fig::Potentials' on page 2 undefined on input line 11
-6.
-
-
-LaTeX Warning: Reference `fig::powerspec' on page 2 undefined on input line 119
-.
-
-File: ./figs/plotting.resampled.eps Graphic file (type eps)
-<./figs/plotting.resampled.eps>
-! Undefined control sequence.
-<argument> ...counter {figscount}{1} \manuallabel 
-                                                  {fig::powerspec}{\arabic {...
-l.129 }
-       
-? 
-
-Overfull \hbox (273.0pt too wide) in paragraph at lines 121--130
-[] 
- []
-
-[2]
-File: ./figs/plotting.ToFs.eps Graphic file (type eps)
- <./figs/plotting.ToFs.eps>
-
-Package natbib Warning: Citation `Nick2018' on page 3 undefined on input line 1
-49.
-
-
-Package natbib Warning: Citation `MarkusUpdate2019' on page 3 undefined on inpu
-t line 150.
-
-[3]
-File: ./figs/plotting.debadri.eps Graphic file (type eps)
- <./figs/plotting.debadri.eps> [4]
-File: ./figs/ConnectionDiagram_cookiebox_humaninloop_new.eps Graphic file (type
- eps)
-
-<./figs/ConnectionDiagram_cookiebox_humaninloop_new.eps>
-! Undefined control sequence.
-<argument> ...counter {figscount}{1} \manuallabel 
-                                                  {fig::humaninloop}{\arabic...
-l.190 }
-       \vspace{24pt}
-? 
-
-Overfull \hbox (273.0pt too wide) in paragraph at lines 179--191
-[] 
- []
-
-LaTeX Font Info:    Font shape `U/FdSymbolA/m/n' will be
-(Font)              scaled to size 10.0pt on input line 197.
-LaTeX Font Info:    Font shape `U/FdSymbolA/m/n' will be
-(Font)              scaled to size 7.0pt on input line 197.
-LaTeX Font Info:    Font shape `U/FdSymbolA/m/n' will be
-(Font)              scaled to size 5.0pt on input line 197.
-LaTeX Font Info:    Font shape `U/FdSymbolE/m/n' will be
-(Font)              scaled to size 10.0pt on input line 197.
-LaTeX Font Info:    Font shape `U/FdSymbolE/m/n' will be
-(Font)              scaled to size 7.0pt on input line 197.
-LaTeX Font Info:    Font shape `U/FdSymbolE/m/n' will be
-(Font)              scaled to size 5.0pt on input line 197.
-LaTeX Font Info:    Try loading font information for U+msa on input line 197.
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd
-File: umsa.fd 2013/01/14 v3.01 AMS symbols A
-)
-LaTeX Font Info:    Try loading font information for U+msb on input line 197.
-
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd
-File: umsb.fd 2013/01/14 v3.01 AMS symbols B
-)
-LaTeX Font Info:    Font shape `U/FdSymbolB/m/n' will be
-(Font)              scaled to size 10.0pt on input line 197.
-LaTeX Font Info:    Font shape `U/FdSymbolB/m/n' will be
-(Font)              scaled to size 7.0pt on input line 197.
-LaTeX Font Info:    Font shape `U/FdSymbolB/m/n' will be
-(Font)              scaled to size 5.0pt on input line 197.
-LaTeX Font Info:    Font shape `U/FdSymbolC/m/n' will be
-(Font)              scaled to size 10.0pt on input line 197.
-LaTeX Font Info:    Font shape `U/FdSymbolC/m/n' will be
-(Font)              scaled to size 7.0pt on input line 197.
-LaTeX Font Info:    Font shape `U/FdSymbolC/m/n' will be
-(Font)              scaled to size 5.0pt on input line 197.
-LaTeX Font Info:    Font shape `U/FdSymbolD/m/n' will be
-(Font)              scaled to size 10.0pt on input line 197.
-LaTeX Font Info:    Font shape `U/FdSymbolD/m/n' will be
-(Font)              scaled to size 7.0pt on input line 197.
-LaTeX Font Info:    Font shape `U/FdSymbolD/m/n' will be
-(Font)              scaled to size 5.0pt on input line 197.
-LaTeX Font Info:    Font shape `U/FdSymbolF/m/n' will be
-(Font)              scaled to size 10.0pt on input line 197.
-LaTeX Font Info:    Font shape `U/FdSymbolF/m/n' will be
-(Font)              scaled to size 7.0pt on input line 197.
-LaTeX Font Info:    Font shape `U/FdSymbolF/m/n' will be
-(Font)              scaled to size 5.0pt on input line 197.
-
-Overfull \hbox (53.49132pt too wide) in alignment at lines 197--204
- [][][] []
- []
-
-
-LaTeX Warning: Reference `fig::hackernoon' on page 5 undefined on input line 21
-0.
-
-[5]
-
-Package natbib Warning: Citation `spatial' on page 6 undefined on input line 21
-2.
-
-
-Package natbib Warning: Citation `hackernoon' on page 6 undefined on input line
- 213.
-
-File: ./figs/hackernoon.ps Graphic file (type eps)
-<./figs/hackernoon.ps>
-! Undefined control sequence.
-<argument> ...counter {figscount}{1} \manuallabel 
-                                                  {fig::hackernoon}{\arabic ...
-l.226 }
-       \vspace{24pt}
-? 
-
-Package natbib Warning: Citation `hackernoon' on page 6 undefined on input line
- 226.
-
-
-Overfull \hbox (273.0pt too wide) in paragraph at lines 217--227
-[] 
- []
-
-
-Overfull \hbox (25.1391pt too wide) in alignment at lines 232--236
- [][][] []
- []
-
-
-LaTeX Warning: Reference `fig::highlevel' on page 6 undefined on input line 240
-.
-
-
-Package natbib Warning: Citation `spatial' on page 6 undefined on input line 24
-2.
-
-[6]
-File: ./figs/HighLevel_new.eps Graphic file (type eps)
- <./figs/HighLevel_new.eps>
-! Undefined control sequence.
-<argument> ...counter {figscount}{1} \manuallabel 
-                                                  {fig::highlevel}{\arabic {...
-l.254 }
-       
-? 
-
-Overfull \hbox (273.0pt too wide) in paragraph at lines 245--255
-[] 
- []
-
-No file active.adcr2019.bbl.
-
-Package natbib Warning: There were undefined citations.
-
-[7] (./active.adcr2019.aux)
-
-LaTeX Warning: There were undefined references.
-
- ) 
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 107.
+ [1] [2] (./active.adcr2019.bbl
+Missing character: There is no â in font ptmr7t!
+Missing character: There is no € in font ptmr7t!
+Missing character: There is no “ in font ptmr7t!
+) [3]
+(./active.adcr2019.aux) ) 
 Here is how much of TeX's memory you used:
- 12012 strings out of 493030
- 192797 string characters out of 6136259
- 242334 words of memory out of 5000000
- 15419 multiletter control sequences out of 15000+600000
- 13285 words of font info for 44 fonts, out of 8000000 for 9000
+ 11867 strings out of 493030
+ 190254 string characters out of 6136259
+ 242611 words of memory out of 5000000
+ 15298 multiletter control sequences out of 15000+600000
+ 8128 words of font info for 23 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 36i,10n,40p,478b,366s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 36i,5n,40p,505b,263s stack positions out of 5000i,500n,10000p,200000b,80000s
 
-Output written on active.adcr2019.dvi (7 pages, 19456 bytes).
+Output written on active.adcr2019.dvi (3 pages, 18492 bytes).

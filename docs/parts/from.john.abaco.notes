@@ -1,0 +1,37 @@
+ UltraScale™ FPGAs
+Device Name KU0
+Hi Ryan,
+
+ 
+
+Thanks for taking my call earlier. As discussed I have attached the Xilinx UltraScale FPGA Product Selection Guide for your review. Abaco Systems supports the KU085, KU095, and KU115 Speed grade 2 on the PC821. I have also attached the FMC134 and the PC821 User Manuals.
+
+ 
+
+Also, Abaco Systems offer a firmware/software package which consist of VHDL source code, software reference source, API, driver, interfaces for communicating with our hardware.
+
+https://www.abaco.com/products/fpga-dsp-board-support-package  - Matt had purchased a Linux based Board Support Package last year targeting the PC821_FMC134 combination supporting the primary FMC site. If you decide to use that same BSP, you would need to port this code to the secondary FMC site as necessary. If you would like a BSP that supports the two FMC134s simultaneously, we could estimate the cost to develop one and include it in the quote.
+
+ 
+
+Let me know if you have any questions.
+
+ 
+
+Best regards,
+
+John
+
+ 
+
+John Cornel
+Inside Sales, Advanced RF and DSP Solutions
+
+Abaco Systems, Inc.
+
+(P) 256-382-8198
+
+Toll Free 800-322-3616 ext. 8198
+
+(E) john.cornel@abaco.com
+
