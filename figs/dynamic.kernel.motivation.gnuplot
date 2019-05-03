@@ -166,10 +166,10 @@ set fit brief errorvariables nocovariancevariables errorscaling prescale nowrap 
 GNUTERM = "x11"
 file(x) = sprintf("../data_fs/fromDebadrdi/forRyan_3peaks_bw40_run%i.dat",x)
 ## Last datafile plotted: "../data_fs/fromDebadrdi/forRyan_different_kernels.dat"
-set term post color eps size 9in,5in
-set output 'dynamic.kernel.motivation.multi.eps'
-#set term png size 600,1000
-#set output 'dynamic.kernel.motivation.multi.png'
+#set term post color eps size 9in,5in
+#set output 'dynamic.kernel.motivation.multi.eps'
+set term png size 1000,600
+set output 'dynamic.kernel.motivation.multi.png'
 set xlabel 'time [ns]'
 set ylabel 'signal + offset = KDE band width'
 tscale=2e2

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015/Debian) (preloaded format=latex 2018.10.16)  18 APR 2019 23:46
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015/Debian) (preloaded format=latex 2018.10.16)  19 APR 2019 23:35
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -618,30 +618,99 @@ ijano, Peter Walter, and Ryan N. Coffee.
 
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <12> not available
 (Font)              Font shape `OT1/ptm/b/n' tried instead on input line 54.
-LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <9> not available
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <10> not available
 (Font)              Font shape `OT1/ptm/b/n' tried instead on input line 57.
-LaTeX Font Info:    Try loading font information for TS1+ptm on input line 63.
+LaTeX Font Info:    Try loading font information for TS1+ptm on input line 64.
 (/usr/share/texlive/texmf-dist/tex/latex/psnfss/ts1ptm.fd
 File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
 )
-File: ./figs/FlangeAssembly2.eps Graphic file (type eps)
+File: ./figs/plotting.resampled.eps Graphic file (type eps)
 
-<./figs/FlangeAssembly2.eps>
-LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <10> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 107.
- [1] [2] (./active.adcr2019.bbl
+<./figs/plotting.resampled.eps> [1]
+LaTeX Font Info:    Font shape `U/FdSymbolA/m/n' will be
+(Font)              scaled to size 10.0pt on input line 168.
+LaTeX Font Info:    Font shape `U/FdSymbolA/m/n' will be
+(Font)              scaled to size 7.0pt on input line 168.
+LaTeX Font Info:    Font shape `U/FdSymbolA/m/n' will be
+(Font)              scaled to size 5.0pt on input line 168.
+LaTeX Font Info:    Font shape `U/FdSymbolE/m/n' will be
+(Font)              scaled to size 10.0pt on input line 168.
+LaTeX Font Info:    Font shape `U/FdSymbolE/m/n' will be
+(Font)              scaled to size 7.0pt on input line 168.
+LaTeX Font Info:    Font shape `U/FdSymbolE/m/n' will be
+(Font)              scaled to size 5.0pt on input line 168.
+LaTeX Font Info:    Try loading font information for U+msa on input line 168.
+
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd
+File: umsa.fd 2013/01/14 v3.01 AMS symbols A
+)
+LaTeX Font Info:    Try loading font information for U+msb on input line 168.
+
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd
+File: umsb.fd 2013/01/14 v3.01 AMS symbols B
+)
+LaTeX Font Info:    Font shape `U/FdSymbolB/m/n' will be
+(Font)              scaled to size 10.0pt on input line 168.
+LaTeX Font Info:    Font shape `U/FdSymbolB/m/n' will be
+(Font)              scaled to size 7.0pt on input line 168.
+LaTeX Font Info:    Font shape `U/FdSymbolB/m/n' will be
+(Font)              scaled to size 5.0pt on input line 168.
+LaTeX Font Info:    Font shape `U/FdSymbolC/m/n' will be
+(Font)              scaled to size 10.0pt on input line 168.
+LaTeX Font Info:    Font shape `U/FdSymbolC/m/n' will be
+(Font)              scaled to size 7.0pt on input line 168.
+LaTeX Font Info:    Font shape `U/FdSymbolC/m/n' will be
+(Font)              scaled to size 5.0pt on input line 168.
+LaTeX Font Info:    Font shape `U/FdSymbolD/m/n' will be
+(Font)              scaled to size 10.0pt on input line 168.
+LaTeX Font Info:    Font shape `U/FdSymbolD/m/n' will be
+(Font)              scaled to size 7.0pt on input line 168.
+LaTeX Font Info:    Font shape `U/FdSymbolD/m/n' will be
+(Font)              scaled to size 5.0pt on input line 168.
+LaTeX Font Info:    Font shape `U/FdSymbolF/m/n' will be
+(Font)              scaled to size 10.0pt on input line 168.
+LaTeX Font Info:    Font shape `U/FdSymbolF/m/n' will be
+(Font)              scaled to size 7.0pt on input line 168.
+LaTeX Font Info:    Font shape `U/FdSymbolF/m/n' will be
+(Font)              scaled to size 5.0pt on input line 168.
+
+Overfull \hbox (12.96523pt too wide) in paragraph at lines 168--186
+[]$[]$ 
+ []
+
+
+Underfull \hbox (badness 3849) in paragraph at lines 160--186
+[]\OT1/ptm/b/n/10 Budgetary in-for-ma-tion:  \OT1/ptm/m/n/10 Post-doctoral fel-
+lows Au-drey Corbeil-Therrein and Averell Gat-ton are each sup-
+ []
+
+
+Underfull \hbox (badness 1642) in paragraph at lines 160--186
+\OT1/ptm/m/n/10 ported at the 0.5 FTE level for a to-tal of 1FTE post-doc sup-p
+ort for the du-ra-tion of the project. Fur-ther-more
+ []
+
+
+Underfull \hbox (badness 1448) in paragraph at lines 160--186
+\OT1/ptm/m/n/10 we have 240 hours of shop la-bor bud-geted for De-tec-tor Flang
+e fab-ri-ca-tion and ToF/Chamber as-sem-bly as-sis-tance.
+ []
+
+[2] (./active.adcr2019.bbl
 Missing character: There is no â in font ptmr7t!
 Missing character: There is no € in font ptmr7t!
 Missing character: There is no “ in font ptmr7t!
-) [3]
-(./active.adcr2019.aux) ) 
+)
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <9> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 277.
+ [3] (./active.adcr2019.aux) ) 
 Here is how much of TeX's memory you used:
- 11867 strings out of 493030
- 190254 string characters out of 6136259
- 242611 words of memory out of 5000000
- 15298 multiletter control sequences out of 15000+600000
- 8128 words of font info for 23 fonts, out of 8000000 for 9000
+ 11917 strings out of 493030
+ 191107 string characters out of 6136259
+ 248611 words of memory out of 5000000
+ 15330 multiletter control sequences out of 15000+600000
+ 14707 words of font info for 47 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 36i,5n,40p,505b,263s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 36i,8n,40p,505b,272s stack positions out of 5000i,500n,10000p,200000b,80000s
 
-Output written on active.adcr2019.dvi (3 pages, 18492 bytes).
+Output written on active.adcr2019.dvi (3 pages, 18828 bytes).
