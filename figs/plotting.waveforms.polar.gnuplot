@@ -65,8 +65,7 @@ unset parametric
 unset decimalsign
 unset micro
 unset minussign
-set view 60, 30, 1, 1
-set view azimuth 0
+set view map scale 1
 set rgbmax 255
 set samples 100, 100
 set isosamples 10, 10
@@ -83,7 +82,7 @@ set cntrparam firstlinetype 0
 set cntrparam points 5
 set size ratio 0 1,1
 set origin 0,0
-set style data points
+set style data lines
 set style function lines
 unset xzeroaxis
 unset yzeroaxis
@@ -125,13 +124,13 @@ set xlabel ""
 set xlabel  font "" textcolor lt -1 norotate
 set x2label "" 
 set x2label  font "" textcolor lt -1 norotate
-set xrange [ * : * ] noreverse writeback
+set xrange [ 0.00000 : 10000.0 ] noreverse writeback
 set x2range [ * : * ] noreverse writeback
 set ylabel "" 
 set ylabel  font "" textcolor lt -1 rotate
 set y2label "" 
 set y2label  font "" textcolor lt -1 rotate
-set yrange [ * : * ] noreverse writeback
+set yrange [ -0.500000 : 15.5000 ] noreverse writeback
 set y2range [ * : * ] noreverse writeback
 set zlabel "" 
 set zlabel  font "" textcolor lt -1 norotate
@@ -164,37 +163,28 @@ set fontpath
 set psdir
 set fit brief errorvariables nocovariancevariables errorscaling prescale nowrap v5
 GNUTERM = "x11"
-file(x) = sprintf("../data_fs/fromDebadrdi/forRyan_3peaks_bw40_run%i.dat",x)
-## Last datafile plotted: "../data_fs/fromDebadrdi/forRyan_different_kernels.dat"
-#set term post color eps size 9in,5in
-#set output 'dynamic.kernel.motivation.multi.eps'
-set term png size 1000,600
-set output 'dynamic_kernel_motivation_multi.png'
-set xlabel 'time [ns]'
-set ylabel 'signal + offset = KDE band width'
-tscale=2e2
-set yrange [.5:15.5]
-set ytics 1,2,20
-set xrange [0:500]
-set multiplot 
-set size .33,1
+file(p,i) = sprintf("data_fs/raw/CookieBox_waveforms.%ipulses.image%04i.dat",p,i)
+x = 0.0
+## Last datafile plotted: "data_fs/raw/CookieBox_waveforms.1pulses.image0192.dat"
+xoff = 230
+ps_scale=5
+set style data points
+set cbrange [0:1]
+set term png size 1200,600
+set polar
+set output sprintf("figs/plotting_waveforms_polar_%ipulses_image%04i.png",p,i)
+set cblabel 'signal [V]' offset -1,0
+set xlabel 'ToF [ns]'
+set ylabel 'channel # + signal [V]' offset 1,0
+set multiplot
 set origin 0,0
-set title '5 shot sum'
-plot 	file(1) mat u ($1/tscale):(3e4*$3+2*$2+3) every 10:::0::0 with lines lw 2 lc rgb 'red' title 'PDF',\
-	file(1) mat u ($1/tscale):(3.e4*$3+2*$2+7) every 10:::0::0 with lines lw 2 lc rgb 'red' notitle,\
-	file(1) mat u ($1/tscale):(3.5e4*$3+2*$2+11) every 10:::0::0 with lines lw 2 lc rgb 'red' notitle,\
-	'../data_fs/fromDebadrdi/forRyan_3peaks_bw40_sumruns.dat' mat u ($1/tscale):(8e3*$3+2*$2-1) every 10:::1::7 with lines lc 1 title 'KDE filtered'
-set origin .33,0
-set title 'single shot'
-plot 	file(1) mat u ($1/tscale):(3e4*$3+2*$2+3) every 10:::0::0 with lines lw 2 lc rgb 'red' title 'PDF',\
-	file(1) mat u ($1/tscale):(3.e4*$3+2*$2+7) every 10:::0::0 with lines lw 2 lc rgb 'red' notitle,\
-	file(1) mat u ($1/tscale):(3.5e4*$3+2*$2+11) every 10:::0::0 with lines lw 2 lc rgb 'red' notitle,\
-	file(3) mat u ($1/tscale):(3e4*$3+2*$2-1) every 10:::1::7 with lines lc 1 title 'KDE filtered'
-set origin .66,0
-set title 'single shot'
-plot 	file(1) mat u ($1/tscale):(3e4*$3+2*$2+3) every 10:::0::0 with lines lw 2 lc rgb 'red' title 'PDF',\
-	file(1) mat u ($1/tscale):(3.e4*$3+2*$2+7) every 10:::0::0 with lines lw 2 lc rgb 'red' notitle,\
-	file(1) mat u ($1/tscale):(3.5e4*$3+2*$2+11) every 10:::0::0 with lines lw 2 lc rgb 'red' notitle,\
-	file(4) mat u ($1/tscale):(3e4*$3+2*$2-1) every 10:::1::7 with lines lc 1 title 'KDE filtered'
+set size .5,1
+set xrange [-1e3:1e3]
+set yrange [-1e3:1e3]
+plot file(p,i) mat u ($2/16.*2*pi):($1/10.-xoff):($3*-1.):($3*-1.*ps_scale) palette ps variable pt 7 notitle
+set origin 0.5,0
+set xrange [-1e1:1e1]
+set yrange [-1e1:1e1]
+plot file(p,i) mat u ($2/16.*2*pi):(log($1/10.-xoff)):($3*-1.*ps_scale):($3*-1.) palette ps variable pt 7 notitle
 unset multiplot
 #    EOF

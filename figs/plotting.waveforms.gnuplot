@@ -163,8 +163,28 @@ set fontpath
 set psdir
 set fit brief errorvariables nocovariancevariables errorscaling prescale nowrap v5
 GNUTERM = "x11"
-file = "data_fs/raw/CookieBox_waveforms.1pulses.image0192.dat"
+file(p,i) = sprintf("data_fs/raw/CookieBox_waveforms.%ipulses.image%04i.dat",p,i)
 x = 0.0
 ## Last datafile plotted: "data_fs/raw/CookieBox_waveforms.1pulses.image0192.dat"
-plot file u ($1-2e3):($2-$3) mat lw 2 lc rgb 'black' notitle
+xoff = 230
+set cbrange [0:2]
+set term png size 400,600
+set output sprintf("figs/plotting_waveforms_%ipulses_image%04i.png",p,i)
+set cblabel 'signal [V]' offset -1,0
+set xlabel 'ToF [ns]'
+set ylabel 'channel # + signal [V]' offset 1,0
+#set multiplot
+#set origin 0,0
+#set size .5,1
+#set xrange [0:1e3]
+#plot file(p,i) mat u ($1/10.-xoff):($2-$3):($3*-1.) palette lw 2 notitle
+#set origin 0.5,0
+set xrange [1:1.e3]
+set yrange [-.5:16.5]
+set trange [0:16]
+set log x
+set parametric
+plot file(p,i) mat u ($1/10.-xoff):($2-$3):($3*-1.) palette lw 2 notitle,\
+amp/(1+delta-cos(t*2.*pi/16.+phi*pi))**2,t w lines notitle
+#unset multiplot
 #    EOF
