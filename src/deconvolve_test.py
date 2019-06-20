@@ -9,31 +9,41 @@ def gauss(x,c,w):
 def sig(x,c,w,b):
     g = gauss(x,c,w)
     dg = -2*(x-c)/w*gauss(x,c,w)
-    return g -b*dg
+    ddg = gauss(x,c,w)*4*(x-c)*(x-c)/(w*w) + 4/w*gauss(x,c,w)
+    g = np.roll(g,int(-c))
+    dg = np.roll(dg,int(-c))
+    ddg = np.roll(ddg,int(-c))
+    return g +b*dg -0.2*b*ddg
+
+def weiner(X,N):
+    return np.power(np.abs(X)/(np.abs(X)+N*np.max(np.abs(X))),int(2))
 
 def main():
     nhits = 10
     if 1<len(sys.argv):
         nhits = int(sys.argv[1])
     x = np.arange(667,dtype=int)
-    n = np.random.sample(len(x)+1)
-    dn = n[1:]-n[0:-1]
+    nscale=3e-1
+    n = np.random.normal(0,nscale,len(x))
     f = np.fft.fftfreq(x.shape[0])
     F = gauss(f,0,1./5.)
-    inds = np.random.choice(x,nhits)
     y = np.zeros(x.shape,dtype=float)
+    inds = np.random.choice(x,nhits)
     y[inds] = [np.random.sample(len(inds))]
-    s = sig(x,20,3,-2)
+    s = sig(x,20,3,1)
     S = np.fft.fft(s)
     DS = 1j*f*S
     SDS = S+DS
+    W = weiner(S,nscale)
     Y = np.fft.fft(y)
-    nscale=1e-9
-    yg = np.fft.ifft(Y*(SDS))+nscale*n[0:-1]
-    YG = np.fft.fft(yg.real+nscale*1j*dn)
+    yg = np.fft.ifft(Y*(SDS))+nscale*n
+    YG = np.fft.fft(yg.real)
     yd = np.fft.ifft(YG/(SDS))
+    yf = np.fft.ifft(YG*W)
+    yc = np.fft.ifft(YG*(-S))
 
-    np.savetxt('data_fs/processed/deconvolve.out',np.column_stack((x,y,yg.real,yd.real,yg.imag,yd.imag)),fmt='%.6f')
+    np.savetxt('data_fs/processed/deconvolve.out',np.column_stack((x,y,s,yg.real,yd.real,yf.real,yc.real)),fmt='%.6f')
+    np.savetxt('data_fs/processed/deconvolve.fft',np.column_stack((f,np.abs(Y),np.abs(SDS),np.abs(YG),np.abs(YG*W))),fmt='%.6f')
     return
 
 if __name__ == '__main__':
