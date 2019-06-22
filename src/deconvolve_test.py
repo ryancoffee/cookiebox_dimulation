@@ -52,10 +52,14 @@ def main():
     yc = np.fft.ifft(YG*(-S))
     ycof = np.fft.ifft(YG*(-S)*OF)
     yfinal = yc*np.abs(ycof)
+    boxaverage = np.zeros(len(yfinal),dtype=float)
+    boxaverage[-1] = 1.
+    boxaverage[0:2] = 1.
+    BA=np.fft.fft(boxaverage)
+    weightedinds = np.fft.ifft(np.fft.fft(x*yc)*BA)/np.fft.ifft(np.fft.fft(yc)*BA)
+    gaussweightedinds = np.fft.ifft(np.fft.fft(x*yc)*gauss(f,0,df*ufscale))/np.fft.ifft(np.fft.fft(yc)*gauss(f,0,df*ufscale))
 
-    weightedinds = np.fft.ifft(np.fft.fft(x*yc)*gauss(f,0,df*ufscale))/np.fft.ifft(np.fft.fft(yc)*gauss(f,0,df*ufscale))
-
-    np.savetxt('data_fs/processed/deconvolve.out',np.column_stack((x,y,s,yg.real,yd.real,yf.real,yof.real,yc.real,ycof.real,yfinal.real,weightedinds.real)),fmt='%.6f')
+    np.savetxt('data_fs/processed/deconvolve.out',np.column_stack((x,y,s,yg.real,yd.real,yf.real,yof.real,yc.real,ycof.real,yfinal.real,gaussweightedinds.real,weightedinds.real)),fmt='%.6f')
     np.savetxt('data_fs/processed/deconvolve.fft',np.column_stack((f,np.abs(Y),np.abs(SDS),np.abs(YG),np.abs(YG*W))),fmt='%.6f')
     return
 
