@@ -167,10 +167,43 @@ set fontpath
 set psdir
 set fit brief errorvariables nocovariancevariables errorscaling prescale nowrap v5
 GNUTERM = "x11"
+set style data histeps
 file = "data_fs/processed/deconvolve.out"
-fftfile = "data_fs/processed/powerspectrum.dat"
-datafile = "data_fs/processed/signal.dat"
-pfile = "data_fs/processed/powerspectrum.dat"
+datafile = "data_fs/processed/signal_double.dat"
+pfile = "data_fs/processed/powerspectrum_double.dat"
+#datafile = "data_fs/processed/signal.dat"
+#pfile = "data_fs/processed/powerspectrum.dat"
 ## Last datafile plotted: "data_fs/processed/signal.dat"
-plot datafile u (2+$0):($300/4.7) lw 2,datafile u (2+$0):($301/4.7) lw 2
+set term png size 800,1200
+set output 'figs/plotting.filtering_double.png'
+#set output 'figs/plotting.filtering.png'
+set multiplot 
+set style data histeps
+set lmargin screen .1
+set rmargin screen .9
+set auto
+set size 1,.5
+set origin 0,.5
+set xrange [-1:10]
+set xlabel 't [ns]'
+set ylabel 'signal [mV]'
+plot datafile u 1:3 lw 2 title 'filtered 3.2GHz',datafile u 1:2 w points pointsize .5 title 'raw'
+set origin 0,0
+set log
+set xrange [1e-2:10]
+set xlabel 'f [GHz]'
+unset ylabel
+plot pfile u 1:3 lw 2 notitle , pfile u 1:2 w points pt 7 pointsize .5 notitle #,pfile u 1:302 lw 2
+set size .65,.35
+set origin 0.25,.55
+unset log
+unset lmargin
+unset rmargin
+set xrange [-.5:2]
+unset xlabel
+set grid ls 2 lc rgb 'gray' 
+plot datafile u 1:3 lw 2 notitle,datafile u 1:2 w points pt 7 pointsize .5 notitle,datafile u 1:2 every 12 w points pt 7 lc 2 pointsize 1.5 notitle
+#plot datafile u 1:3 lw 2 notitle,datafile u 1:2 w points pt 7 pointsize .5 notitle,datafile u 1:2 every 6 w points pt 7 lc 2 pointsize 1.5 notitle
+#,datafile u 1:($303/4.7) lw 2 notitle,\
+unset multiplot
 #    EOF
