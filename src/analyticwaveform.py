@@ -20,6 +20,7 @@ def main():
     Dfilt= D*gauss(f,0,3.2e9)
     out = np.column_stack((out,np.power(np.abs(Dfilt),int(2))))
     outwave = np.column_stack((outwave,np.fft.ifft(Dfilt).real))
+    N=0.4
     print(d)
     for i in range(1,300):
         datafile = 'data_fs/ave1/C1--HighPulse-in-100-out1700-an2100--%05i.dat' % i
@@ -30,10 +31,11 @@ def main():
     df = f[1]-f[0]
     #Dfilt= D*gauss(f,0,250*df)
     Dfilt= D*gauss(f,0,3.2e9)
-    print('timestep = {}\t250*df = {}\t250/(t[1]-t[0]) = {}'.format(t[1]-t[0],250*df,250/(t[-1]-t[0])))
+    headstring = 'timestep = {}, N = {}\n#f[GHz]\t[dB]\t[dB]...'.format(t[1]-t[0],N)
     fftfilename = './data_fs/processed/powerspectrum.dat'
-    np.savetxt(fftfilename,np.column_stack((f*1e-9,out,np.power(np.abs(Dfilt),int(2)))),fmt='%.4f')
+    np.savetxt(fftfilename,np.column_stack((f*1e-9,10.*np.log10(out/N),10*np.log10(np.power(np.abs(Dfilt),int(2))/N))),fmt='%.4f',header = headstring)
     backfilename = './data_fs/processed/signal.dat'
+    headstring = 'timestep = {}, N = {}'.format(t[1]-t[0],N)
     np.savetxt(backfilename,np.column_stack((t*1e9,outwave,np.fft.ifft(Dfilt).real)),fmt='%.4f')
 
     filename = './data_fs/processed/analyticwaveform.dat'

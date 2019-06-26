@@ -169,14 +169,14 @@ set fit brief errorvariables nocovariancevariables errorscaling prescale nowrap 
 GNUTERM = "x11"
 set style data histeps
 file = "data_fs/processed/deconvolve.out"
-datafile = "data_fs/processed/signal_double.dat"
-pfile = "data_fs/processed/powerspectrum_double.dat"
-#datafile = "data_fs/processed/signal.dat"
-#pfile = "data_fs/processed/powerspectrum.dat"
+#datafile = "data_fs/processed/signal_double.dat"
+#pfile = "data_fs/processed/powerspectrum_double.dat"
+datafile = "data_fs/processed/signal.dat"
+pfile = "data_fs/processed/powerspectrum.dat"
 ## Last datafile plotted: "data_fs/processed/signal.dat"
 set term png size 800,1200
-set output 'figs/plotting.filtering_double.png'
-#set output 'figs/plotting.filtering.png'
+#set output 'figs/plotting.filtering_double.png'
+set output 'figs/plotting.filtering.png'
 set multiplot 
 set style data histeps
 set lmargin screen .1
@@ -187,13 +187,16 @@ set origin 0,.5
 set xrange [-1:10]
 set xlabel 't [ns]'
 set ylabel 'signal [mV]'
-plot datafile u 1:3 lw 2 title 'filtered 3.2GHz',datafile u 1:2 w points pointsize .5 title 'raw'
+plot datafile u 1:3 lw 2 title '3.2 GHz filter',datafile u 1:2 w points pointsize .5 title 'raw'
 set origin 0,0
-set log
+set log x
 set xrange [1e-2:10]
 set xlabel 'f [GHz]'
-unset ylabel
-plot pfile u 1:3 lw 2 notitle , pfile u 1:2 w points pt 7 pointsize .5 notitle #,pfile u 1:302 lw 2
+set ylabel 'P [dB]'
+set yrange [-15:35]
+set grid ls 2 lc rgb 'gray' 
+set key bottom left
+plot pfile u 1:3 lw 2 title '3.2 GHz filter', pfile u 1:2 w points pt 7 pointsize .5 notitle #,pfile u 1:302 lw 2
 set size .65,.35
 set origin 0.25,.55
 unset log
@@ -201,8 +204,9 @@ unset lmargin
 unset rmargin
 set xrange [-.5:2]
 unset xlabel
+set yrange [-1.2:.2]
 set grid ls 2 lc rgb 'gray' 
-plot datafile u 1:3 lw 2 notitle,datafile u 1:2 w points pt 7 pointsize .5 notitle,datafile u 1:2 every 12 w points pt 7 lc 2 pointsize 1.5 notitle
+plot datafile u 1:3 lw 2 notitle,datafile u 1:2 w points pt 7 pointsize .5 notitle,datafile u 1:2 every 6 w points pt 7 lc 2 pointsize 1.5 notitle
 #plot datafile u 1:3 lw 2 notitle,datafile u 1:2 w points pt 7 pointsize .5 notitle,datafile u 1:2 every 6 w points pt 7 lc 2 pointsize 1.5 notitle
 #,datafile u 1:($303/4.7) lw 2 notitle,\
 unset multiplot
