@@ -13,7 +13,7 @@ def altconv(f,y,ir,bwd=3.2e9):
     i = np.argmin(ir_roll)
     ir_roll = np.roll(ir_roll,-i)
     FILT = np.fft.fft(ir_roll) * gauss(f,0,bwd) * np.power(1j*f,int(4))
-    return yfilt * np.fft.ifft(YFILT * FILT).real * 1.5e-37
+    return yfilt * np.fft.ifft(YFILT * FILT).real #* 1.5e-37
     ## this is taking the derivative of both y and impulse response (ir) and doint the convolution via Fourier Y*IR*(-1j*f)**2
     #return y * np.fft.ifft(Y * IR*np.power(gauss(f,0,3.2e9),int(2))*(np.power(1j*f,int(4)))).real*1.5e-37
     #* 1.5e-37
@@ -36,7 +36,7 @@ def deconv(f,y,ir):
 def main():
     x=np.arange(2000)
     g=gauss(x,20,10)
-    
+
     datafile = 'data_fs/ave1/C1--HighPulse-in-100-out1700-an2100--00000.dat'
     t=np.loadtxt(datafile,usecols=(0,))
     f = np.fft.fftfreq(len(t),t[1]-t[0])
@@ -59,8 +59,9 @@ def main():
     df = f[1]-f[0]
     #Dfilt= D*gauss(f,0,250*df)
     Dfilt= D*gauss(f,0,3.2e9)
-    naivedeconv = derivconv(f,np.copy(d_orig),np.fft.ifft(Dfilt).real)
-    alternateconv = altconv(f,np.copy(d_orig),np.fft.ifft(Dfilt).real)
+    dfilt = np.fft.ifft(Dfilt).real
+    naivedeconv = derivconv(f,np.copy(d_orig),dfilt)
+    alternateconv = altconv(f,np.copy(d_orig),dfilt)
     Dfiltdiff = np.copy(Dfilt)*1j*f
     deriv_conv = np.fft.ifft(np.fft.fft(np.copy(d_orig))*1j*f*Dfiltdiff)
     deriv_conv = np.roll(deriv_conv,len(deriv_conv)//2-15)*6e-20
@@ -76,6 +77,20 @@ def main():
     filename = './data_fs/processed/analyticwaveform.dat'
     np.savetxt(filename,g,fmt='%.6f')
     print('Made it here')
+
+    image = 4976
+    waveformsnames = 'data_fs/raw/CookieBox_waveforms.4pulses.image%04i.dat' % image 
+    timesnames = 'data_fs/raw/CookieBox_waveforms.times.dat'
+    times = np.loadtxt(timesnames)
+    freqs = np.fft.fftfreq(len(times),times[1]-times[0])
+    dfiltfull = np.zeros(len(times),dtype=float)
+    dfiltfull[:len(dfilt)] = np.copy(dfilt)
+    waveforms = np.loadtxt(waveformsnames)
+    waveforms_deconv = np.zeros(waveforms.shape,dtype=float)
+    for c in range(waveforms.shape[0]):
+        waveforms_deconv[c,:] = altconv(freqs,waveforms[c,:],dfiltfull)
+    outname = './data_fs/processed/CookieBox_waveforms.4pulses.image%4i_deconv.dat' % image
+    np.savetxt(outname,waveforms_deconv[0,:],fmt='%.4e') 
     return
 
 if __name__ == '__main__':
