@@ -2,6 +2,7 @@
 
 import numpy as np
 import sys
+import re   
 
 from deconvolve_test import gauss
 
@@ -34,6 +35,7 @@ def deconv(f,y,ir):
     return np.fft.ifft(Y*filt).real
 
 def main():
+    filelist = sys.argv[1:]
     x=np.arange(2000)
     g=gauss(x,20,10)
 
@@ -78,11 +80,16 @@ def main():
     np.savetxt(filename,g,fmt='%.6f')
     print('Made it here')
 
-    image = 4976
-    waveformsnames = 'data_fs/raw/CookieBox_waveforms.4pulses.image%04i.dat' % image 
+    for fname in filelist:
+        m = re.match('((data_fs/raw/CookieBox_waveforms\.)(\d+)pulses\.image(\d+))\.dat',fname)
+        if m:
+            npulses = int(m.group(3))
+            image = int(m.group(4))
+            waveformsnames = 'data_fs/raw/CookieBox_waveforms.4pulses.image%04i.dat' % image 
     timesnames = 'data_fs/raw/CookieBox_waveforms.times.dat'
     times = np.loadtxt(timesnames)*1e-9
     print(times[:10])
+    m = re.match()
     freqs = np.fft.fftfreq(len(times),times[1]-times[0])
     dfiltfull = np.zeros(len(times),dtype=float)
     dfiltfull[:len(dfilt)] = np.copy(dfilt)
