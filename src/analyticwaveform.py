@@ -61,7 +61,7 @@ def main():
     Dfilt= D*gauss(f,0,3.2e9)
     dfilt = np.fft.ifft(Dfilt).real
     naivedeconv = derivconv(f,np.copy(d_orig),dfilt)
-    alternateconv = altconv(f,np.copy(d_orig),dfilt)
+    alternateconv = altconv(f,np.copy(d_orig),dfilt) * 1.5e-37
     Dfiltdiff = np.copy(Dfilt)*1j*f
     deriv_conv = np.fft.ifft(np.fft.fft(np.copy(d_orig))*1j*f*Dfiltdiff)
     deriv_conv = np.roll(deriv_conv,len(deriv_conv)//2-15)*6e-20
@@ -81,16 +81,19 @@ def main():
     image = 4976
     waveformsnames = 'data_fs/raw/CookieBox_waveforms.4pulses.image%04i.dat' % image 
     timesnames = 'data_fs/raw/CookieBox_waveforms.times.dat'
-    times = np.loadtxt(timesnames)
+    times = np.loadtxt(timesnames)*1e-9
+    print(times[:10])
     freqs = np.fft.fftfreq(len(times),times[1]-times[0])
     dfiltfull = np.zeros(len(times),dtype=float)
     dfiltfull[:len(dfilt)] = np.copy(dfilt)
     waveforms = np.loadtxt(waveformsnames)
+    WAVEFORMS = np.fft.fft(waveforms,axis=1)
     waveforms_deconv = np.zeros(waveforms.shape,dtype=float)
     for c in range(waveforms.shape[0]):
-        waveforms_deconv[c,:] = altconv(freqs,waveforms[c,:],dfiltfull)
+        #wf_filt = np.fft.ifft(WAVEFORMS[c,:] * gauss(freqs,0,3.2e9)).real
+        waveforms_deconv[c,:] = altconv(freqs,waveforms[c,:],dfiltfull)*1e-36
     outname = './data_fs/processed/CookieBox_waveforms.4pulses.image%4i_deconv.dat' % image
-    np.savetxt(outname,waveforms_deconv[0,:],fmt='%.4e') 
+    np.savetxt(outname,waveforms_deconv,fmt='%.4e') 
     return
 
 if __name__ == '__main__':
