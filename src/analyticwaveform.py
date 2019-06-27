@@ -5,6 +5,34 @@ import sys
 
 from deconvolve_test import gauss
 
+def altconv(f,y,ir,bwd=3.2e9):
+    Y = np.fft.fft(np.copy(y))
+    YFILT = Y * gauss(f,0,bwd) 
+    yfilt = np.fft.ifft(YFILT).real
+    ir_roll = np.copy(ir)
+    i = np.argmin(ir_roll)
+    ir_roll = np.roll(ir_roll,-i)
+    FILT = np.fft.fft(ir_roll) * gauss(f,0,bwd) * np.power(1j*f,int(4))
+    return yfilt * np.fft.ifft(YFILT * FILT).real * 1.5e-37
+    ## this is taking the derivative of both y and impulse response (ir) and doint the convolution via Fourier Y*IR*(-1j*f)**2
+    #return y * np.fft.ifft(Y * IR*np.power(gauss(f,0,3.2e9),int(2))*(np.power(1j*f,int(4)))).real*1.5e-37
+    #* 1.5e-37
+
+def derivconv(f,y,ir):
+    Y = np.fft.fft(np.copy(y))
+    ir_roll = np.copy(ir)
+    i = np.argmin(ir_roll)
+    ir_roll = np.roll(ir_roll,-i)
+    IR = np.fft.fft(ir_roll)
+    ## this is taking the derivative of both y and impulse response (ir) and doint the convolution via Fourier Y*IR*(-1j*f)**2
+    return np.fft.ifft(Y*gauss(f,0,3.2e9)*np.power(1j*f,int(2))).real * np.fft.ifft(Y*gauss(f,0,3.2e9)*IR*(np.power(f,int(2)))).real*2.1e-37
+
+def deconv(f,y,ir):
+    desire = gauss(f,0,6.4e9)
+    Y = np.fft.fft(np.copy(y))
+    filt = desire/np.fft.fft(ir)
+    return np.fft.ifft(Y*filt).real
+
 def main():
     x=np.arange(2000)
     g=gauss(x,20,10)
@@ -31,6 +59,13 @@ def main():
     df = f[1]-f[0]
     #Dfilt= D*gauss(f,0,250*df)
     Dfilt= D*gauss(f,0,3.2e9)
+    naivedeconv = derivconv(f,np.copy(d_orig),np.fft.ifft(Dfilt).real)
+    alternateconv = altconv(f,np.copy(d_orig),np.fft.ifft(Dfilt).real)
+    Dfiltdiff = np.copy(Dfilt)*1j*f
+    deriv_conv = np.fft.ifft(np.fft.fft(np.copy(d_orig))*1j*f*Dfiltdiff)
+    deriv_conv = np.roll(deriv_conv,len(deriv_conv)//2-15)*6e-20
+    dconvname = './data_fs/processed/derivconv.dat'
+    np.savetxt(dconvname,np.column_stack((t*1e9,outwave[:,0].real,deriv_conv.real,naivedeconv,alternateconv)),fmt='%.4f')
     headstring = 'timestep = {}, N = {}\n#f[GHz]\t[dB]\t[dB]...'.format(t[1]-t[0],N)
     fftfilename = './data_fs/processed/powerspectrum.dat'
     np.savetxt(fftfilename,np.column_stack((f*1e-9,10.*np.log10(out/N),10*np.log10(np.power(np.abs(Dfilt),int(2))/N))),fmt='%.4f',header = headstring)
@@ -40,6 +75,7 @@ def main():
 
     filename = './data_fs/processed/analyticwaveform.dat'
     np.savetxt(filename,g,fmt='%.6f')
+    print('Made it here')
     return
 
 if __name__ == '__main__':
