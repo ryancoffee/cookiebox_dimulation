@@ -256,7 +256,7 @@ def computeImages():
         nelectronsrange = (5,10)
         ntbins=8
         nebins=8
-        npulses = randrange(1,5)
+        npulses = randrange(1,2)
         tinds = [randrange(ntbins) for i in range(npulses)]
         einds = [randrange(nebins) for i in range(npulses)]
         nelectrons = [randrange(nelectronsrange[0],nelectronsrange[1]) for i in range(npulses)]
