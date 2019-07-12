@@ -1,17 +1,9 @@
-#!/usr/bin/python3
-
 from scipy.stats import gengamma as gamma
 import numpy as np
-
-
-def samplegamma(a,c,loc,scale,n):
-    #mean, var, skew, kurt = gamma.stats(a=a, c=c, loc = loc,scale=scale, moments='mvsk')
-    #outstring = 'mean: %f\tvariance: %f' % (mean,var)
-    #print(outstring)
-    #v = gamma.rvs(a=a,c=c,loc=loc,scale=scale,size=n)
-    return gamma.rvs(a=a,c=c,loc=loc,scale=scale,size=n)
+from numpy.random import shuffle,rand
 
 def fillcollection(e_photon = 600., nphotos=10,nvalence=1,nsigstars=10,npistars=20,angle = 0.,max_streak=0):
+    #Function returns an array with the number of interactions at a certain time and energy
     ph_a = 2.
     ph_scale = 1.
     ph_ip = 540.
@@ -39,7 +31,9 @@ def fillcollection(e_photon = 600., nphotos=10,nvalence=1,nsigstars=10,npistars=
     np.random.shuffle(v)
     return v
 
-def main():
+
+#TEST FUNCTIONS
+def test_fillcollection():
     ## Treating energies as in eV
     nphotos = int(10)
     npistars = int(10)
@@ -51,12 +45,8 @@ def main():
         stringout = '%.2f\t:|' % p
         stringout += ' '*int(p/10)+'|'
         print(stringout)
-    np.savetxt('../data_fs/extern/electron_energy_collection.dat',v,fmt='%4f')
-    np.save('../data_fs/extern/electron_energy_collection',v)
-    return 0
-
-
-
+    np.savetxt('../data_fs/extern/test_electron_energy_collection.dat',v,fmt='%4f')
+    np.save('../data_fs/extern/test_electron_energy_collection',v)
 
 if __name__ == '__main__':
-    main()
+    test_fillcollection()
