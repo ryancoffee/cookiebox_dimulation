@@ -1,13 +1,8 @@
 #!/usr/bin/python3
 
 from scipy.stats import gengamma as gamma
-from numpy import row_stack
-from numpy import concatenate as npconcatenate
-from numpy import array as nparray
+import numpy as np
 from numpy.random import shuffle,rand
-from numpy import savetxt
-from numpy import save,cos,sin,pi
-from numpy import max as npmax
 
 
 def samplegamma(a,c,loc,scale,n):
@@ -31,16 +26,16 @@ def fillcollection(e_photon = 600., nphotos=10,nvalence=1,nsigstars=10,npistars=
     pistar_e=532.
     pistar_scale = 0.5
     c , loc = 1. , 0.
-    e = e_photon - ph_ip + ph_a - samplegamma(a=ph_a,c=c,loc=loc,scale=ph_scale,n=nphotos) + max_streak * cos(angle)
-    v = nparray([val for val in e if val >0])
+    e = e_photon - ph_ip + ph_a - gamma.rvs(a=ph_a,c=c,loc=loc,scale=ph_scale,size=nphotos) + max_streak * np.cos(angle)
+    v = np.array([val for val in e if val >0])
     e = e_photon - v_ip  + v_a - samplegamma(a = v_a,c=c,loc=0,scale=v_scale,n=nvalence)
-    v = npconcatenate( (v, nparray([val for val in e if val >0])))
+    v = np.concatenate( (v, np.array([val for val in e if val >0])))
     #print(v.shape)
     e = sigstar_e + sigstar_a - samplegamma(a = sigstar_a,c=1.,loc=0,scale=sigstar_scale,n=nsigstars)
-    v = npconcatenate( (v, nparray([val for val in e if val > 0])))
+    v = np.concatenate( (v, np.array([val for val in e if val > 0])))
     #print(v.shape)
     e = pistar_e + pistar_a - samplegamma(a = pistar_a,c=1.,loc=0,scale=pistar_scale,n=npistars)
-    v = npconcatenate( (v, nparray([val for val in e if val > 0])))
+    v = np.concatenate( (v, np.array([val for val in e if val > 0])))
     #print(v.shape)
     shuffle(v)
     return v
@@ -57,8 +52,8 @@ def main():
         stringout = '%.2f\t:|' % p
         stringout += ' '*int(p/10)+'|'
         print(stringout)
-    savetxt('../data_fs/extern/electron_energy_collection.dat',v,fmt='%4f')
-    save('../data_fs/extern/electron_energy_collection',v)
+    np.savetxt('../data_fs/extern/electron_energy_collection.dat',v,fmt='%4f')
+    np.save('../data_fs/extern/electron_energy_collection',v)
     return 0
 
 
