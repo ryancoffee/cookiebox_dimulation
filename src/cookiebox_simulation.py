@@ -3,6 +3,7 @@ import numpy as np
 from numpy.random import shuffle,rand
 
 #Global constants
+from scipy.constants import c as SPEED_OF_LIGHT
 from scipy.constants import physical_constants as pc
 ELECTRON_MASS_ENERGY,unit, err = pc["electron mass energy equivalent in MeV"]
 ELECTRON_MASS_ENERGY *= 1e6 # eV now
@@ -40,14 +41,14 @@ def fillcollection(e_photon = 600., nphotos=10,nvalence=1,nsigstars=10,npistars=
 
 def energy2time(e,r=0,d1=3.75,d2=5,d3=35):
     #distances are in centimiters and energies are in eV and times are in ns
-    C_cmPns = c*100.*1e-9
+    C_cm_per_ns = SPEED_OF_LIGHT*100.*1e-9
     t = 1.e3 + np.zeros(e.shape,dtype=float);
     if r==0:
-        return np.array([ (d1+d2+d3)/C_cmPns * np.sqrt(e_mc2/(2.*en)) for en in e if en > 0])
+        return np.array([ (d1+d2+d3)/C_cm_per_ns * np.sqrt(ELECTRON_MASS_ENERGY/(2.*en)) for en in e if en > 0])
     else :
-        return np.array([d1/C_cmPns * np.sqrt(e_mc2/(2.*en)) + d3/C_cmPns * 
-                        np.sqrt(e_mc2/(2.*(en-r))) + d2/C_cmPns * np.sqrt(2)*
-                        (e_mc2/r)*(np.sqrt(en/e_mc2) - np.sqrt((en-r)/e_mc2)) for en in e if en>r])
+        return np.array([d1/C_cm_per_ns * np.sqrt(ELECTRON_MASS_ENERGY/(2.*en)) + d3/C_cm_per_ns * 
+                        np.sqrt(ELECTRON_MASS_ENERGY/(2.*(en-r))) + d2/C_cm_per_ns * np.sqrt(2)*
+                        (C_cm_per_ns/r)*(np.sqrt(en/ELECTRON_MASS_ENERGY) - np.sqrt((en-r)/ELECTRON_MASS_ENERGY)) for en in e if en>r])
 
 
 #TEST FUNCTIONS
@@ -55,6 +56,14 @@ def test_constants():
     print("List of physical constants used in this simulation")
     print("The electron mass energy equivalent in eV is {}".format(ELECTRON_MASS_ENERGY))
     print("The classical electron radius in cm is {}".format(ELECTRON_RADIUS))
+    
+def test_energy2time():
+    print("Testing the energy to time conversion function.")
+    nphotos = int(10)
+    npistars = int(10)
+    nsigstars = int(10)
+    v = fillcollection(e_photon = 700,nphotos=nphotos,npistars=npistars,nsigstars=nsigstars)
+    print(energy2time(v))
     
 def test_fillcollection():
     ## Treating energies as in eV
@@ -75,3 +84,4 @@ def test_fillcollection():
 if __name__ == '__main__':
     test_constants()
     test_fillcollection()
+    test_energy2time()
