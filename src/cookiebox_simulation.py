@@ -2,6 +2,13 @@ from scipy.stats import gengamma as gamma
 import numpy as np
 from numpy.random import shuffle,rand
 
+#Global constants
+from scipy.constants import physical_constants as pc
+ELECTRON_MASS_ENERGY,unit, err = pc["electron mass energy equivalent in MeV"]
+ELECTRON_MASS_ENERGY *= 1e6 # eV now
+ELECTRON_RADIUS, unit, err = pc["classical electron radius"]
+ELECTRON_RADIUS *= 1e2 # in centimeters now
+
 def fillcollection(e_photon = 600., nphotos=10,nvalence=1,nsigstars=10,npistars=20,angle = 0.,max_streak=0):
     #Function returns an array with the number of interactions at a certain time and energy
     ph_a = 2.
@@ -31,10 +38,27 @@ def fillcollection(e_photon = 600., nphotos=10,nvalence=1,nsigstars=10,npistars=
     np.random.shuffle(v)
     return v
 
+def energy2time(e,r=0,d1=3.75,d2=5,d3=35):
+    #distances are in centimiters and energies are in eV and times are in ns
+    C_cmPns = c*100.*1e-9
+    t = 1.e3 + np.zeros(e.shape,dtype=float);
+    if r==0:
+        return np.array([ (d1+d2+d3)/C_cmPns * np.sqrt(e_mc2/(2.*en)) for en in e if en > 0])
+    else :
+        return np.array([d1/C_cmPns * np.sqrt(e_mc2/(2.*en)) + d3/C_cmPns * 
+                        np.sqrt(e_mc2/(2.*(en-r))) + d2/C_cmPns * np.sqrt(2)*
+                        (e_mc2/r)*(np.sqrt(en/e_mc2) - np.sqrt((en-r)/e_mc2)) for en in e if en>r])
+
 
 #TEST FUNCTIONS
+def test_constants():
+    print("List of physical constants used in this simulation")
+    print("The electron mass energy equivalent in eV is {}".format(ELECTRON_MASS_ENERGY))
+    print("The classical electron radius in cm is {}".format(ELECTRON_RADIUS))
+    
 def test_fillcollection():
     ## Treating energies as in eV
+    print("Creating 30 interactions at various times. 10 photons, 10 pistars, 10 sigstars")
     nphotos = int(10)
     npistars = int(10)
     nsigstars = int(10)
@@ -49,4 +73,5 @@ def test_fillcollection():
     np.save('../data_fs/extern/test_electron_energy_collection',v)
 
 if __name__ == '__main__':
+    test_constants()
     test_fillcollection()
