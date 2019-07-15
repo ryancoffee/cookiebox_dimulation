@@ -6,6 +6,15 @@ import re
 
 from deconvolve_test import gauss
 
+def homomorphic(invec,dt=1.):
+    f = np.fft.fftfreq(invec.shape[0],dt) 
+    y = np.copy(invec)
+    sy = np.sign(y)
+    ay = np.log(np.abs(y))
+    AY = np.fft.fft(ay)
+
+
+    return y
 def altconv(f,y,ir,bwd=3.2e9):
     Y = np.fft.fft(np.copy(y))
     YFILT = Y * gauss(f,0,bwd) 
