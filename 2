@@ -20,12 +20,8 @@ def althomomorphic(invec,ir,bwd=3.2e9,dt=1.):
     rla = np.log(np.abs(ir_roll)+1e-16)
     Y = np.fft.fft(yla)
     R = np.fft.fft(rla)
-    RES = (Y-R)*gauss(f,0,bwd)
-    result = np.fft.ifft(RES)
-    maxres = np.max(result.real)
-    result -= maxres
-    result = sigmoid(result)
-    
+    RES = (Y-R)
+    result = sigmoid(np.fft.ifft(RES)-31.)
     return (result.real,result.imag)
 
 def homomorphic(invec,ir,bwd=3.2e9,dt=1.):
