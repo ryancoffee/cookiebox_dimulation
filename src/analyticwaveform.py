@@ -8,24 +8,39 @@ from utilities import gauss,sigmoid,highpass,lowpass
 
 from deconvolve_test import gauss
 
-def althomomorphic(invec,ir,bwd=3.2e9,dt=1.):
+def althomomorphic(invec,ir,bwd=2.4e9,dt=1.):
     f = np.fft.fftfreq(invec.shape[0],dt) 
     ir_roll = np.copy(ir)
     i = np.argmin(ir_roll)
     ir_roll = np.roll(ir_roll,-i)
-    y = np.copy(invec)
+    y = np.fft.ifft( np.fft.fft(np.copy(invec))*gauss(f,0,bwd) ).real
     ys = np.sign(y)
-    yla = np.log(np.abs(y)+1e-16)
+    #dy = np.fft.ifft( np.fft.fft(np.copy(y))*1j*f*gauss(f,0,bwd)  )
+    #y = y.real + 1j*dy.real
+    #ys = np.unwrap(np.angle(y))
+    #ys[len(ys)//2:] = -(ys[len(ys)//2+1:1:-1])
+    #ys_smooth = np.fft.ifft( np.fft.fft(ys) * gauss(f,0,bwd) )
+    #return (ys,ys_smooth.real)
+    ya = np.abs(y).astype(complex)
+    lowlim = 1e-16
+    inds = np.where(ya<lowlim)
+    ya[inds] += 1j*1e-15
+    yla = np.log(ya)
+    #rs = np.unwrap(np.angle(ir_roll))
+    #rs[len(rs)//2:] = -(rs[len(rs)//2+1:1:-1])
+    #rs_smooth = np.fft.ifft( np.fft.fft(rs) * gauss(f,0,bwd) )
     rs = np.sign(ir_roll)
-    rla = np.log(np.abs(ir_roll)+1e-16)
+    ra = np.abs(ir_roll).astype(complex)
+    inds = np.where(ra<lowlim)
+    ra[inds] += 1j*1e-15
+    rla = np.log(ra)
     Y = np.fft.fft(yla)
+    Ylow = np.copy(Y)*gauss(f,0,bwd)
+    Yhigh = np.copy(Y)*highpass(f,2*bwd,bwd/2)
     R = np.fft.fft(rla)
-    RES = (Y-R)*gauss(f,0,bwd)
-    result = np.fft.ifft(RES)
-    maxres = np.max(result.real)
-    result -= maxres
-    result = sigmoid(result)
-    
+    Rlow = np.copy(R)*gauss(f,0,bwd)
+    RES = (Ylow-Yhigh)*gauss(f,0,bwd)
+    result = np.exp(np.fft.ifft(RES))*ys*rs
     return (result.real,result.imag)
 
 def homomorphic(invec,ir,bwd=3.2e9,dt=1.):
@@ -36,12 +51,15 @@ def homomorphic(invec,ir,bwd=3.2e9,dt=1.):
     y = np.copy(invec)
     Y = np.fft.fft(y)
     R = np.fft.fft(ir_roll)
-    YA = np.abs(Y)#*gauss(f,0,bwd)
-    YS = np.angle(Y)#*gauss(f,0,bwd)
-    RA = np.abs(R)
-    RS = np.angle(R)#*gauss(f,0,bwd)
-    YAL = np.log(YA) + 2.*gauss(f,0,bwd) - np.log(RA)
-    result = np.fft.ifft(YAL * np.exp(1j*(YS)))
+    YA = np.abs(np.copy(Y))*gauss(f,0,bwd)
+    YS = np.angle(Y)
+    RA = np.abs(np.copy(R))*gauss(f,0,bwd)
+    RS = np.angle(R)
+    qya = np.fft.fft(YA)
+    qra = np.fft.fft(RA)
+    q = (qya - qra)
+    Q = np.fft.ifft(q)
+    result = np.fft.ifft(Q * np.exp(1j*(YS)))
     return (result.real,result.imag)
 
 def altconv(f,y,ir,bwd=3.2e9):
@@ -142,7 +160,7 @@ def main():
             for c in range(waveforms.shape[0]):
                 #wf_filt = np.fft.ifft(WAVEFORMS[c,:] * gauss(freqs,0,3.2e9)).real
                 waveforms_deconv[c,:] = altconv(freqs,waveforms[c,:],dfiltfull)*1e-36
-                (waveforms_homodeconv[c,:],waveforms_homodeconv_imag[c,:]) = althomomorphic(waveforms[c,:],dfiltfull,3.2e9,dt)
+                (waveforms_homodeconv[c,:],waveforms_homodeconv_imag[c,:]) = homomorphic(waveforms[c,:],dfiltfull,2.4e9,dt)
             outname = m.group(1)+'processed/'+m.group(2)+'.deconv.out'
             np.savetxt(outname,waveforms_deconv,fmt='%.4e') 
             outname = m.group(1)+'processed/'+m.group(2)+'.homodeconv.real.out'
