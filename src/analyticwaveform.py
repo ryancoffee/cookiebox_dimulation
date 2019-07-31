@@ -9,10 +9,39 @@ from utilities import gauss,sigmoid,highpass,lowpass
 
 from deconvolve_test import gauss
 
+def analogprocess_theory(invec,bwd=2.4e9,dt=1):
+    f = np.fft.fftfreq(invec.shape[0],dt)/bwd
+    s = np.copy(invec)
+    S = np.fft.fft(s) 
+    I = np.zeros(S.shape,dtype = complex)
+    DS = np.zeros(S.shape,dtype = complex)
+    IDS = np.zeros(S.shape,dtype = complex)
+    DS = np.zeros(S.shape,dtype = complex)
+    DDS = np.zeros(S.shape,dtype = complex)
+    inds = np.where(np.abs(f) < 1.)
+    c2 = np.zeros(S.shape,dtype = float)
+    c2[inds] = np.power(np.cos(np.abs(f[inds])*np.pi/2.),int(2))
+    fpow1 = np.zeros(S.shape,dtype = float)
+    fpow2 = np.zeros(S.shape,dtype = float)
+    fpowm1 = np.zeros(S.shape,dtype = float)
+    fpow2 = np.power(f,int(2))
+    fpowm1[1:] = np.power(np.abs(f[1:]),-1)
+    I[inds] = np.copy(S[inds])*c2[inds]*fpowm1[inds]
+    IDS[inds] = np.copy(S[inds])*c2[inds]
+    IDS[0] = 0. + 0j
+    DS[inds] = np.copy(S[inds])*1j*f[inds]*c2[inds]
+    DS[0] = 0. + 0j
+    DDS[inds] = np.copy(S[inds])*-1*fpow2[inds]
+    dds = np.fft.ifft(DDS).real
+    ds = np.fft.ifft(DS).real
+    ids = np.fft.ifft(IDS).real
+    i = np.fft.ifft(I).real
+    return np.column_stack(( np.abs(f) , np.abs(S), np.abs(I), np.abs(IDS), np.abs(DS), np.abs(DDS) , invec, i, ids,ds,dds))
+
 def analogprocess(invec,bwd=2.4e9,dt=1):
     f = np.fft.fftfreq(invec.shape[0],dt)/bwd
     s = np.copy(invec)
-    S = np.fft.fft(s) * gauss(f,0,bwd)
+    S = np.fft.fft(s)
     I = np.zeros(S.shape,dtype = complex)
     DS = np.zeros(S.shape,dtype = complex)
     IDS = np.zeros(S.shape,dtype = complex)
@@ -31,14 +60,14 @@ def analogprocess(invec,bwd=2.4e9,dt=1):
     I[inds] = np.copy(S[inds])*np.cos(np.abs(f[inds])*np.pi/2.)*logf[inds]*fpowm1p2[inds]
     IDS[inds] = np.copy(S[inds])*np.cos(f[inds]*np.pi/2.)*logf[inds]*fpowm0p2[inds]
     IDS[0] = 0. + 0j
-    DS[inds] = np.copy(S[inds])*1j*np.abs(np.sin(f[inds]*np.pi))*np.cos(f[inds]*np.pi/2.)*logf[inds]*fpowm0p2[inds]
+    DS[inds] = np.copy(S[inds])*1j*(np.sin(f[inds]*np.pi))*np.cos(f[inds]*np.pi/2.)*logf[inds]*fpowm0p2[inds]
     DS[0] = 0. + 0j
-    DDS[inds] = np.copy(DS[inds])*1j*np.abs(f[inds])
+    DDS[inds] = np.copy(DS[inds])*1j*f[inds]
     dds = np.fft.ifft(DDS).real
     ds = np.fft.ifft(DS).imag
     ids = np.fft.ifft(IDS).real
     i = np.fft.ifft(I).real
-    return np.column_stack(( np.abs(f) , np.abs(S), np.abs(I), np.abs(IDS), np.abs(DS), np.abs(DDS) , s, i, ids,ds,dds))
+    return np.column_stack(( np.abs(f) , np.abs(S), np.abs(I), np.abs(IDS), np.abs(DS), np.abs(DDS) , invec, i, ids,ds,dds))
 
 def althomomorphic(invec,ir,bwd=2.4e9,dt=1.):
     f = np.fft.fftfreq(invec.shape[0],dt) 
@@ -194,6 +223,7 @@ def main(runAve=False):
             for c in range(waveforms.shape[0]):
                 #wf_filt = np.fft.ifft(WAVEFORMS[c,:] * gauss(freqs,0,3.2e9)).real
                 outresult = analogprocess(waveforms[c,:],bwd=2.4e9,dt=dt)
+                theoryresult = analogprocess_theory(waveforms[c,:],bwd=2.4e9,dt=dt)
                 if runAve:
                     waveforms_deconv[c,:] = altconv(freqs,waveforms[c,:],dfiltfull)*1e-36
                     (waveforms_homodeconv[c,:],waveforms_homodeconv_imag[c,:]) = homomorphic(waveforms[c,:],dfiltfull,2.4e9,dt)
@@ -204,6 +234,8 @@ def main(runAve=False):
                 np.savetxt(outname,waveforms_homodeconv,fmt='%.4e') 
                 outname = m.group(1)+'processed/'+m.group(2)+'.homodeconv.imag.out'
                 np.savetxt(outname,waveforms_homodeconv_imag,fmt='%.4e') 
+            outname = m.group(1)+'processed/'+m.group(2)+'.analogtheory.out'
+            np.savetxt(outname,theoryresult,fmt='%.4e') 
             outname = m.group(1)+'processed/'+m.group(2)+'.analogprocess.out'
             np.savetxt(outname,outresult,fmt='%.4e') 
             print('printed {}'.format(outname))
