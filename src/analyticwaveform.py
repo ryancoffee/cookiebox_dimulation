@@ -3,10 +3,42 @@
 import numpy as np
 import sys
 import re   
+import glob
 
 from utilities import gauss,sigmoid,highpass,lowpass
 
 from deconvolve_test import gauss
+
+def analogprocess(invec,bwd=2.4e9,dt=1):
+    f = np.fft.fftfreq(invec.shape[0],dt)/bwd
+    s = np.copy(invec)
+    S = np.fft.fft(s) * gauss(f,0,bwd)
+    I = np.zeros(S.shape,dtype = complex)
+    DS = np.zeros(S.shape,dtype = complex)
+    IDS = np.zeros(S.shape,dtype = complex)
+    DS = np.zeros(S.shape,dtype = complex)
+    DDS = np.zeros(S.shape,dtype = complex)
+    inds = np.where(np.abs(f) < 1.)
+    logscale = 5e3
+    logf = np.zeros(S.shape,dtype = float)
+    logf[1:] = np.log(np.abs(f[1:])*logscale)
+    linds = np.where( logf < 0 ) 
+    logf[linds] = 0.
+    fpowm1p2 = np.zeros(S.shape,dtype = float)
+    fpowm0p2 = np.zeros(S.shape,dtype = float)
+    fpowm1p2[1:] = np.power(np.abs(f[1:]),-1.2).real
+    fpowm0p2[1:] = np.power(np.abs(f[1:]),-0.2).real
+    I[inds] = np.copy(S[inds])*np.cos(np.abs(f[inds])*np.pi/2.)*logf[inds]*fpowm1p2[inds]
+    IDS[inds] = np.copy(S[inds])*np.cos(f[inds]*np.pi/2.)*logf[inds]*fpowm0p2[inds]
+    IDS[0] = 0. + 0j
+    DS[inds] = np.copy(S[inds])*1j*np.abs(np.sin(f[inds]*np.pi))*np.cos(f[inds]*np.pi/2.)*logf[inds]*fpowm0p2[inds]
+    DS[0] = 0. + 0j
+    DDS[inds] = np.copy(DS[inds])*1j*np.abs(f[inds])
+    dds = np.fft.ifft(DDS).real
+    ds = np.fft.ifft(DS).imag
+    ids = np.fft.ifft(IDS).real
+    i = np.fft.ifft(I).real
+    return np.column_stack(( np.abs(f) , np.abs(S), np.abs(I), np.abs(IDS), np.abs(DS), np.abs(DDS) , s, i, ids,ds,dds))
 
 def althomomorphic(invec,ir,bwd=2.4e9,dt=1.):
     f = np.fft.fftfreq(invec.shape[0],dt) 
@@ -90,59 +122,61 @@ def deconv(f,y,ir):
     filt = desire/np.fft.fft(ir)
     return np.fft.ifft(Y*filt).real
 
-def main():
+def main(runAve=False):
     filelist = sys.argv[1:]
     print(filelist[:10])
-    x=np.arange(2000)
-    g=gauss(x,20,10)
+    if runAve:
+        x=np.arange(2000)
+        g=gauss(x,20,10)
+    
+        datafile = 'data_fs/ave1/C1--HighPulse-in-100-out1700-an2100--00000.dat'
+        t=np.loadtxt(datafile,usecols=(0,))
+        f = np.fft.fftfreq(len(t),t[1]-t[0])
+        d=np.loadtxt(datafile,usecols=(1,))
+        d_orig = np.copy(d)
+        D=np.fft.fft(d)
+        out = np.power(np.abs(D),int(2))
+        outwave = d_orig
+        Dfilt= D*gauss(f,0,3.2e9)
+        out = np.column_stack((out,np.power(np.abs(Dfilt),int(2))))
+        outwave = np.column_stack((outwave,np.fft.ifft(Dfilt).real))
+        N=0.4
+        print(d)
+        for i in range(1,300):
+            datafile = 'data_fs/ave1/C1--HighPulse-in-100-out1700-an2100--%05i.dat' % i
+            d += np.loadtxt(datafile,usecols=(1,))
+            outwave = np.column_stack((outwave,d))
+            D=np.fft.fft(np.copy(d))
+            out=np.column_stack((out,np.power(np.abs(D),int(2))))
+        d /= 300.
+        df = f[1]-f[0]
+        #Dfilt= D*gauss(f,0,250*df)
+        Dfilt= D*gauss(f,0,3.2e9)
+        dfilt = np.fft.ifft(Dfilt).real
+        naivedeconv = derivconv(f,np.copy(d_orig),dfilt)
+        alternateconv = altconv(f,np.copy(d_orig),dfilt) * 1.5e-37
+        Dfiltdiff = np.copy(Dfilt)*1j*f
+        deriv_conv = np.fft.ifft(np.fft.fft(np.copy(d_orig))*1j*f*Dfiltdiff)
+        deriv_conv = np.roll(deriv_conv,len(deriv_conv)//2-15)*6e-20
+        dconvname = './data_fs/processed/derivconv.dat'
+        np.savetxt(dconvname,np.column_stack((t*1e9,outwave[:,0].real,deriv_conv.real,naivedeconv,alternateconv)),fmt='%.4f')
+        headstring = 'timestep = {}, N = {}\n#f[GHz]\t[dB]\t[dB]...'.format(t[1]-t[0],N)
+        fftfilename = './data_fs/processed/powerspectrum.dat'
+        np.savetxt(fftfilename,np.column_stack((f*1e-9,10.*np.log10(out/N),10*np.log10(np.power(np.abs(Dfilt),int(2))/N))),fmt='%.4f',header = headstring)
+        backfilename = './data_fs/processed/signal.dat'
+        headstring = 'timestep = {}, N = {}'.format(t[1]-t[0],N)
+        np.savetxt(backfilename,np.column_stack((t*1e9,outwave,np.fft.ifft(Dfilt).real)),fmt='%.4f')
 
-    datafile = 'data_fs/ave1/C1--HighPulse-in-100-out1700-an2100--00000.dat'
-    t=np.loadtxt(datafile,usecols=(0,))
-    f = np.fft.fftfreq(len(t),t[1]-t[0])
-    d=np.loadtxt(datafile,usecols=(1,))
-    d_orig = np.copy(d)
-    D=np.fft.fft(d)
-    out = np.power(np.abs(D),int(2))
-    outwave = d_orig
-    Dfilt= D*gauss(f,0,3.2e9)
-    out = np.column_stack((out,np.power(np.abs(Dfilt),int(2))))
-    outwave = np.column_stack((outwave,np.fft.ifft(Dfilt).real))
-    N=0.4
-    print(d)
-    for i in range(1,300):
-        datafile = 'data_fs/ave1/C1--HighPulse-in-100-out1700-an2100--%05i.dat' % i
-        d += np.loadtxt(datafile,usecols=(1,))
-        outwave = np.column_stack((outwave,d))
-        D=np.fft.fft(np.copy(d))
-        out=np.column_stack((out,np.power(np.abs(D),int(2))))
-    d /= 300.
-    df = f[1]-f[0]
-    #Dfilt= D*gauss(f,0,250*df)
-    Dfilt= D*gauss(f,0,3.2e9)
-    dfilt = np.fft.ifft(Dfilt).real
-    naivedeconv = derivconv(f,np.copy(d_orig),dfilt)
-    alternateconv = altconv(f,np.copy(d_orig),dfilt) * 1.5e-37
-    Dfiltdiff = np.copy(Dfilt)*1j*f
-    deriv_conv = np.fft.ifft(np.fft.fft(np.copy(d_orig))*1j*f*Dfiltdiff)
-    deriv_conv = np.roll(deriv_conv,len(deriv_conv)//2-15)*6e-20
-    dconvname = './data_fs/processed/derivconv.dat'
-    np.savetxt(dconvname,np.column_stack((t*1e9,outwave[:,0].real,deriv_conv.real,naivedeconv,alternateconv)),fmt='%.4f')
-    headstring = 'timestep = {}, N = {}\n#f[GHz]\t[dB]\t[dB]...'.format(t[1]-t[0],N)
-    fftfilename = './data_fs/processed/powerspectrum.dat'
-    np.savetxt(fftfilename,np.column_stack((f*1e-9,10.*np.log10(out/N),10*np.log10(np.power(np.abs(Dfilt),int(2))/N))),fmt='%.4f',header = headstring)
-    backfilename = './data_fs/processed/signal.dat'
-    headstring = 'timestep = {}, N = {}'.format(t[1]-t[0],N)
-    np.savetxt(backfilename,np.column_stack((t*1e9,outwave,np.fft.ifft(Dfilt).real)),fmt='%.4f')
-
-    filename = './data_fs/processed/analyticwaveform.dat'
-    np.savetxt(filename,g,fmt='%.6f')
+        filename = './data_fs/processed/analyticwaveform.dat'
+        np.savetxt(filename,g,fmt='%.6f')
 
     timesnames = 'data_fs/raw/CookieBox_waveforms.times.dat'
     times = np.loadtxt(timesnames)*1e-9
     dt = times[1]-times[0]
     freqs = np.fft.fftfreq(len(times),dt)
-    dfiltfull = np.zeros(len(times),dtype=float)
-    dfiltfull[:len(dfilt)] = np.copy(dfilt)
+    if runAve:
+        dfiltfull = np.zeros(len(times),dtype=float)
+        dfiltfull[:len(dfilt)] = np.copy(dfilt)
 
     print('Made it here')
     for fname in filelist:
@@ -159,16 +193,22 @@ def main():
             waveforms_homodeconv_imag = np.zeros(waveforms.shape,dtype=float)
             for c in range(waveforms.shape[0]):
                 #wf_filt = np.fft.ifft(WAVEFORMS[c,:] * gauss(freqs,0,3.2e9)).real
-                waveforms_deconv[c,:] = altconv(freqs,waveforms[c,:],dfiltfull)*1e-36
-                (waveforms_homodeconv[c,:],waveforms_homodeconv_imag[c,:]) = homomorphic(waveforms[c,:],dfiltfull,2.4e9,dt)
-            outname = m.group(1)+'processed/'+m.group(2)+'.deconv.out'
-            np.savetxt(outname,waveforms_deconv,fmt='%.4e') 
-            outname = m.group(1)+'processed/'+m.group(2)+'.homodeconv.real.out'
-            np.savetxt(outname,waveforms_homodeconv,fmt='%.4e') 
-            outname = m.group(1)+'processed/'+m.group(2)+'.homodeconv.imag.out'
-            np.savetxt(outname,waveforms_homodeconv_imag,fmt='%.4e') 
+                outresult = analogprocess(waveforms[c,:],bwd=2.4e9,dt=dt)
+                if runAve:
+                    waveforms_deconv[c,:] = altconv(freqs,waveforms[c,:],dfiltfull)*1e-36
+                    (waveforms_homodeconv[c,:],waveforms_homodeconv_imag[c,:]) = homomorphic(waveforms[c,:],dfiltfull,2.4e9,dt)
+            if runAve:
+                outname = m.group(1)+'processed/'+m.group(2)+'.deconv.out'
+                np.savetxt(outname,waveforms_deconv,fmt='%.4e') 
+                outname = m.group(1)+'processed/'+m.group(2)+'.homodeconv.real.out'
+                np.savetxt(outname,waveforms_homodeconv,fmt='%.4e') 
+                outname = m.group(1)+'processed/'+m.group(2)+'.homodeconv.imag.out'
+                np.savetxt(outname,waveforms_homodeconv_imag,fmt='%.4e') 
+            outname = m.group(1)+'processed/'+m.group(2)+'.analogprocess.out'
+            np.savetxt(outname,outresult,fmt='%.4e') 
             print('printed {}'.format(outname))
     return
 
 if __name__ == '__main__':
-    main()
+    runAve = False
+    main(runAve)
