@@ -36,7 +36,13 @@ def analogprocess_theory(invec,bwd=2.4e9,dt=1):
     ds = np.fft.ifft(DS).real
     ids = np.fft.ifft(IDS).real
     i = np.fft.ifft(I).real
-    return np.column_stack(( np.abs(f) , np.abs(S), np.abs(I), np.abs(IDS), np.abs(DS), np.abs(DDS) , invec, i, ids,ds,dds))
+    thresh = np.zeros(ids.shape,dtype = float)
+    thresh = ids * dds
+    deltas = np.zeros(ids.shape,dtype = float)
+    inds = np.where(thresh < -1e-3)
+    deltas[inds] = np.abs(1./(ds[inds]))
+    
+    return np.column_stack(( np.abs(f) , np.abs(S), np.abs(I), np.abs(IDS), np.abs(DS), np.abs(DDS) , invec, i, ids,ds,dds,thresh,deltas))
 
 def analogprocess(invec,bwd=2.4e9,dt=1):
     f = np.fft.fftfreq(invec.shape[0],dt)/bwd
