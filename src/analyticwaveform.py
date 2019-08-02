@@ -4,6 +4,7 @@ import numpy as np
 import sys
 import re   
 import glob
+from timeit import default_timer as timer
 
 from utilities import gauss,sigmoid,highpass,lowpass
 
@@ -41,7 +42,6 @@ def analogprocess_theory(invec,bwd=2.4e9,dt=1):
     deltas = np.zeros(ids.shape,dtype = float)
     inds = np.where(thresh < -1e-3)
     deltas[inds] = np.abs(1./(ds[inds]))
-    
     return np.column_stack(( np.abs(f) , np.abs(S), np.abs(I), np.abs(IDS), np.abs(DS), np.abs(DDS) , invec, i, ids,ds,dds,thresh,deltas))
 
 def analogprocess(invec,bwd=2.4e9,dt=1):
@@ -70,10 +70,15 @@ def analogprocess(invec,bwd=2.4e9,dt=1):
     DS[0] = 0. + 0j
     DDS[inds] = np.copy(DS[inds])*1j*f[inds]
     dds = np.fft.ifft(DDS).real
-    ds = np.fft.ifft(DS).imag
+    ds = np.fft.ifft(DS).real
     ids = np.fft.ifft(IDS).real
     i = np.fft.ifft(I).real
-    return np.column_stack(( np.abs(f) , np.abs(S), np.abs(I), np.abs(IDS), np.abs(DS), np.abs(DDS) , invec, i, ids,ds,dds))
+    thresh = np.zeros(ids.shape,dtype = float)
+    thresh = ids * dds
+    deltas = np.zeros(ids.shape,dtype = float)
+    inds = np.where(thresh < -5e-2)
+    deltas[inds] = np.abs(1./(ds[inds]))
+    return np.column_stack(( np.abs(f) , np.abs(S), np.abs(I), np.abs(IDS), np.abs(DS), np.abs(DDS) , invec, i, ids,ds,dds,thresh,deltas))
 
 def althomomorphic(invec,ir,bwd=2.4e9,dt=1.):
     f = np.fft.fftfreq(invec.shape[0],dt) 
@@ -249,4 +254,7 @@ def main(runAve=False):
 
 if __name__ == '__main__':
     runAve = False
+    start = timer()
     main(runAve)
+    end = timer()
+    print('Elapsed {} s'.format(end-start))
