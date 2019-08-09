@@ -47,16 +47,22 @@ def analogprocess_theory(invec,bwd=2.4e9,dt=1):
 
     thresh = np.zeros(ids.shape,dtype = float)
     thresh = ids * dds
-    deltas = np.zeros(ids.shape,dtype = float)
-    inds = np.where(thresh < -5e-4)
-    deltas[inds] = np.abs(1./(ds[inds]))
+    t = np.arange(invec.shape[0])
+    capacitor = np.exp(-t/(invec.shape[0]/3))
+    #deltas = np.zeros(ids.shape,dtype = float)
+    #inds = np.where(thresh < -5e-4)
+    #deltas[inds] = np.abs(1./(ds[inds]))
+    NUM = np.fft.fft(capacitor * thresh)*c2*gauss(f,0,.025)
+    DENOM = np.fft.fft(thresh)*c2*gauss(f,0,.025)
+    deltas = np.fft.ifft(NUM).real/np.fft.ifft(DENOM).real
+    (h,bins) = np.histogram(deltas,2**10,range=(0.,1.))
 
     filt_i = np.roll(np.fft.ifft(FILT_I),100)
     filt_ids = np.roll(np.fft.ifft(FILT_IDS),100)
     filt_ds = np.roll(np.fft.ifft(FILT_DS),100)
     filt_dds = np.roll(np.fft.ifft(FILT_DDS),100)
 
-    return np.column_stack(( np.abs(f) , np.abs(S), np.abs(I), np.abs(IDS), np.abs(DS), np.abs(DDS) , invec, i, ids,ds,dds,thresh,deltas,filt_i.real,filt_ids.real,filt_ds.real,filt_dds.real,filt_i.imag,filt_ids.imag,filt_ds.imag,filt_dds.imag))
+    return ( np.column_stack(( f , np.abs(S), np.abs(I), np.abs(IDS), np.abs(DS), np.abs(DDS) , invec, i, ids,ds,dds,thresh,deltas,filt_i.real,filt_ids.real,filt_ds.real,filt_dds.real,filt_i.imag,filt_ids.imag,filt_ds.imag,filt_dds.imag)) , h )
 
 def analogprocess(invec,bwd=2.4e9,dt=1):
     f = np.fft.fftfreq(invec.shape[0],dt)/bwd
@@ -104,7 +110,7 @@ def analogprocess(invec,bwd=2.4e9,dt=1):
     deltas = np.zeros(ids.shape,dtype = float)
     inds = np.where(thresh < -.1)
     deltas[inds] = np.abs(1./(ds[inds]))
-    return np.column_stack(( np.abs(f) , np.abs(S), np.abs(I), np.abs(IDS), np.abs(DS), np.abs(DDS) , invec, i, ids,ds,dds,thresh,deltas,filt_i.real,filt_ids.real,filt_ds.real,filt_dds.real,filt_i.imag,filt_ids.imag,filt_ds.imag,filt_dds.imag))
+    return np.column_stack(( f , np.abs(S), np.abs(I), np.abs(IDS), np.abs(DS), np.abs(DDS) , invec, i, ids,ds,dds,thresh,deltas,filt_i.real,filt_ids.real,filt_ds.real,filt_dds.real,filt_i.imag,filt_ids.imag,filt_ds.imag,filt_dds.imag))
 
 def althomomorphic(invec,ir,bwd=2.4e9,dt=1.):
     f = np.fft.fftfreq(invec.shape[0],dt) 
@@ -244,7 +250,6 @@ def main(runAve=False):
         dfiltfull = np.zeros(len(times),dtype=float)
         dfiltfull[:len(dfilt)] = np.copy(dfilt)
 
-    print('Made it here')
     for fname in filelist:
         m = re.match('(.+)raw/(CookieBox_waveforms.(\d+)pulses.image(\d+)).dat',fname)
         if m:
@@ -257,10 +262,13 @@ def main(runAve=False):
             waveforms_deconv = np.zeros(waveforms.shape,dtype=float)
             waveforms_homodeconv = np.zeros(waveforms.shape,dtype=float)
             waveforms_homodeconv_imag = np.zeros(waveforms.shape,dtype=float)
+            c = 4
+            outresult = analogprocess(waveforms[c,:],bwd=2.4e9,dt=dt)
+            (theoryresult,h) = analogprocess_theory(waveforms[c,:],bwd=2.4e9,dt=dt)
+# Now, build a histogram of the energies file CookieBox_Energies.4pulses.image101.dat with also 2**10 bins, then plot the two histograms against each other
+# Plot them as you used to with the coincidence method, e.g. <h1 h2> / <h1><h2>
             for c in range(waveforms.shape[0]):
                 #wf_filt = np.fft.ifft(WAVEFORMS[c,:] * gauss(freqs,0,3.2e9)).real
-                outresult = analogprocess(waveforms[c,:],bwd=2.4e9,dt=dt)
-                theoryresult = analogprocess_theory(waveforms[c,:],bwd=2.4e9,dt=dt)
                 if runAve:
                     waveforms_deconv[c,:] = altconv(freqs,waveforms[c,:],dfiltfull)*1e-36
                     (waveforms_homodeconv[c,:],waveforms_homodeconv_imag[c,:]) = homomorphic(waveforms[c,:],dfiltfull,2.4e9,dt)
@@ -273,6 +281,8 @@ def main(runAve=False):
                 np.savetxt(outname,waveforms_homodeconv_imag,fmt='%.4e') 
             outname = m.group(1)+'processed/'+m.group(2)+'.analogtheory.out'
             np.savetxt(outname,theoryresult,fmt='%.4e') 
+            outname = m.group(1)+'processed/'+m.group(2)+'.analogtheory.hist'
+            np.savetxt(outname,h,fmt='%i') 
             outname = m.group(1)+'processed/'+m.group(2)+'.analogprocess.out'
             np.savetxt(outname,outresult,fmt='%.4e') 
             print('printed {}'.format(outname))
