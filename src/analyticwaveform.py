@@ -1,4 +1,4 @@
-#!/usr/bin/python3.5
+#!/usr/bin/python3
 
 import numpy as np
 import sys
@@ -48,14 +48,16 @@ def analogprocess_theory(invec,bwd=2.4e9,dt=1):
     thresh = np.zeros(ids.shape,dtype = float)
     thresh = ids * dds
     t = np.arange(invec.shape[0])
-    capacitor = np.exp(-t/(invec.shape[0]/3))
+    capacitor = np.exp(-t/(invec.shape[0]/5))
+    sqrtitor = np.power((t+1)*5e-4,-0.5)
+    #print(t.shape)
     #deltas = np.zeros(ids.shape,dtype = float)
     #inds = np.where(thresh < -5e-4)
     #deltas[inds] = np.abs(1./(ds[inds]))
-    NUM = np.fft.fft(capacitor * thresh)*c2*gauss(f,0,.025)
-    DENOM = np.fft.fft(thresh)*c2*gauss(f,0,.025)
+    NUM = np.fft.fft(sqrtitor * thresh)*c2*gauss(f,0,.1)
+    DENOM = np.fft.fft(thresh)*c2*gauss(f,0,.1)
     deltas = np.fft.ifft(NUM).real/np.fft.ifft(DENOM).real
-    (h,bins) = np.histogram(deltas,2**10,range=(0.,1.))
+    (h,bins) = np.histogram(deltas,2**8,range=(0.45,1.))
 
     filt_i = np.roll(np.fft.ifft(FILT_I),100)
     filt_ids = np.roll(np.fft.ifft(FILT_IDS),100)
@@ -196,7 +198,6 @@ def deconv(f,y,ir):
 
 def main(runAve=False):
     filelist = sys.argv[1:]
-    print(filelist[:10])
     if runAve:
         x=np.arange(2000)
         g=gauss(x,20,10)
@@ -213,7 +214,6 @@ def main(runAve=False):
         out = np.column_stack((out,np.power(np.abs(Dfilt),int(2))))
         outwave = np.column_stack((outwave,np.fft.ifft(Dfilt).real))
         N=0.4
-        print(d)
         for i in range(1,300):
             datafile = 'data_fs/ave1/C1--HighPulse-in-100-out1700-an2100--%05i.dat' % i
             d += np.loadtxt(datafile,usecols=(1,))
@@ -253,7 +253,6 @@ def main(runAve=False):
     for fname in filelist:
         m = re.match('(.+)raw/(CookieBox_waveforms.(\d+)pulses.image(\d+)).dat',fname)
         if m:
-            print(m.group(0))
             npulses = int(m.group(3))
             image = int(m.group(4))
             waveformsnames = m.group(0) 
@@ -265,6 +264,11 @@ def main(runAve=False):
             c = 4
             outresult = analogprocess(waveforms[c,:],bwd=2.4e9,dt=dt)
             (theoryresult,h) = analogprocess_theory(waveforms[c,:],bwd=2.4e9,dt=dt)
+
+            energiesfile = m.group(1) + 'raw/CookieBox_Energies.' + m.group(3) + 'pulses.image' + m.group(4) + '.dat'
+            energies = np.loadtxt(energiesfile)
+            (h2,bins) = np.histogram(np.sqrt(energies[c,:]),h.shape[0],range = (0,16))
+
 # Now, build a histogram of the energies file CookieBox_Energies.4pulses.image101.dat with also 2**10 bins, then plot the two histograms against each other
 # Plot them as you used to with the coincidence method, e.g. <h1 h2> / <h1><h2>
             for c in range(waveforms.shape[0]):
@@ -282,7 +286,13 @@ def main(runAve=False):
             outname = m.group(1)+'processed/'+m.group(2)+'.analogtheory.out'
             np.savetxt(outname,theoryresult,fmt='%.4e') 
             outname = m.group(1)+'processed/'+m.group(2)+'.analogtheory.hist'
-            np.savetxt(outname,h,fmt='%i') 
+            np.savetxt(outname,np.column_stack((h,h2)),fmt='%i') 
+            #out = np.tile(h,(h2.shape[0],1))* np.tile(h2,(h.shape[0],1)).T
+            #print(out)
+            #out -= np.outer(h,h2)
+            #print(out.shape)
+            #outname = m.group(1)+'processed/'+m.group(2)+'.analogtheory.cormat'
+            #np.savetxt(outname,out,fmt='%.3e') 
             outname = m.group(1)+'processed/'+m.group(2)+'.analogprocess.out'
             np.savetxt(outname,outresult,fmt='%.4e') 
             print('printed {}'.format(outname))
