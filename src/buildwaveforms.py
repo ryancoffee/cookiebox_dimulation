@@ -295,6 +295,9 @@ def spawnprocess(t):
                 }
                 ))
             writer.write(simsample_tf.SerializeToString())
+            headstring = '#npulses\t{}'.format(npulses)
+            enfilename = 'energies_{}pid{}chunk{}img{}.dat'.format(datapath,getpid(),c,i)
+            np.savetxt(enfilename,Energies,fmt='%.3f',header=headstr)
         writer.close()
         headstring = 'npulsesarray\tinverse purityarray*100\tstrengtharray'
         np.savetxt(metafilename,np.column_stack((npulsesarray,invpurityarray,strengtharray)),fmt='%i',header=headstring)
