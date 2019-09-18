@@ -34,8 +34,8 @@ from scipy.constants import physical_constants as pc
 from scipy.stats import gengamma
 from scipy.sparse import coo_matrix,csr_matrix,find
 
-from tensorflow import python_io as tf_python_io
-from tensorflow import train as tf_train
+#from tensorflow import python_io as tf_python_io
+import tensorflow as tf
 
 (e_mc2,unit,err) = pc["electron mass energy equivalent in MeV"]
 e_mc2 *= 1e6 # eV now
@@ -253,13 +253,13 @@ def simulate_timeenergy(timeenergy,nchannels=16,e_retardation=0,energywin=(590,6
     return (waveforms,ToFs,Ens)
 
 def computeImages():
-        nelectronsrange = (5,10)
+        nelectronsrange = (50,100)
         ntbins=8
         nebins=8
-        npulses = randrange(1,2)
+        npulses = randrange(1,5)
         tinds = [randrange(ntbins) for i in range(npulses)]
         einds = [randrange(nebins) for i in range(npulses)]
-        nelectrons = [randrange(nelectronsrange[0],nelectronsrange[1]) for i in range(npulses)]
+        nelectrons = [randrange(nelectronsrange[0]//npulses,nelectronsrange[1]//npulses) for i in range(npulses)]
         timeenergy = coo_matrix((nelectrons, (tinds,einds)),shape=(ntbins,nebins),dtype=int)
         (WaveForms,ToFs,Energies) = simulate_timeenergy(timeenergy,nchannels=nchannels,e_retardation=0,energywin=(600,610),max_streak=50,printfiles = False)
         return (nchannels,ntbins,nebins,npulses,WaveForms,ToFs,Energies,timeenergy.toarray())
@@ -270,7 +270,7 @@ def spawnprocess(t):
         hashstring = sha256(str.encode( '{}{}{}'.format(time(), getpid(), c) )).hexdigest()
         shardfilename = '{}tfrecord.{}'.format(tfrecordpath,hashstring)
         metafilename = '{}meta.{}'.format(tfrecordpath,hashstring)
-        writer = tf_python_io.TFRecordWriter(shardfilename)
+        writer = tf.io.TFRecordWriter(shardfilename)
         strengtharray = np.zeros((nimages,),dtype=int)
         invpurityarray = np.zeros((nimages,),dtype=int)
         npulsesarray = np.zeros((nimages,),dtype=int)
@@ -283,15 +283,15 @@ def spawnprocess(t):
             waveforms_tf = WaveForms.tostring()
             ToFs_tf = ToFs.tostring()
             Energies_tf = Energies.tostring()
-            simsample_tf = tf_train.Example(features = tf_train.Features(feature={
-                'nangles': tf_train.Feature(int64_list=tf_train.Int64List(value = [nchannels])),
-                'ntbins': tf_train.Feature(int64_list=tf_train.Int64List(value = [ntbins])),
-                'nebins': tf_train.Feature(int64_list=tf_train.Int64List(value = [nebins])),
-                'npulses': tf_train.Feature(int64_list=tf_train.Int64List(value = [npulses])),
-                'waveforms': tf_train.Feature(bytes_list=tf_train.BytesList(value = [WaveForms.tostring()])),
-                'tofs': tf_train.Feature(bytes_list=tf_train.BytesList(value = [ToFs.tostring()])),
-                'energies': tf_train.Feature(bytes_list=tf_train.BytesList(value = [Energies.tostring()])),
-                'timeenergy': tf_train.Feature(bytes_list=tf_train.BytesList(value = [timeenergy.tostring()]))
+            simsample_tf = tf.train.Example(features = tf.train.Features(feature={
+                'nangles': tf.train.Feature(int64_list=tf.train.Int64List(value = [nchannels])),
+                'ntbins': tf.train.Feature(int64_list=tf.train.Int64List(value = [ntbins])),
+                'nebins': tf.train.Feature(int64_list=tf.train.Int64List(value = [nebins])),
+                'npulses': tf.train.Feature(int64_list=tf.train.Int64List(value = [npulses])),
+                'waveforms': tf.train.Feature(bytes_list=tf.train.BytesList(value = [WaveForms.tostring()])),
+                'tofs': tf.train.Feature(bytes_list=tf.train.BytesList(value = [ToFs.tostring()])),
+                'energies': tf.train.Feature(bytes_list=tf.train.BytesList(value = [Energies.tostring()])),
+                'timeenergy': tf.train.Feature(bytes_list=tf.train.BytesList(value = [timeenergy.tostring()]))
                 }
                 ))
             writer.write(simsample_tf.SerializeToString())
