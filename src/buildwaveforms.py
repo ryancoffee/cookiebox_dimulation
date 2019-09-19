@@ -261,16 +261,16 @@ def computeImages():
         einds = [randrange(nebins) for i in range(npulses)]
         nelectrons = [randrange(nelectronsrange[0]//npulses,nelectronsrange[1]//npulses) for i in range(npulses)]
         timeenergy = coo_matrix((nelectrons, (tinds,einds)),shape=(ntbins,nebins),dtype=int)
-        (WaveForms,ToFs,Energies) = simulate_timeenergy(timeenergy,nchannels=nchannels,e_retardation=0,energywin=(600,610),max_streak=50,printfiles = True)
+        (WaveForms,ToFs,Energies) = simulate_timeenergy(timeenergy,nchannels=nchannels,e_retardation=0,energywin=(600,610),max_streak=50,printfiles = False)
         return (nchannels,ntbins,nebins,npulses,WaveForms,ToFs,Energies,timeenergy.toarray())
 
 #def spawnprocess(nchannels=16,nimages=2,nchunks=2,tfrecordpath = './data_fs/raw/tf_record_files/'):
 def spawnprocess(t):
     for c in range(nchunks):
         hashstring = sha256(str.encode( '{}{}{}'.format(time(), getpid(), c) )).hexdigest()
-        shardfilename = '{}record.{}'.format(recordpath,hashstring)
+        shardfilename = '{}record.{}'.format(datapath,hashstring)
         #shardfilename = '{}tfrecord.{}'.format(tfrecordpath,hashstring)
-        metafilename = '{}meta.{}'.format(recordpath,hashstring)
+        metafilename = '{}meta.{}'.format(datapath,hashstring)
         #metafilename = '{}meta.{}'.format(tfrecordpath,hashstring)
         #writer = tf.io.TFRecordWriter(shardfilename)
         strengtharray = np.zeros((nimages,),dtype=int)
@@ -299,9 +299,12 @@ def spawnprocess(t):
                 ))
                 '''
             #writer.write(simsample_tf.SerializeToString())
-            headstring = '#npulses\t{}'.format(npulses)
-            enfilename = 'energies_{}pid{}chunk{}img{}.dat'.format(datapath,getpid(),c,i)
-            np.savetxt(enfilename,Energies,fmt='%.3f',header=headstr)
+            enfilename = '{}energies_pid{}chunk{}img{}.dat'.format(datapath,getpid(),c,i)
+            toffilename = '{}tofs_pid{}chunk{}img{}.dat'.format(datapath,getpid(),c,i)
+            headstring = '#npulses\t{}\t{}'.format(npulses,toffilename)
+            np.savetxt(enfilename,Energies,fmt='%.3f',header=headstring)
+            headstring = '#npulses\t{}\t{}'.format(npulses,enfilename)
+            np.savetxt(toffilename,ToFs,fmt='%.3f',header=headstring)
         #writer.close()
         headstring = 'npulsesarray\tinverse purityarray*100\tstrengtharray'
         np.savetxt(metafilename,np.column_stack((npulsesarray,invpurityarray,strengtharray)),fmt='%i',header=headstring)
@@ -331,7 +334,8 @@ def main():
     return
 
 if __name__ == '__main__':
-    recordpath = './data_fs/raw/ascii_record_files/'
+    tfrecordpath = './data_fs/raw/tf_record_files/'
+    datapath = './data_fs/raw/ascii_record_files/'
     nchannels = int(16)
     nthreads = cpu_count()*3//4
     nchunks = int(4)
