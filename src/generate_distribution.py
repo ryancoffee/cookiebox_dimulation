@@ -57,8 +57,8 @@ def main():
         stringout = '%.2f\t:|' % p
         stringout += ' '*int(p/10)+'|'
         print(stringout)
-    savetxt('../data_fs/extern/electron_energy_collection.dat',v,fmt='%4f')
-    save('../data_fs/extern/electron_energy_collection',v)
+    savetxt('./data_fs/extern/electron_energy_collection.dat',v,fmt='%4f')
+    save('./data_fs/extern/electron_energy_collection',v)
     return 0
 
 

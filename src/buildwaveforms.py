@@ -35,7 +35,7 @@ from scipy.stats import gengamma
 from scipy.sparse import coo_matrix,csr_matrix,find
 
 #from tensorflow import python_io as tf_python_io
-import tensorflow as tf
+#import tensorflow as tf
 
 (e_mc2,unit,err) = pc["electron mass energy equivalent in MeV"]
 e_mc2 *= 1e6 # eV now
@@ -261,16 +261,18 @@ def computeImages():
         einds = [randrange(nebins) for i in range(npulses)]
         nelectrons = [randrange(nelectronsrange[0]//npulses,nelectronsrange[1]//npulses) for i in range(npulses)]
         timeenergy = coo_matrix((nelectrons, (tinds,einds)),shape=(ntbins,nebins),dtype=int)
-        (WaveForms,ToFs,Energies) = simulate_timeenergy(timeenergy,nchannels=nchannels,e_retardation=0,energywin=(600,610),max_streak=50,printfiles = False)
+        (WaveForms,ToFs,Energies) = simulate_timeenergy(timeenergy,nchannels=nchannels,e_retardation=0,energywin=(600,610),max_streak=50,printfiles = True)
         return (nchannels,ntbins,nebins,npulses,WaveForms,ToFs,Energies,timeenergy.toarray())
 
 #def spawnprocess(nchannels=16,nimages=2,nchunks=2,tfrecordpath = './data_fs/raw/tf_record_files/'):
 def spawnprocess(t):
     for c in range(nchunks):
         hashstring = sha256(str.encode( '{}{}{}'.format(time(), getpid(), c) )).hexdigest()
-        shardfilename = '{}tfrecord.{}'.format(tfrecordpath,hashstring)
-        metafilename = '{}meta.{}'.format(tfrecordpath,hashstring)
-        writer = tf.io.TFRecordWriter(shardfilename)
+        shardfilename = '{}record.{}'.format(recordpath,hashstring)
+        #shardfilename = '{}tfrecord.{}'.format(tfrecordpath,hashstring)
+        metafilename = '{}meta.{}'.format(recordpath,hashstring)
+        #metafilename = '{}meta.{}'.format(tfrecordpath,hashstring)
+        #writer = tf.io.TFRecordWriter(shardfilename)
         strengtharray = np.zeros((nimages,),dtype=int)
         invpurityarray = np.zeros((nimages,),dtype=int)
         npulsesarray = np.zeros((nimages,),dtype=int)
@@ -280,6 +282,7 @@ def spawnprocess(t):
             strengtharray[i] = npsum(timeenergy)
             invpurityarray[i] = npsum(timeenergy)*100//npmax(timeenergy)
             npulsesarray[i] = npulses
+            '''
             waveforms_tf = WaveForms.tostring()
             ToFs_tf = ToFs.tostring()
             Energies_tf = Energies.tostring()
@@ -294,11 +297,12 @@ def spawnprocess(t):
                 'timeenergy': tf.train.Feature(bytes_list=tf.train.BytesList(value = [timeenergy.tostring()]))
                 }
                 ))
-            writer.write(simsample_tf.SerializeToString())
+                '''
+            #writer.write(simsample_tf.SerializeToString())
             headstring = '#npulses\t{}'.format(npulses)
             enfilename = 'energies_{}pid{}chunk{}img{}.dat'.format(datapath,getpid(),c,i)
             np.savetxt(enfilename,Energies,fmt='%.3f',header=headstr)
-        writer.close()
+        #writer.close()
         headstring = 'npulsesarray\tinverse purityarray*100\tstrengtharray'
         np.savetxt(metafilename,np.column_stack((npulsesarray,invpurityarray,strengtharray)),fmt='%i',header=headstring)
 
@@ -327,7 +331,7 @@ def main():
     return
 
 if __name__ == '__main__':
-    tfrecordpath = './data_fs/raw/tf_record_files/'
+    recordpath = './data_fs/raw/ascii_record_files/'
     nchannels = int(16)
     nthreads = cpu_count()*3//4
     nchunks = int(4)
