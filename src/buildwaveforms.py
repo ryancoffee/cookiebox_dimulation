@@ -267,22 +267,26 @@ def computeImages():
 #def spawnprocess(nchannels=16,nimages=2,nchunks=2,tfrecordpath = './data_fs/raw/tf_record_files/'):
 def spawnprocess(t):
     for c in range(nchunks):
-        hashstring = sha256(str.encode( '{}{}{}'.format(time(), getpid(), c) )).hexdigest()
-        shardfilename = '{}record.{}'.format(datapath,hashstring)
+        hashstring = sha1(str.encode( '{}{}{}'.format(time(), getpid(), c) )).hexdigest()
+        ensshardfilename = '{}ens.{}'.format(datapath,hashstring)
+        tofsshardfilename = '{}tofs.{}'.format(datapath,hashstring)
         #shardfilename = '{}tfrecord.{}'.format(tfrecordpath,hashstring)
         metafilename = '{}meta.{}'.format(datapath,hashstring)
         #metafilename = '{}meta.{}'.format(tfrecordpath,hashstring)
         #writer = tf.io.TFRecordWriter(shardfilename)
+        ensshardout = open(ensshardfilename,'w')
+        tofsshardout = open(tofsshardfilename,'w')
+        metafileout = open(metafilename,'w')
         strengtharray = np.zeros((nimages,),dtype=int)
         invpurityarray = np.zeros((nimages,),dtype=int)
         npulsesarray = np.zeros((nimages,),dtype=int)
         for i in range(nimages):
             print("processing image {} inside pid {}".format(i,getpid()))
             (nchannels,ntbins,nebins,npulses,WaveForms,ToFs,Energies,timeenergy) = computeImages()
+            '''
             strengtharray[i] = npsum(timeenergy)
             invpurityarray[i] = npsum(timeenergy)*100//npmax(timeenergy)
             npulsesarray[i] = npulses
-            '''
             waveforms_tf = WaveForms.tostring()
             ToFs_tf = ToFs.tostring()
             Energies_tf = Energies.tostring()
@@ -299,15 +303,23 @@ def spawnprocess(t):
                 ))
                 '''
             #writer.write(simsample_tf.SerializeToString())
-            enfilename = '{}energies_pid{}chunk{}img{}.dat'.format(datapath,getpid(),c,i)
-            toffilename = '{}tofs_pid{}chunk{}img{}.dat'.format(datapath,getpid(),c,i)
-            headstring = '#npulses\t{}\t{}'.format(npulses,toffilename)
-            np.savetxt(enfilename,Energies,fmt='%.3f',header=headstring)
-            headstring = '#npulses\t{}\t{}'.format(npulses,enfilename)
-            np.savetxt(toffilename,ToFs,fmt='%.3f',header=headstring)
+            #enfilename = '{}energies_pid{}chunk{}img{}.dat'.format(datapath,getpid(),c,i)
+            #toffilename = '{}tofs_pid{}chunk{}img{}.dat'.format(datapath,getpid(),c,i)
+            #headstring = 'npulses\t{}\t{}\t{}\n#{}\t{}'.format(npulses,enfilename,toffilename,i,hashstring)
+            #np.savetxt(enfilename,Energies,fmt='%.3f',header=headstring)
+            #headstring = 'npulses\t{}\t{}\t{}\n#{}\t{}'.format(npulses,enfilename,toffilename,i,hashstring)
+            #np.savetxt(toffilename,ToFs,fmt='%.3f',header=headstring)
+            for chan in range(Energies.shape[1]):
+                tofsshardout.write( ' '.join(format(t,'0.3f') for t in ToFs[:,chan] if t>0) + '::')
+                ensshardout.write( ' '.join(format(e,'0.3f') for e in Energies[:,chan] if e>0) + '::')
+            tofsshardout.write('\n')
+            ensshardout.write('\n')
+            metafileout.write('{}\t{}\t{}\n'.format(npulses,npsum(timeenergy)*100//npmax(timeenergy),npsum(timeenergy)))
         #writer.close()
         headstring = 'npulsesarray\tinverse purityarray*100\tstrengtharray'
         np.savetxt(metafilename,np.column_stack((npulsesarray,invpurityarray,strengtharray)),fmt='%i',header=headstring)
+        ensshardout.close()
+        tofsshardout.close()
 
 '''
         ############
