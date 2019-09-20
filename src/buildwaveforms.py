@@ -48,6 +48,34 @@ from generate_distribution import fillcollection
 from cmath import rect
 nprect = vectorize(rect)
 
+def waveform2hist(wf):
+    result = [0]*(2**12)
+    for i in range(2,len(wf)):
+        if wf[i] == wf[i-1] == wf[i-2]:
+            if (wf[i]>0) * (wf[i]<len(result)):
+                result[int(wf[i])] = 1
+    return result
+
+def map2waveform(toflist):
+    alpha = 3.e-3
+    amp = np.power(float(2),int(12))
+    tvec = np.arange(0,1.e3,step=1./6,dtype=float)
+    istart = 250
+    result = [amp]*istart + [int(amp*np.exp(-alpha*(tvec[i]-tvec[istart]))) for i in range(istart,len(tvec))]
+    i = 0
+    for t in toflist:
+        while t>tvec[i]:
+            i += 1
+            if i > len(tvec)-1:
+                return result
+        for j in range(3):
+            if (i+j) < len(result):
+                result[i+j] = int(amp*np.exp(-alpha*(t-tvec[istart])))
+        i += j
+        if i > len(tvec)-1:
+            return result
+    return result
+
 def energy2time(e,r=0,d1=3.75,d2=5,d3=35):
     #distances are in centimiters and energies are in eV and times are in ns
     C_cmPns = c*100.*1e-9
@@ -270,18 +298,22 @@ def spawnprocess(t):
         hashstring = sha1(str.encode( '{}{}{}'.format(time(), getpid(), c) )).hexdigest()
         ensshardfilename = '{}ens.{}'.format(datapath,hashstring)
         tofsshardfilename = '{}tofs.{}'.format(datapath,hashstring)
+        wfshardfilename = '{}wf.{}'.format(datapath,hashstring)
+        histshardfilename = '{}hist.{}'.format(datapath,hashstring)
         #shardfilename = '{}tfrecord.{}'.format(tfrecordpath,hashstring)
         metafilename = '{}meta.{}'.format(datapath,hashstring)
         #metafilename = '{}meta.{}'.format(tfrecordpath,hashstring)
         #writer = tf.io.TFRecordWriter(shardfilename)
         ensshardout = open(ensshardfilename,'w')
         tofsshardout = open(tofsshardfilename,'w')
+        wfshardout = open(wfshardfilename,'w')
+        histshardout = open(histshardfilename,'w')
         metafileout = open(metafilename,'w')
         strengtharray = np.zeros((nimages,),dtype=int)
         invpurityarray = np.zeros((nimages,),dtype=int)
         npulsesarray = np.zeros((nimages,),dtype=int)
         for i in range(nimages):
-            print("processing image {} inside pid {}".format(i,getpid()))
+            print("processing image {} chunk {} inside pid {}".format(i,c,getpid()))
             (nchannels,ntbins,nebins,npulses,WaveForms,ToFs,Energies,timeenergy) = computeImages()
             '''
             strengtharray[i] = npsum(timeenergy)
@@ -309,17 +341,30 @@ def spawnprocess(t):
             #np.savetxt(enfilename,Energies,fmt='%.3f',header=headstring)
             #headstring = 'npulses\t{}\t{}\t{}\n#{}\t{}'.format(npulses,enfilename,toffilename,i,hashstring)
             #np.savetxt(toffilename,ToFs,fmt='%.3f',header=headstring)
-            for chan in range(Energies.shape[1]):
-                tofsshardout.write( ' '.join(format(t,'0.3f') for t in ToFs[:,chan] if t>0) + '::')
-                ensshardout.write( ' '.join(format(e,'0.3f') for e in Energies[:,chan] if e>0) + '::')
+            for chan in range(Energies.shape[0]):
+                toflist = [t for t in ToFs[chan,:] if t>0]
+                toflist.sort()
+                tofsshardout.write( ' '.join(format(t,'0.3f') for t in toflist) + '::')
+                wf = map2waveform(toflist)
+                wfshardout.write( ' '.join(format(int(w),'d') for w in wf) + '::')
+                hst = waveform2hist(wf)
+                #histshardout.write(' '.join(format(int(h),'d') for h in hst) + '\n')
+                histshardout.write(' '.join(format(int(h),'d') for h in hst) + '::')
+                enlist = [e for e in Energies[chan,:] if e>0]
+                enlist.sort()
+                ensshardout.write( ' '.join(format(e,'0.3f') for e in enlist) + '::')
             tofsshardout.write('\n')
             ensshardout.write('\n')
+            wfshardout.write('\n')
+            histshardout.write('\n')
             metafileout.write('{}\t{}\t{}\n'.format(npulses,npsum(timeenergy)*100//npmax(timeenergy),npsum(timeenergy)))
         #writer.close()
         headstring = 'npulsesarray\tinverse purityarray*100\tstrengtharray'
         np.savetxt(metafilename,np.column_stack((npulsesarray,invpurityarray,strengtharray)),fmt='%i',header=headstring)
         ensshardout.close()
         tofsshardout.close()
+        wfshardout.close()
+        histshardout.close()
 
 '''
         ############
