@@ -56,12 +56,29 @@ def waveform2hist(wf):
                 result[int(wf[i])] = 1
     return result
 
-def map2waveform(toflist):
-    alpha = 3.e-3
-    amp = np.power(float(2),int(12))
+def multidischarge(t,amps,alphas,t0s):
+    result = int(0)
+    for i in range(len(t0s)):
+        if t<=t0s[i]:
+            result += amps[i]
+        if t>t0s[i]:
+            result += int(amps[i]*np.exp(-alphas[i]*(t-t0s[i])))
+    return result
+
+def discharge(a,alpha,t,t0):
+    return int(a*np.exp(-alpha*(t-t0)))
+
+def charge(a,alpha,t,t0):
+    return int( a - discharge(a,alpha,t,t0) )
+
+def map2multiwaveform(toflist):
     tvec = np.arange(0,1.e3,step=1./6,dtype=float)
-    istart = 250
-    result = [amp]*istart + [int(amp*np.exp(-alpha*(tvec[i]-tvec[istart]))) for i in range(istart,len(tvec))]
+    sz = len(tvec)
+    alphas = [6.e-3,6.e-3,2.e-3]
+    amps = [2**10 *3,2**10]
+    istart=int(250)
+    t0s = [tvec[istart], tvec[2000]]#,tvec[istart+2500]]
+    result = [sum(amps)]*istart + [multidischarge(tvec[i],amps,alphas,t0s) for i in range(istart,sz)]
     i = 0
     for t in toflist:
         while t>tvec[i]:
@@ -69,8 +86,32 @@ def map2waveform(toflist):
             if i > len(tvec)-1:
                 return result
         for j in range(3):
-            if (i+j) < len(result):
-                result[i+j] = int(amp*np.exp(-alpha*(t-tvec[istart])))
+            result[i+j] = multidischarge(t,amps,alphas,t0s)
+        i += j
+        if i > len(tvec)-1:
+            return result
+    return result
+
+def map2waveform(toflist):
+    alpha = 3.e-3
+    amp = np.power(float(2),int(11))
+    tvec = np.arange(0,1.e3,step=1./6,dtype=float)
+    sz = len(tvec)
+    istart = int(250)
+    result = [-discharge(amp,alpha,tvec[sz//2+istart],tvec[istart]) - charge(amp,alpha,tvec[i],tvec[istart]-tvec[sz//2]) for i in range(istart)]
+    result += [discharge(amp,alpha,tvec[i],tvec[istart]) for i in range(istart,sz//2+istart)]
+    result += [-discharge(amp,alpha,tvec[sz//2+istart],tvec[istart]) - charge(amp,alpha,tvec[i],tvec[istart+sz//2]) for i in range(sz//2+istart,sz)]
+    i = 0
+    for t in toflist:
+        while t>tvec[i]:
+            i += 1
+            if i > len(tvec)-1:
+                return result
+        for j in range(3):
+            if (i+j) < len(result)//2+istart:
+                result[i+j] = discharge(amp,alpha,t,tvec[istart])
+            if (i+j) >= len(result)//2+istart and (i+j) < len(result):
+                result[i+j] = -discharge(amp,alpha,tvec[sz//2+istart],tvec[istart]) - charge(amp,alpha,t,tvec[istart+len(result)//2])
         i += j
         if i > len(tvec)-1:
             return result
@@ -345,11 +386,13 @@ def spawnprocess(t):
                 toflist = [t for t in ToFs[chan,:] if t>0]
                 toflist.sort()
                 tofsshardout.write( ' '.join(format(t,'0.3f') for t in toflist) + '::')
-                wf = map2waveform(toflist)
+                #wf = map2waveform(toflist)
+                wf = map2multiwaveform(toflist)
                 wfshardout.write( ' '.join(format(int(w),'d') for w in wf) + '::')
+                #wfshardout.write( ' '.join(format(int(w),'d') for w in wf) + '\n')
                 hst = waveform2hist(wf)
-                #histshardout.write(' '.join(format(int(h),'d') for h in hst) + '\n')
                 histshardout.write(' '.join(format(int(h),'d') for h in hst) + '::')
+                #histshardout.write(' '.join(format(int(h),'d') for h in hst) + '\n')
                 enlist = [e for e in Energies[chan,:] if e>0]
                 enlist.sort()
                 ensshardout.write( ' '.join(format(e,'0.3f') for e in enlist) + '::')
