@@ -71,6 +71,17 @@ def discharge(a,alpha,t,t0):
 def charge(a,alpha,t,t0):
     return int( a - discharge(a,alpha,t,t0) )
 
+def map2chargedischarge(toflist):
+    tvec = np.arange(0,1.e3,step=1./6.4,dtype=float)
+    sz = len(tvec)
+    alphas = [6e-3]*2
+    amps = [2**12]*2
+    istart = int(250)
+    t0s = []
+    '''
+    f(x) = ((int(x)%1000)<500?2**12*exp(-alpha*(int(x)%1000)):2**12*(1-exp(-alpha*(( int(x)%1000)-500)))+2**12*exp(-alpha*(int(x)%1000)))
+    '''
+
 def map2multiwaveform(toflist):
     tvec = np.arange(0,1.e3,step=1./6,dtype=float)
     sz = len(tvec)
