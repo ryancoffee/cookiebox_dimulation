@@ -208,7 +208,7 @@ def simulate_timeenergy(timeenergy,nchannels=16,e_retardation=0,energywin=(590,6
     Ens=nparray([],dtype=float)
     for pulse in range(tinds.shape[0]):
         #loop on pulse
-        carrier_phase += 2.*pi*(tinds[pulse]/timeenergy.shape[0])
+        carrier_phase += 2.*pi*(tinds[pulse]/timeenergy.shape[0]) # Check this... may be accumulatinig when you don't want to
         photon_energy = energywin[0] + (energywin[1]-energywin[0])*einds[pulse]/timeenergy.shape[1]
         tdata=nparray([],dtype=float)
         edata=nparray([],dtype=float)
@@ -219,9 +219,9 @@ def simulate_timeenergy(timeenergy,nchannels=16,e_retardation=0,energywin=(590,6
         for chan in range(nchannels):
             #loop on channels
             angle = 2.*pi*chan/nchannels
-            nphotos = int(1.+ float(nelectrons[pulse]) * nppower(sin(angle+0.0625),int(2)))
+            nphotos = int(1.+ float(nelectrons[pulse]) # Add this (cos^2 distribution) back after things are final ## * nppower(sin(angle+0.0625),int(2)))
             evec = fillcollection(e_photon = photon_energy,nphotos=nphotos,npistars=0,nsigstars=0,nvalence=0,angle = carrier_phase + angle,max_streak = max_streak)
-            sim_times = energy2time(evec,r=15.,d1=d1,d2=d2,d3=d3)
+            sim_times = energy2time(evec,r=15.,d1=d1,d2=d2,d3=d3) # HERE HERE HERE HERE This is wehere Naoufal is correcting iwht his interpolator
             edata = npconcatenate((edata,evec),axis=None)
             tdata = npconcatenate((tdata,sim_times),axis=None)
             trowinds = npconcatenate((trowinds,np.arange(sim_times.shape[0])),axis=None)
@@ -230,15 +230,15 @@ def simulate_timeenergy(timeenergy,nchannels=16,e_retardation=0,energywin=(590,6
             eindptr = npconcatenate((eindptr,erowinds.shape[0]),axis=None)
 
             #sim_times = append(sim_times,0.) # adds a prompt
-            s_collection_colinds = choice(s_collection_ft.shape[1],sim_times.shape[0]) 
-            n_collection_colinds = choice(n_collection_ft.shape[1],sim_times.shape[0]) 
+            s_collection_colinds = choice(s_collection_ft.shape[1],sim_times.shape[0]) # HERE HERE HERE HERE Jack, this is in Fourier, choosing impulse responses
+            n_collection_colinds = choice(n_collection_ft.shape[1],sim_times.shape[0]) # I also choose noise this way too.
 
             v_simsum_ft = zeros(s_collection_ft.shape[0],dtype=complex)
         
             for i,t in enumerate(sim_times):
                 #samplestring = 'enumerate sim_times returns\t%i\t%f' % (i,t)
                 #print(samplestring)
-                v_simsum_ft += s_collection_ft[:,s_collection_colinds[i]] * fourier_delay(f_extend,t) 
+                v_simsum_ft += s_collection_ft[:,s_collection_colinds[i]] * fourier_delay(f_extend,t) # Here is the accumulation of waveforms.
                 v_simsum_ft += n_collection_ft[:,n_collection_colinds[i]] 
 
             v_simsum = real(IFFT(v_simsum_ft,axis=0))

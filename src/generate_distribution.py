@@ -20,8 +20,8 @@ def samplegamma(a,c,loc,scale,n):
 def fillcollection(e_photon = 600., nphotos=10,nvalence=1,nsigstars=10,npistars=20,angle = 0.,max_streak=0):
     ph_a = 2.
     ph_scale = 1.
-    ph_ip = 540.
-    v_ip = 22.
+    ph_ip = 540. #Ionization Potential for photo electrons
+    v_ip = 22. # Ionixation pot for valence electrons
     v_scale = 1.
     v_a = 2.
     sigstar_a = 5.
