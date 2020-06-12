@@ -71,15 +71,33 @@ def discharge(a,alpha,t,t0):
 def charge(a,alpha,t,t0):
     return int( a - discharge(a,alpha,t,t0) )
 
-def map2chargedischarge(toflist):
+def map2chargedischarge(toflist,times,ramp):
     tvec = np.arange(0,1.e3,step=1./6.4,dtype=float)
     sz = len(tvec)
-    alphas = [6e-3]*2
-    amps = [2**12]*2
+    alpha = [6e-3]
+    amp = [2**12]
     istart = int(250)
-    t0s = []
+    t0 = [tvec[istart]]
+    i = int(0);
+    tlist = np.sort(toflist)
+    result = np.zeros(tvec.shape[0],dtype=float)
+    for t in tlist:
+        while t>tvec[i]:
+            i += 1
+            if i > len(tvec)-1:
+                return result
+        for j in range(3):
+            t-t0
+            result[i+j] = ((t-tvec[istart])< tvec[sz//2]? )
+            HREE HERE HERE HERE
+        i += j
+        if i > (tvec.shape[0] - 1): 
+            return result
+        return
+
     '''
-    f(x) = ((int(x)%1000)<500?2**12*exp(-alpha*(int(x)%1000)):2**12*(1-exp(-alpha*(( int(x)%1000)-500)))+2**12*exp(-alpha*(int(x)%1000)))
+    f(x)=((int(x)%1000)<500?2**12*exp(-alpha*(int(x)%1000)):2**12*(1-exp(-alpha*(( int(x)%1000)-500)))+2**12*exp(-alpha*(int(500)%1000)))
+    f(x+period - t0)
     '''
 
 def map2multiwaveform(toflist):
@@ -281,6 +299,7 @@ def simulate_timeenergy(timeenergy,nchannels=16,e_retardation=0,energywin=(590,6
         (s_collection_ft,n_collection_ft,f_extend,t_extend) = readimpulseresponses(infilepath)
 
     dt = t_extend[1]-t_extend[0]
+    tvec = nparange[0,t_extend[-1]-t_extend[0],dt]
     carrier_phase = 2.*pi*rand()
     sim_times = nparray([0],dtype=float)
     waveforms=np.zeros((nchannels,len(t_extend)),dtype=float)
@@ -330,7 +349,7 @@ def simulate_timeenergy(timeenergy,nchannels=16,e_retardation=0,energywin=(590,6
             ToFs = column_stack((ToFs,csr_matrix((tdata,trowinds,tindptr),shape=(nchannels,max(trowinds)+1)).toarray()))
             Ens = column_stack((Ens,csr_matrix((edata,erowinds,eindptr),shape=(nchannels,max(erowinds)+1)).toarray()))
 
-    return (waveforms,ToFs,Ens)
+    return (tvec,waveforms,ToFs,Ens)
 
 def computeImages():
         nelectronsrange = (50,100)
@@ -341,8 +360,8 @@ def computeImages():
         einds = [randrange(nebins) for i in range(npulses)]
         nelectrons = [randrange(nelectronsrange[0]//npulses,nelectronsrange[1]//npulses) for i in range(npulses)]
         timeenergy = coo_matrix((nelectrons, (tinds,einds)),shape=(ntbins,nebins),dtype=int)
-        (WaveForms,ToFs,Energies) = simulate_timeenergy(timeenergy,nchannels=nchannels,e_retardation=0,energywin=(600,610),max_streak=50,printfiles = False)
-        return (nchannels,ntbins,nebins,npulses,WaveForms,ToFs,Energies,timeenergy.toarray())
+        (tvec,WaveForms,ToFs,Energies) = simulate_timeenergy(timeenergy,nchannels=nchannels,e_retardation=0,energywin=(600,610),max_streak=50,printfiles = True)
+        return (nchannels,ntbins,nebins,npulses,tvec,WaveForms,ToFs,Energies,timeenergy.toarray())
 
 #def spawnprocess(nchannels=16,nimages=2,nchunks=2,tfrecordpath = './data_fs/raw/tf_record_files/'):
 def spawnprocess(t):
@@ -364,9 +383,10 @@ def spawnprocess(t):
         strengtharray = np.zeros((nimages,),dtype=int)
         invpurityarray = np.zeros((nimages,),dtype=int)
         npulsesarray = np.zeros((nimages,),dtype=int)
+        times = np.array((0),dtype=float)
         for i in range(nimages):
             print("processing image {} chunk {} inside pid {}".format(i,c,getpid()))
-            (nchannels,ntbins,nebins,npulses,WaveForms,ToFs,Energies,timeenergy) = computeImages()
+            (nchannels,ntbins,nebins,npulses,times,WaveForms,ToFs,Energies,timeenergy) = computeImages()
             '''
             strengtharray[i] = npsum(timeenergy)
             invpurityarray[i] = npsum(timeenergy)*100//npmax(timeenergy)
@@ -393,12 +413,15 @@ def spawnprocess(t):
             #np.savetxt(enfilename,Energies,fmt='%.3f',header=headstring)
             #headstring = 'npulses\t{}\t{}\t{}\n#{}\t{}'.format(npulses,enfilename,toffilename,i,hashstring)
             #np.savetxt(toffilename,ToFs,fmt='%.3f',header=headstring)
+            ramp = buildramp(times,250)
+            HERE HERE HERE HERE
             for chan in range(Energies.shape[0]):
                 toflist = [t for t in ToFs[chan,:] if t>0]
                 toflist.sort()
+                wf = map2chargedischarge(toflist,times,ramp)
                 tofsshardout.write( ' '.join(format(t,'0.3f') for t in toflist) + '::')
                 #wf = map2waveform(toflist)
-                wf = map2multiwaveform(toflist)
+                #wf = map2multiwaveform(toflist)
                 wfshardout.write( ' '.join(format(int(w),'d') for w in wf) + '::')
                 #wfshardout.write( ' '.join(format(int(w),'d') for w in wf) + '\n')
                 hst = waveform2hist(wf)
