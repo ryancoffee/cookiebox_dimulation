@@ -25,3 +25,13 @@ input energy e in eV.
  * first sum all the Weiner filtered and foureir\_delay() signals  
  * then add the single noise vector back  
  * then IFFT() back to time
+
+## GAN
+
+Use as a first layer the phase and the noise power spectrum of single pulse data.
+This is ground truth, and then generate the waveform using an RNN.
+Use another adversary network to classify the real from the fake.
+Maybe do this with the simulated data you already have, by modeling the noise and the signal.
+	Try two generative networks, one that uses Fourier and one Wavelets for the signal.
+	
+Also for wavelets, see if the power in the low order can better represent the pile-up than Fourier does.
