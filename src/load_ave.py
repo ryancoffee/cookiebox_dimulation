@@ -12,6 +12,7 @@ from sklearn import linear_model
 from sklearn import metrics
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, WhiteKernel, RationalQuadratic, ExpSineSquared, ConstantKernel
+import re
 
 # Exploring Kernel Ridge Regression -- https://scikit-learn.org/stable/auto_examples/gaussian_process/plot_compare_gpr_krr.html#sphx-glr-auto-examples-gaussian-process-plot-compare-gpr-krr-py
 from sklearn.kernel_ridge import KernelRidge
@@ -99,17 +100,57 @@ def main():
         return
     print("data loaded\tcontinuing to fitting")
     X_train,X_test,X_valid,X_oob,Y_train,Y_test,Y_valid,Y_oob = katiesplit(X_all,Y_all)
-    np.savetxt('check.dat',np.column_stack((X_train,Y_train)))
-    stime = time.time()
-    linmodel = linear_model.LinearRegression().fit(X_train[-2000:,:], Y_train[-2000:])
-    print("Time for linear model fitting: %.3f" % (time.time() - stime))
-    stime = time.time()
-    Y_test_pred = linmodel.predict(X_test)
-    Y_valid_pred = linmodel.predict(X_valid)
-    print("Time for linear model infernce: %.3f" % (time.time() - stime))
-    print ("linear model score (test): ", metrics.r2_score(Y_test, Y_test_pred))
-    print ("linear model score (validate): ", metrics.r2_score(Y_valid, Y_valid_pred))
 
+    #./data_ave/ind_25-plate_tune_grid_Range_*/analyzed_data.hdf5
+    m = re.match('(.*)(ind.*/)analyzed_data.hdf5',sys.argv[-1])
+    if m:
+        np.savetxt('%strain.dat'%(m.group(1)),np.column_stack((X_train,Y_train)))
+        np.savetxt('%soob.dat'%(m.group(1)),np.column_stack((X_oob,Y_oob)))
+
+
+    stime = time.time()
+    firstmodel = linear_model.LinearRegression().fit(X_oob[:1000,1].reshape(-1,1), Y_oob[:1000,0].reshape(-1,1))
+    print("Time for initial linear model fitting: %.3f" % (time.time() - stime))
+    stime = time.time()
+    Y_test_pred = firstmodel.predict(X_test[:,1].reshape(-1,1))
+    Y_valid_pred = firstmodel.predict(X_valid[:,1].reshape(-1,1))
+    print("Time for initial linear model inference: %.3f" % (time.time() - stime))
+    print ("linear model score (test): ", metrics.r2_score(Y_test[:,0], Y_test_pred))
+    print ("linear model score (validate): ", metrics.r2_score(Y_valid[:,0], Y_valid_pred))
+
+    if m:
+        headstring = 'vsetting\tlog(en)\tangle\tlog(tof)\typos\tpredtof'
+        np.savetxt('%stest.dat'%(m.group(1)),np.column_stack((X_test,Y_test,Y_test_pred)),header=headstring)
+        np.savetxt('%svalid.dat'%(m.group(1)),np.column_stack((X_valid,Y_valid,Y_valid_pred)),header=headstring)
+
+    print("Now moving to a perturbation linearRegression")
+
+    stime = time.time()
+    nsamples=2000
+    Y_zeroth = Y_train[-nsamples:,0].reshape(-1,1) #### CAREFUL HERE, using the shallow copy intentionally to address single output feature, numbers beyond nsamples will be bogus!!!
+    Y_zeroth -= firstmodel.predict(X_train[-nsamples:,1].reshape(-1,1)) 
+    X_featurized = np.column_stack((X_train[-nsamples:,:],np.power(X_train[:nsamples,:],int(2))))
+    perturbmodel = linear_model.LinearRegression().fit(X_featurized[-nsamples:,:], Y_train[-nsamples:,:])
+    print("Time for pertubative linear model fitting: %.3f" % (time.time() - stime))
+
+    stime = time.time()
+    Y_test_pred = perturbmodel.predict(np.column_stack((X_test,np.power(X_test,int(2)))))
+    Y_valid_pred = perturbmodel.predict(np.column_stack((X_valid,np.power(X_valid,int(2)))))
+    Y_test_pred0 = Y_test_pred[:,0].reshape(-1,1)
+    Y_valid_pred0 = Y_valid_pred[:,0].reshape(-1,1)
+    Y_test_pred0 += firstmodel.predict(X_test[:,1].reshape(-1,1))
+    Y_valid_pred0 += firstmodel.predict(X_valid[:,1].reshape(-1,1))
+    print("Time for purturbative combination linear model inference: %.3f" % (time.time() - stime))
+    print ("Perturbative linear model score (test): ", metrics.r2_score(Y_test, Y_test_pred))
+    print ("Perturbative linear model score (validate): ", metrics.r2_score(Y_valid, Y_valid_pred))
+
+    if m:
+        headstring = 'vsetting\tlog(en)\tangle\tlog(tof)\typos\tpredtof\tpredypos'
+        np.savetxt('%stest_perturb.dat'%(m.group(1)),np.column_stack((X_test,Y_test,Y_test_pred)),header=headstring)
+        np.savetxt('%svalid_perturb.dat'%(m.group(1)),np.column_stack((X_valid,Y_valid,Y_valid_pred)),header=headstring)
+
+    print("Skipping KRR")
+    '''
     # Fit KernelRidge with parameter selection based on 5-fold cross validation
     param_grid = {"alpha": [1e0, 1e-1, 1e-2, 1e-3],
                   "kernel": [RationalQuadratic(l, a)
@@ -126,30 +167,45 @@ def main():
     print("Time for KRR inference: %.3f" % (time.time() - stime))
     print ("KRR model score (test): ", metrics.r2_score(Y_test, Y_test_pred))
     print ("KRR model score (validate): ", metrics.r2_score(Y_valid, Y_valid_pred))
+    '''
 
-    k1 = 1.0**2 * RBF(length_scale=1.0) # long term smooth trend
-    k2 = 0.5**2 * RationalQuadratic(length_scale=5., alpha=1) # medium term irregularity
-    k3 = 0.18**2 * RBF(length_scale=0.134) + WhiteKernel(noise_level=0.1**2)  # noise terms
-    k4 = ConstantKernel(constant_value = 10 ) # constant shift
-    #kernel_gp = k1 + k2 + k3 + k4
-    kernel_gp = k3 + k4
-    multiout_gp = GaussianProcessRegressor(kernel=kernel_gp, alpha=0, normalize_y=True)
+    print("Moving on to perturbative GP")
+
     stime = time.time()
-    multiout_gp.fit(X_train[:2000,:], Y_train[:2000,:])
-    print("Time for GP fitting: %.3f" % (time.time() - stime))
+    nsamples = 8000
+    #GPML kernel: 0.00316**2 * RBF(length_scale=1e-05) + 1.05**2 * RationalQuadratic(alpha=0.16, length_scale=17.6)
+    #GPML kernel: 0.00316**2 * RBF(length_scale=1e-05) + 0.922**2 * RationalQuadratic(alpha=0.102, length_scale=15.3) + 0.517**2 * RBF(length_scale=6.09)
+    k1 = 0.003**2 * RBF(length_scale=1e-5) 
+    k2 = 1.0**2 * RationalQuadratic(length_scale=15., alpha=0.1) 
+    k3 = 0.5**2 * RBF(length_scale=6.0) 
+    K4 = WhiteKernel(noise_level=0.1**2)  # noise terms
+    #k4 = ConstantKernel(constant_value = 10 ) # constant shift
+    #kernel_gp = k1 + k2 + k3 + k4
+    kernel_gp = k1 + k2 + k3
+    multiout_gp = GaussianProcessRegressor(kernel=kernel_gp, alpha=0, normalize_y=True)
+    Y_zeroth = Y_train[:nsamples,0].reshape(-1,1) #### CAREFUL HERE, using the shallow copy intentionally to address single output feature, numbers beyond nsamples will be bogus!!!
+    Y_zeroth -= firstmodel.predict(X_train[:nsamples,1].reshape(-1,1)) 
+    multiout_gp.fit(X_train[:nsamples,:], Y_train[:nsamples,:])
+    print("Time for pertubative GP model fitting: %.3f" % (time.time() - stime))
 
     print("GPML kernel: %s" % multiout_gp.kernel_)
     print("Log-marginal-likelihood: %.3f" % multiout_gp.log_marginal_likelihood(multiout_gp.kernel_.theta))
     stime = time.time()
-    Y_test_pred = multiout_gp.predict(X_test)
-    Y_valid_pred = multiout_gp.predict(X_valid)
-    print("Time for KRR inference: %.3f" % (time.time() - stime))
-    print('GP score (test): ',  metrics.r2_score(Y_test,Y_test_pred))
-    print('GP score (validate): ',  metrics.r2_score(Y_valid,Y_valid_pred))
-    Y_test[:,0]=np.exp(Y_test[:,0])
-    Y_valid[:,0]=np.exp(Y_valid[:,0])
-    print('GP score (test) (exp): ',  metrics.r2_score(Y_test[:,0],Y_test_pred[:,0]))
-    print('GP score (validate) (exp): ',  metrics.r2_score(Y_validi[:,0],Y_valid_predi[:,0]))
+    nsamples = X_test.shape[0]//4
+    Y_test_pred = multiout_gp.predict(X_test[:nsamples,:])
+    Y_valid_pred = multiout_gp.predict(X_valid[:nsamples,:])
+    Y_test_pred0 = Y_test_pred[:,0].reshape(-1,1) #### CAREFUL HERE, using the shallow copy intentionally to address single output feature, numbers beyond nsamples will be bogus!!!
+    Y_valid_pred0 = Y_valid_pred[:,0].reshape(-1,1) #### CAREFUL HERE, using the shallow copy intentionally to address single output feature, numbers beyond nsamples will be bogus!!!
+    Y_test_pred0 += firstmodel.predict(X_test[:nsamples,1].reshape(-1,1))
+    Y_valid_pred0 += firstmodel.predict(X_valid[:nsamples,1].reshape(-1,1))
+    print("Time for perturbative GP inference: %.3f" % (time.time() - stime))
+    print('GP score (test): ',  metrics.r2_score(Y_test[:nsamples,:],Y_test_pred))
+    print('GP score (validate): ',  metrics.r2_score(Y_valid[:nsamples,:],Y_valid_pred))
+
+    if m:
+        headstring = 'vsetting\tlog(en)\tangle\tlog(tof)\typos\tpredtof\tpredypos'
+        np.savetxt('%stest_GPperturb.dat'%(m.group(1)),np.column_stack((X_test[:nsamples,:],Y_test[:nsamples,:],Y_test_pred)),header=headstring)
+        np.savetxt('%svalid_GPperturb.dat'%(m.group(1)),np.column_stack((X_valid[:nsamples,:],Y_valid[:nsamples,:],Y_valid_pred)),header=headstring)
 
     return
             
