@@ -172,7 +172,7 @@ def main():
     print("Moving on to perturbative GP")
 
     stime = time.time()
-    nsamples = 8000
+    nsamples = 1000
     #GPML kernel: 0.00316**2 * RBF(length_scale=1e-05) + 1.05**2 * RationalQuadratic(alpha=0.16, length_scale=17.6)
     #GPML kernel: 0.00316**2 * RBF(length_scale=1e-05) + 0.922**2 * RationalQuadratic(alpha=0.102, length_scale=15.3) + 0.517**2 * RBF(length_scale=6.09)
     k1 = 0.003**2 * RBF(length_scale=1e-5) 
@@ -183,13 +183,21 @@ def main():
     #kernel_gp = k1 + k2 + k3 + k4
     kernel_gp = k1 + k2 + k3
     multiout_gp = GaussianProcessRegressor(kernel=kernel_gp, alpha=0, normalize_y=True)
-    Y_zeroth = Y_train[:nsamples,0].reshape(-1,1) #### CAREFUL HERE, using the shallow copy intentionally to address single output feature, numbers beyond nsamples will be bogus!!!
-    Y_zeroth -= firstmodel.predict(X_train[:nsamples,1].reshape(-1,1)) 
-    multiout_gp.fit(X_train[:nsamples,:], Y_train[:nsamples,:])
-    print("Time for pertubative GP model fitting: %.3f" % (time.time() - stime))
+    Y_zeroth = Y_train[:,0].reshape(-1,1) #### CAREFUL HERE, using the shallow copy intentionally to address single output feature, numbers beyond nsamples will be bogus!!!
+    Y_zeroth -= firstmodel.predict(X_train[:,1].reshape(-1,1)) 
+    thetalist = []
+    lml = []
+    for i in range(8):
+        multiout_gp.fit(X_train[i*nsamples:(i+1)*nsamples,:], Y_train[i*nsamples:(i+1)*nsamples,:])
+        thetalist += [multiout_gp.kernel_.theta]
+        print(multiout_gp.kernel_.theta)
+        print("Time for pertubative GP model fitting: %.3f" % (time.time() - stime))
+        lml += [multiout_gp.log_marginal_likelihood(multiout_gp.kernel_.theta)]
+        print(lml)
+        print("Log-marginal-likelihood: %.3f" % multiout_gp.log_marginal_likelihood(multiout_gp.kernel_.theta))
 
+    print("Total time for pertubative GP model fitting: %.3f" % (time.time() - stime))
     print("GPML kernel: %s" % multiout_gp.kernel_)
-    print("Log-marginal-likelihood: %.3f" % multiout_gp.log_marginal_likelihood(multiout_gp.kernel_.theta))
     stime = time.time()
     nsamples = X_test.shape[0]//4
     Y_test_pred = multiout_gp.predict(X_test[:nsamples,:])
