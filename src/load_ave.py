@@ -124,7 +124,9 @@ def main():
         np.savetxt('%svalid.dat'%(m.group(1)),np.column_stack((X_valid,Y_valid,Y_valid_pred)),header=headstring)
 
     print("Now moving to a perturbation linearRegression")
+    print("Skipping PLR")
 
+    '''
     stime = time.time()
     nsamples=2000
     Y_zeroth = Y_train[-nsamples:,0].reshape(-1,1) #### CAREFUL HERE, using the shallow copy intentionally to address single output feature, numbers beyond nsamples will be bogus!!!
@@ -148,6 +150,7 @@ def main():
         headstring = 'vsetting\tlog(en)\tangle\tlog(tof)\typos\tpredtof\tpredypos'
         np.savetxt('%stest_perturb.dat'%(m.group(1)),np.column_stack((X_test,Y_test,Y_test_pred)),header=headstring)
         np.savetxt('%svalid_perturb.dat'%(m.group(1)),np.column_stack((X_valid,Y_valid,Y_valid_pred)),header=headstring)
+    '''
 
     print("Skipping KRR")
     '''
@@ -182,33 +185,38 @@ def main():
     #k4 = ConstantKernel(constant_value = 10 ) # constant shift
     #kernel_gp = k1 + k2 + k3 + k4
     kernel_gp = k1 + k2 + k3
-    multiout_gp = GaussianProcessRegressor(kernel=kernel_gp, alpha=0, normalize_y=True)
     Y_zeroth = Y_train[:,0].reshape(-1,1) #### CAREFUL HERE, using the shallow copy intentionally to address single output feature, numbers beyond nsamples will be bogus!!!
     Y_zeroth -= firstmodel.predict(X_train[:,1].reshape(-1,1)) 
+    batch_gp_list = [GaussianProcessRegressor(kernel=kernel_gp, alpha=0, normalize_y=True, n_restarts_optimizer = 2)]*3
     thetalist = []
+    kernellist = []
     lml = []
-    for i in range(8):
-        multiout_gp.fit(X_train[i*nsamples:(i+1)*nsamples,:], Y_train[i*nsamples:(i+1)*nsamples,:])
-        thetalist += [multiout_gp.kernel_.theta]
-        print(multiout_gp.kernel_.theta)
+    i=0
+    for batch_gp in batch_gp_list:
+        batch_gp.fit(X_train[i*nsamples:(i+1)*nsamples,:], Y_train[i*nsamples:(i+1)*nsamples,:])
         print("Time for pertubative GP model fitting: %.3f" % (time.time() - stime))
-        lml += [multiout_gp.log_marginal_likelihood(multiout_gp.kernel_.theta)]
-        print(lml)
-        print("Log-marginal-likelihood: %.3f" % multiout_gp.log_marginal_likelihood(multiout_gp.kernel_.theta))
+        print(batch_gp.kernel_.theta)
+        print("Log-marginal-likelihood: %.3f" % batch_gp.log_marginal_likelihood(batch_gp.kernel_.theta))
+        i += 1 
 
-    print("Total time for pertubative GP model fitting: %.3f" % (time.time() - stime))
-    print("GPML kernel: %s" % multiout_gp.kernel_)
+    print("Total time for pertubative GP model ensemble fitting: %.3f" % (time.time() - stime))
+
+    for batch_gp in batch_gp_list:
+        print("batch GPML kernel_.theta: %s" % batch_gp.kernel_.theta)
     stime = time.time()
-    nsamples = X_test.shape[0]//4
-    Y_test_pred = multiout_gp.predict(X_test[:nsamples,:])
-    Y_valid_pred = multiout_gp.predict(X_valid[:nsamples,:])
-    Y_test_pred0 = Y_test_pred[:,0].reshape(-1,1) #### CAREFUL HERE, using the shallow copy intentionally to address single output feature, numbers beyond nsamples will be bogus!!!
-    Y_valid_pred0 = Y_valid_pred[:,0].reshape(-1,1) #### CAREFUL HERE, using the shallow copy intentionally to address single output feature, numbers beyond nsamples will be bogus!!!
-    Y_test_pred0 += firstmodel.predict(X_test[:nsamples,1].reshape(-1,1))
-    Y_valid_pred0 += firstmodel.predict(X_valid[:nsamples,1].reshape(-1,1))
-    print("Time for perturbative GP inference: %.3f" % (time.time() - stime))
-    print('GP score (test): ',  metrics.r2_score(Y_test[:nsamples,:],Y_test_pred))
-    print('GP score (validate): ',  metrics.r2_score(Y_valid[:nsamples,:],Y_valid_pred))
+
+    for gpr in batch_gp_list:
+        print('repeating for gpr in batch_gp_list')
+        nsamples = X_test.shape[0]//8
+        Y_test_pred = gpr.predict(X_test[:nsamples,:])
+        Y_valid_pred = gpr.predict(X_valid[:nsamples,:])
+        Y_test_pred0 = Y_test_pred[:,0].reshape(-1,1) #### CAREFUL HERE, using the shallow copy intentionally to address single output feature, numbers beyond nsamples will be bogus!!!
+        Y_valid_pred0 = Y_valid_pred[:,0].reshape(-1,1) #### CAREFUL HERE, using the shallow copy intentionally to address single output feature, numbers beyond nsamples will be bogus!!!
+        Y_test_pred0 += firstmodel.predict(X_test[:nsamples,1].reshape(-1,1))
+        Y_valid_pred0 += firstmodel.predict(X_valid[:nsamples,1].reshape(-1,1))
+        print("Time for perturbative GP inference: %.3f" % (time.time() - stime))
+        print('GP score (test): ',  metrics.r2_score(Y_test[:nsamples,:],Y_test_pred))
+        print('GP score (validate): ',  metrics.r2_score(Y_valid[:nsamples,:],Y_valid_pred))
 
     if m:
         headstring = 'vsetting\tlog(en)\tangle\tlog(tof)\typos\tpredtof\tpredypos'
@@ -216,14 +224,14 @@ def main():
         np.savetxt('%svalid_GPperturb.dat'%(m.group(1)),np.column_stack((X_valid[:nsamples,:],Y_valid[:nsamples,:],Y_valid_pred)),header=headstring)
 
     return
-            
-    '''
+
+'''
     features = []
     for v in x:
         features.append((int((v-center)*8) , np.power(int((v-center)*8),int(2))//100 ))
     return features
     '''
-            
+
 if __name__ == '__main__':
     main()
 
