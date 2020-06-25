@@ -56,3 +56,273 @@ GP score (validate):  0.995981806271835
 -rw-rw-r--  1 coffee coffee 489M Jun 24 08:25 gp_model_3.sav
 -rw-rw-r--  1 coffee coffee 489M Jun 24 09:58 gp_model_4.sav
 
+/home/coffee/.local/lib/python3.8/site-packages/sklearn/gaussian_process/_gpr.py:494: ConvergenceWarning: lbfgs failed to converge (status=2):
+ABNORMAL_TERMINATION_IN_LNSRCH.
+
+Increase the number of iterations (max_iter) or scale the data as shown in:
+    https://scikit-learn.org/stable/modules/preprocessing.html
+  _check_optimize_result("lbfgs", opt_res)
+/home/coffee/.local/lib/python3.8/site-packages/sklearn/gaussian_process/_gpr.py:494: ConvergenceWarning: lbfgs failed to converge (status=2):
+ABNORMAL_TERMINATION_IN_LNSRCH.
+
+Increase the number of iterations (max_iter) or scale the data as shown in:
+    https://scikit-learn.org/stable/modules/preprocessing.html
+  _check_optimize_result("lbfgs", opt_res)
+/home/coffee/.local/lib/python3.8/site-packages/sklearn/gaussian_process/_gpr.py:494: ConvergenceWarning: lbfgs failed to converge (status=2):
+ABNORMAL_TERMINATION_IN_LNSRCH.
+
+Increase the number of iterations (max_iter) or scale the data as shown in:
+    https://scikit-learn.org/stable/modules/preprocessing.html
+  _check_optimize_result("lbfgs", opt_res)
+/home/coffee/.local/lib/python3.8/site-packages/sklearn/gaussian_process/_gpr.py:494: ConvergenceWarning: lbfgs failed to converge (status=2):
+ABNORMAL_TERMINATION_IN_LNSRCH.
+
+Increase the number of iterations (max_iter) or scale the data as shown in:
+    https://scikit-learn.org/stable/modules/preprocessing.html
+  _check_optimize_result("lbfgs", opt_res)
+/home/coffee/.local/lib/python3.8/site-packages/sklearn/gaussian_process/_gpr.py:494: ConvergenceWarning: lbfgs failed to converge (status=2):
+ABNORMAL_TERMINATION_IN_LNSRCH.
+
+Increase the number of iterations (max_iter) or scale the data as shown in:
+    https://scikit-learn.org/stable/modules/preprocessing.html
+  _check_optimize_result("lbfgs", opt_res)
+data loaded	continuing to fitting
+Time for initial linear model fitting: 0.001
+Time for initial linear model inference: 0.002
+linear model score (test):  0.9908777386584777
+linear model score (validate):  0.9907679214655719
+Now moving to a perturbation linearRegression
+Skipping PLR
+Skipping KRR
+Moving on to perturbative GP
+Time for pertubative GP model fitting: 2.066
+kernel = 0.102**2 * RBF(length_scale=[0.00567, 0.0115, 0.000444]) + 4.35**2 * DotProduct(sigma_0=0.0116) ** 2 + 0.106**2 * WhiteKernel(noise_level=0.011) + 0.394**2
+Log-marginal-likelihood: 2436.269
+Time for pertubative GP model fitting: 36.803
+kernel = 0.0352**2 * RBF(length_scale=[0.00332, 0.000115, 0.00333]) + 0.00316**2 * DotProduct(sigma_0=0.32) ** 2 + 0.00316**2 * WhiteKernel(noise_level=1e-05) + 0.0488**2
+Log-marginal-likelihood: 3777.671
+Time for pertubative GP model fitting: 68.324
+kernel = 0.0601**2 * RBF(length_scale=[0.00175, 1.77, 5.23]) + 0.00316**2 * DotProduct(sigma_0=0.00261) ** 2 + 0.0799**2 * WhiteKernel(noise_level=0.000122) + 0.0138**2
+Log-marginal-likelihood: 6536.259
+Time for pertubative GP model fitting: 71.379
+kernel = 0.05**2 * RBF(length_scale=[1, 1, 1]) + 1**2 * DotProduct(sigma_0=0.1) ** 2 + 1**2 * WhiteKernel(noise_level=0.0001) + 0.1**2
+Log-marginal-likelihood: 5213.965
+Time for pertubative GP model fitting: 120.086
+kernel = 0.05**2 * RBF(length_scale=[1, 1, 1]) + 1**2 * DotProduct(sigma_0=0.1) ** 2 + 1**2 * WhiteKernel(noise_level=0.0001) + 0.1**2
+Log-marginal-likelihood: 5233.467
+Time for pertubative GP model fitting: 150.725
+kernel = 0.004**2 * RBF(length_scale=[5.34e-05, 0.00237, 7.32e-05]) + 0.00316**2 * DotProduct(sigma_0=0.891) ** 2 + 5.73**2 * WhiteKernel(noise_level=3.47e-05) + 0.0486**2
+Log-marginal-likelihood: 3840.839
+Time for pertubative GP model fitting: 162.778
+kernel = 0.0335**2 * RBF(length_scale=[7.72e-05, 0.000128, 1.06e-05]) + 0.00316**2 * DotProduct(sigma_0=0.619) ** 2 + 0.00353**2 * WhiteKernel(noise_level=3.45) + 0.0483**2
+Log-marginal-likelihood: 3833.830
+Time for pertubative GP model fitting: 197.148
+kernel = 0.05**2 * RBF(length_scale=[1, 1, 1]) + 1**2 * DotProduct(sigma_0=0.1) ** 2 + 1**2 * WhiteKernel(noise_level=0.0001) + 0.1**2
+Log-marginal-likelihood: 5107.988
+Time for pertubative GP model fitting: 246.842
+kernel = 0.05**2 * RBF(length_scale=[1, 1, 1]) + 1**2 * DotProduct(sigma_0=0.1) ** 2 + 1**2 * WhiteKernel(noise_level=0.0001) + 0.1**2
+Log-marginal-likelihood: 5188.601
+Time for pertubative GP model fitting: 263.182
+kernel = 0.0154**2 * RBF(length_scale=[0.753, 0.332, 2.8]) + 0.00316**2 * DotProduct(sigma_0=1.96) ** 2 + 0.00318**2 * WhiteKernel(noise_level=1.01e-05) + 0.424**2
+Log-marginal-likelihood: 5170.760
+Total time for pertubative GP model ensemble fitting: 263.243
+repeating for gpr in fname_model list
+Time for perturbative GP inference: 1.162
+GP score (test):  0.6601341517019927
+GP score (validate):  0.6495705169073507
+repeating for gpr in fname_model list
+Time for perturbative GP inference: 1.160
+GP score (test):  0.6698471502504619
+GP score (validate):  0.6592960019823337
+repeating for gpr in fname_model list
+Time for perturbative GP inference: 1.162
+GP score (test):  0.9808345965201716
+GP score (validate):  0.9804581604421552
+repeating for gpr in fname_model list
+Time for perturbative GP inference: 1.188
+GP score (test):  0.947542929594104
+GP score (validate):  0.940831295474827
+repeating for gpr in fname_model list
+Time for perturbative GP inference: 1.194
+GP score (test):  0.9260468673383488
+GP score (validate):  0.9090456279717081
+repeating for gpr in fname_model list
+Time for perturbative GP inference: 1.161
+GP score (test):  0.6674445748642822
+GP score (validate):  0.6540531649654818
+repeating for gpr in fname_model list
+Time for perturbative GP inference: 1.160
+GP score (test):  0.6559202778196944
+GP score (validate):  0.649588477031797
+repeating for gpr in fname_model list
+Time for perturbative GP inference: 1.190
+GP score (test):  0.8262346337173736
+GP score (validate):  0.8263262910839375
+repeating for gpr in fname_model list
+Time for perturbative GP inference: 1.191
+GP score (test):  -2.1205736123810848
+GP score (validate):  -1.8371330932518461
+repeating for gpr in fname_model list
+Time for perturbative GP inference: 1.158
+GP score (test):  0.9307198779513934
+GP score (validate):  0.9251900727281173
+data loaded	continuing to fitting
+Time for initial linear model fitting: 0.001
+Time for initial linear model inference: 0.002
+linear model score (test):  0.9907945706877747
+linear model score (validate):  0.9908587121188746
+Now moving to a perturbation linearRegression
+Skipping PLR
+Skipping KRR
+Moving on to perturbative GP
+Time for pertubative GP model fitting: 25.458
+kernel = 0.0887**2 * RBF(length_scale=[1.82, 2.6, 6.01]) + 0.169**2 * WhiteKernel(noise_level=3.18e-05) + 0.0253**2
+Log-marginal-likelihood: 8684.714
+Time for pertubative GP model fitting: 56.525
+kernel = 0.136**2 * RBF(length_scale=[4.73, 2.67, 6.29]) + 0.334**2 * WhiteKernel(noise_level=4.83e-05) + 0.00316**2
+Log-marginal-likelihood: 7711.487
+Time for pertubative GP model fitting: 94.695
+kernel = 0.0911**2 * RBF(length_scale=[2.53, 2.22, 3.29]) + 0.21**2 * WhiteKernel(noise_level=3.14e-05) + 0.0202**2
+Log-marginal-likelihood: 7908.600
+Time for pertubative GP model fitting: 133.227
+kernel = 0.088**2 * RBF(length_scale=[2.09, 2.43, 4.11]) + 0.231**2 * WhiteKernel(noise_level=4.12e-05) + 0.0221**2
+Log-marginal-likelihood: 7902.608
+Time for pertubative GP model fitting: 177.269
+kernel = 0.0997**2 * RBF(length_scale=[2.18, 2.11, 5.5]) + 0.22**2 * WhiteKernel(noise_level=3.68e-05) + 0.00613**2
+Log-marginal-likelihood: 7990.934
+Time for pertubative GP model fitting: 217.463
+kernel = 0.0732**2 * RBF(length_scale=[1.64, 2.82, 3]) + 0.194**2 * WhiteKernel(noise_level=3.03e-05) + 0.0238**2
+Log-marginal-likelihood: 8241.680
+Time for pertubative GP model fitting: 246.677
+kernel = 0.0641**2 * RBF(length_scale=[0.588, 2.38, 4.32]) + 0.0932**2 * WhiteKernel(noise_level=1.97e-05) + 0.0292**2
+Log-marginal-likelihood: 8804.619
+Time for pertubative GP model fitting: 289.609
+kernel = 0.0864**2 * RBF(length_scale=[2.19, 2.31, 4.85]) + 0.0138**2 * WhiteKernel(noise_level=0.00884) + 0.0255**2
+Log-marginal-likelihood: 8196.045
+Time for pertubative GP model fitting: 318.988
+kernel = 0.0752**2 * RBF(length_scale=[2.35, 2.9, 2.4]) + 0.233**2 * WhiteKernel(noise_level=3.81e-05) + 0.0279**2
+Log-marginal-likelihood: 7893.335
+Time for pertubative GP model fitting: 346.049
+kernel = 0.0801**2 * RBF(length_scale=[1.98, 3.08, 2.53]) + 0.18**2 * WhiteKernel(noise_level=3.09e-05) + 0.0231**2
+Log-marginal-likelihood: 8133.082
+Total time for pertubative GP model ensemble fitting: 346.095
+repeating for gpr in fname_model list
+Time for perturbative GP inference: 0.874
+GP score (test):  0.9682085295685954
+GP score (validate):  0.9667337674581638
+repeating for gpr in fname_model list
+Time for perturbative GP inference: 0.889
+GP score (test):  0.98082915043943
+GP score (validate):  0.9820241846345186
+repeating for gpr in fname_model list
+Time for perturbative GP inference: 0.909
+GP score (test):  0.9853118911531791
+GP score (validate):  0.9859206902772844
+repeating for gpr in fname_model list
+Time for perturbative GP inference: 0.903
+GP score (test):  0.9838886596932891
+GP score (validate):  0.9845646428157648
+repeating for gpr in fname_model list
+Time for perturbative GP inference: 0.906
+GP score (test):  0.983231177724533
+GP score (validate):  0.9833700055064629
+repeating for gpr in fname_model list
+Time for perturbative GP inference: 0.874
+GP score (test):  0.9748083920718358
+GP score (validate):  0.9758968208350123
+repeating for gpr in fname_model list
+Time for perturbative GP inference: 0.900
+GP score (test):  0.9572668689893853
+GP score (validate):  0.9645740125285467
+repeating for gpr in fname_model list
+Time for perturbative GP inference: 0.904
+GP score (test):  0.9806220886830056
+GP score (validate):  0.9818676047111186
+repeating for gpr in fname_model list
+Time for perturbative GP inference: 0.935
+GP score (test):  0.9718889528522587
+GP score (validate):  0.9726346389277531
+repeating for gpr in fname_model list
+Time for perturbative GP inference: 0.896
+GP score (test):  0.9650919824369926
+GP score (validate):  0.9656654362635204
+data loaded	continuing to fitting
+Time for initial linear model fitting: 0.001
+Time for initial linear model inference: 0.002
+linear model score (test):  0.9908158750642523
+linear model score (validate):  0.9908151960874538
+Now moving to a perturbation linearRegression
+Skipping PLR
+Skipping KRR
+Moving on to perturbative GP
+Time for pertubative GP model fitting: 32.111
+kernel = 0.146**2 * RBF(length_scale=[3.52, 2.77, 10.2]) + 1.41**2 * WhiteKernel(noise_level=0.000213) + 0.00316**2
+Log-marginal-likelihood: 4777.155
+Time for pertubative GP model fitting: 66.348
+kernel = 0.0959**2 * RBF(length_scale=[0.0629, 2.01, 3.16]) + 0.00346**2 * WhiteKernel(noise_level=0.112) + 0.0125**2
+Log-marginal-likelihood: 7215.858
+Time for pertubative GP model fitting: 98.645
+kernel = 0.081**2 * RBF(length_scale=[0.0659, 2.1, 3.89]) + 0.615**2 * WhiteKernel(noise_level=6.68e-05) + 0.00726**2
+Log-marginal-likelihood: 6194.266
+Time for pertubative GP model fitting: 130.134
+kernel = 0.0883**2 * RBF(length_scale=[0.0599, 2.25, 3.49]) + 0.224**2 * WhiteKernel(noise_level=5.37e-05) + 0.00462**2
+Log-marginal-likelihood: 7193.600
+Time for pertubative GP model fitting: 158.660
+kernel = 0.113**2 * RBF(length_scale=[2.44, 3.81, 8.17]) + 1.25**2 * WhiteKernel(noise_level=0.000137) + 0.00316**2
+Log-marginal-likelihood: 5441.708
+Time for pertubative GP model fitting: 194.782
+kernel = 0.114**2 * RBF(length_scale=[0.0689, 2.09, 3.93]) + 0.032**2 * WhiteKernel(noise_level=0.00259) + 0.0163**2
+Log-marginal-likelihood: 7004.767
+Time for pertubative GP model fitting: 217.194
+kernel = 0.0605**2 * RBF(length_scale=[2.22, 3.17, 2.25]) + 1.11**2 * WhiteKernel(noise_level=0.000183) + 0.00316**2
+Log-marginal-likelihood: 5355.035
+Time for pertubative GP model fitting: 246.756
+kernel = 0.08**2 * RBF(length_scale=[0.000164, 2.61, 5.84]) + 0.0611**2 * WhiteKernel(noise_level=0.00412) + 0.00316**2
+Log-marginal-likelihood: 5859.903
+Time for pertubative GP model fitting: 279.547
+kernel = 0.0618**2 * RBF(length_scale=[1.9, 1.58, 1.02]) + 1.12**2 * WhiteKernel(noise_level=0.000183) + 0.00316**2
+Log-marginal-likelihood: 5069.190
+Time for pertubative GP model fitting: 306.151
+kernel = 0.0902**2 * RBF(length_scale=[0.0689, 2.32, 3.39]) + 0.0417**2 * WhiteKernel(noise_level=0.000907) + 0.00928**2
+Log-marginal-likelihood: 7559.778
+Total time for pertubative GP model ensemble fitting: 306.199
+repeating for gpr in fname_model list
+Time for perturbative GP inference: 0.774
+GP score (test):  0.6730531571681768
+GP score (validate):  0.6722289607114373
+repeating for gpr in fname_model list
+Time for perturbative GP inference: 0.955
+GP score (test):  0.9876358602762049
+GP score (validate):  0.9874682443365386
+repeating for gpr in fname_model list
+Time for perturbative GP inference: 0.924
+GP score (test):  0.9906874957554377
+GP score (validate):  0.9894512917075733
+repeating for gpr in fname_model list
+Time for perturbative GP inference: 1.126
+GP score (test):  0.9922780546972876
+GP score (validate):  0.9917618852944532
+repeating for gpr in fname_model list
+Time for perturbative GP inference: 0.800
+GP score (test):  0.677230163023439
+GP score (validate):  0.6888713333360057
+repeating for gpr in fname_model list
+Time for perturbative GP inference: 1.026
+GP score (test):  0.9908503132287421
+GP score (validate):  0.9905244506003948
+repeating for gpr in fname_model list
+Time for perturbative GP inference: 0.805
+GP score (test):  0.6545462086949009
+GP score (validate):  0.6495351796470615
+repeating for gpr in fname_model list
+Time for perturbative GP inference: 0.941
+GP score (test):  0.9661284331594593
+GP score (validate):  0.9663970479214364
+repeating for gpr in fname_model list
+Time for perturbative GP inference: 0.812
+GP score (test):  0.6213848106620049
+GP score (validate):  0.6341409624571658
+repeating for gpr in fname_model list
+Time for perturbative GP inference: 1.081
+GP score (test):  0.9882781065629924
+GP score (validate):  0.988036117405372

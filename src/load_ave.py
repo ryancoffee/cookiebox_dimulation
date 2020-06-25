@@ -10,8 +10,9 @@ import math
 from sklearn.multioutput import MultiOutputRegressor
 from sklearn import linear_model
 from sklearn import metrics
+from sklearn.feature_selection import mutual_info_regression
 from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import RBF, WhiteKernel, RationalQuadratic, ExpSineSquared, ConstantKernel, DotProduct
+from sklearn.gaussian_process.kernels import RBF, WhiteKernel, RationalQuadratic, ExpSineSquared, ConstantKernel, DotProduct, Matern
 #from sklearn.externals import joblib
 import joblib
 import re
@@ -72,16 +73,17 @@ def loaddata():
             xsplat = f[vsetting]['splat']['x'][()].flatten()
             vset = f[vsetting][ list(f[vsetting].keys())[0] ][-1][1] # eventually, extract the whole voltage vector as a feature vector for use in GP inference
             vsetvec = np.ones(xsplat.shape,dtype=float)*vset
-            validinds = np.where((abs(xsplat-185)<2) * (emat>0))
+            validinds = np.where((abs(xsplat-185)<2) * (emat>0) * (abs(ydata)<.050))
             nfeatures = 3
             ntruths = 2
             featuresvec = np.zeros((len(xsplat[validinds]),nfeatures),dtype=float)
             truthsvec = np.zeros((len(xsplat[validinds]),ntruths),dtype=float)
-            featuresvec[:,0] = vsetvec[validinds]
+            featuresvec[:,0] = np.log(-1.*vsetvec[validinds])
             featuresvec[:,1] = np.log(emat[validinds])
             featuresvec[:,2] = amat[validinds]
             truthsvec[:,0] = np.log(tdata[validinds])
             truthsvec[:,1] = ydata[validinds]
+            truthsvec[:,1] *= 1e3 # converting to mm
             if len(x_all)<1:
                 x_all = np.copy(featuresvec)
                 y_all = np.copy(truthsvec)
@@ -102,6 +104,12 @@ def main():
         return
     print("data loaded\tcontinuing to fitting")
     X_train,X_test,X_valid,X_oob,Y_train,Y_test,Y_valid,Y_oob = katiesplit(X_all,Y_all)
+    mi_tof = mutual_info_regression(X_train,Y_train[:,0])
+    mi_tof /= np.max(mi_tof)
+    print('mi for tof time\t',mi_tof)
+    mi_pos = mutual_info_regression(X_train,Y_train[:,1])
+    mi_pos /= np.max(mi_pos)
+    print('mi for y_position',mi_pos)
 
     #./data_ave/ind_25-plate_tune_grid_Range_*/analyzed_data.hdf5
     m = re.match('(.*)(ind.*/)analyzed_data.hdf5',sys.argv[-1])
@@ -179,21 +187,32 @@ def main():
     stime = time.time()
     nsamples = 1000
     nmodels=10
-    #GPML kernel: 0.00316**2 * RBF(length_scale=1e-05) + 1.05**2 * RationalQuadratic(alpha=0.16, length_scale=17.6)
-    #GPML kernel: 0.00316**2 * RBF(length_scale=1e-05) + 0.922**2 * RationalQuadratic(alpha=0.102, length_scale=15.3) + 0.517**2 * RBF(length_scale=6.09)
     k1 = 0.05**2 * RBF(
             length_scale=np.ones(X_train.shape[1],dtype=float)
             ,length_scale_bounds=(1e-5,20)
+            ) 
+    '''
+    k1 = 1.**2 * Matern(
+            length_scale=np.ones(X_train.shape[1],dtype=float)
+            ,length_scale_bounds=(1e-5,20)
+            ,nu=1.5
+            )
+
+    k2 = 1.**2 * Matern(
+            length_scale=np.ones(X_train.shape[1],dtype=float)
+            ,length_scale_bounds=(1e-5,20)
+            ,nu=3.5
+            )
+    k2 = 1.0**2 * DotProduct(sigma_0 = .1
             ) 
     k2 = 1.0**2 * DotProduct(sigma_0 = .1
             )**2
     '''
     k2 = 1.0**2 * RationalQuadratic(
-            length_scale=1. #np.ones(X_train.shape[1],dtype=float)
-            ,alpha=0.1 #np.ones(X_train.shape[1],dtype=float)
+            length_scale=1. 
+            ,alpha=0.1 
             ,length_scale_bounds=(1e-5,20)
             ) 
-            '''
     k3 = .5*2 * WhiteKernel(noise_level=0.01**2)  # noise terms
     k4 = ConstantKernel(constant_value = .01 ) # constant shift
     kernel_gp = k1 + k2 + k3 + k4
