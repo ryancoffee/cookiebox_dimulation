@@ -1,0 +1,58 @@
+/home/coffee/.local/lib/python3.8/site-packages/sklearn/gaussian_process/_gpr.py:494: ConvergenceWarning: lbfgs failed to converge (status=2):
+ABNORMAL_TERMINATION_IN_LNSRCH.
+
+Increase the number of iterations (max_iter) or scale the data as shown in:
+    https://scikit-learn.org/stable/modules/preprocessing.html
+  _check_optimize_result("lbfgs", opt_res)
+data loaded	continuing to fitting
+Time for initial linear model fitting: 0.001
+Time for initial linear model inference: 0.002
+linear model score (test):  0.990837434578355
+linear model score (validate):  0.9907671722449318
+Now moving to a perturbation linearRegression
+Skipping PLR
+Skipping KRR
+Moving on to perturbative GP
+Time for pertubative GP model fitting: 9121.026
+kernel = 0.00316**2 * RBF(length_scale=1e-05) + 0.216**2 * RationalQuadratic(alpha=0.294, length_scale=7.29) + 0.458**2 * RBF(length_scale=6.27) + 0.00316**2 * WhiteKernel(noise_level=1e-05)
+Log-marginal-likelihood: 71158.372
+Time for pertubative GP model fitting: 14436.557
+kernel = 0.591**2 * RBF(length_scale=4.6) + 0.16**2 * RationalQuadratic(alpha=0.0238, length_scale=8.87) + 0.0128**2 * RBF(length_scale=4.53) + 0.307**2 * WhiteKernel(noise_level=1.11e-05)
+Log-marginal-likelihood: 77278.915
+Time for pertubative GP model fitting: 25154.410
+kernel = 0.00316**2 * RBF(length_scale=1e-05) + 0.0229**2 * RationalQuadratic(alpha=9.14e+04, length_scale=2.02) + 0.242**2 * RBF(length_scale=4.71) + 0.00316**2 * WhiteKernel(noise_level=1e-05)
+Log-marginal-likelihood: 71661.040
+Time for pertubative GP model fitting: 36222.955
+kernel = 0.00316**2 * RBF(length_scale=0.25) + 0.0222**2 * RationalQuadratic(alpha=59, length_scale=1.6) + 0.333**2 * RBF(length_scale=3.96) + 0.00316**2 * WhiteKernel(noise_level=6.34e-05)
+Log-marginal-likelihood: 75633.248
+Time for pertubative GP model fitting: 41784.299
+kernel = 0.00316**2 * RBF(length_scale=1e-05) + 0.24**2 * RationalQuadratic(alpha=0.306, length_scale=6.97) + 0.531**2 * RBF(length_scale=6.47) + 0.00316**2 * WhiteKernel(noise_level=1e-05)
+Log-marginal-likelihood: 71143.846
+Total time for pertubative GP model ensemble fitting: 41794.868
+repeating for gpr in fname_model list
+Time for perturbative GP inference: 41816.371
+GP score (test):  0.9953883184331231
+GP score (validate):  0.9955160191582131
+repeating for gpr in fname_model list
+Time for perturbative GP inference: 41838.197
+GP score (test):  0.9965500694219657
+GP score (validate):  0.9975027512470052
+repeating for gpr in fname_model list
+Time for perturbative GP inference: 41860.949
+GP score (test):  0.9940640155962991
+GP score (validate):  0.9943888609131861
+repeating for gpr in fname_model list
+Time for perturbative GP inference: 41883.021
+GP score (test):  0.9968721648862576
+GP score (validate):  0.9963828525566812
+repeating for gpr in fname_model list
+Time for perturbative GP inference: 41904.444
+GP score (test):  0.9951684375390372
+GP score (validate):  0.995981806271835
+
+-rw-rw-r--  1 coffee coffee 489M Jun 24 00:54 gp_model_0.sav
+-rw-rw-r--  1 coffee coffee 489M Jun 24 02:22 gp_model_1.sav
+-rw-rw-r--  1 coffee coffee 489M Jun 24 05:21 gp_model_2.sav
+-rw-rw-r--  1 coffee coffee 489M Jun 24 08:25 gp_model_3.sav
+-rw-rw-r--  1 coffee coffee 489M Jun 24 09:58 gp_model_4.sav
+

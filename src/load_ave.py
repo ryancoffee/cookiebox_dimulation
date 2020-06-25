@@ -11,7 +11,7 @@ from sklearn.multioutput import MultiOutputRegressor
 from sklearn import linear_model
 from sklearn import metrics
 from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import RBF, WhiteKernel, RationalQuadratic, ExpSineSquared, ConstantKernel
+from sklearn.gaussian_process.kernels import RBF, WhiteKernel, RationalQuadratic, ExpSineSquared, ConstantKernel, DotProduct
 #from sklearn.externals import joblib
 import joblib
 import re
@@ -177,17 +177,26 @@ def main():
     print("Moving on to perturbative GP")
 
     stime = time.time()
-    nsamples = 8000
-    nmodels=5
+    nsamples = 1000
+    nmodels=10
     #GPML kernel: 0.00316**2 * RBF(length_scale=1e-05) + 1.05**2 * RationalQuadratic(alpha=0.16, length_scale=17.6)
     #GPML kernel: 0.00316**2 * RBF(length_scale=1e-05) + 0.922**2 * RationalQuadratic(alpha=0.102, length_scale=15.3) + 0.517**2 * RBF(length_scale=6.09)
-    k1 = 0.003**2 * RBF(length_scale=1e-5) 
-    k2 = 1.0**2 * RationalQuadratic(length_scale=15., alpha=0.1) 
-    k3 = 0.5**2 * RBF(length_scale=6.0) 
-    k4 = .003**2 * WhiteKernel(noise_level=0.00001**2)  # noise terms
-    #k4 = ConstantKernel(constant_value = 10 ) # constant shift
+    k1 = 0.05**2 * RBF(
+            length_scale=np.ones(X_train.shape[1],dtype=float)
+            ,length_scale_bounds=(1e-5,20)
+            ) 
+    k2 = 1.0**2 * DotProduct(sigma_0 = .1
+            )**2
+    '''
+    k2 = 1.0**2 * RationalQuadratic(
+            length_scale=1. #np.ones(X_train.shape[1],dtype=float)
+            ,alpha=0.1 #np.ones(X_train.shape[1],dtype=float)
+            ,length_scale_bounds=(1e-5,20)
+            ) 
+            '''
+    k3 = .5*2 * WhiteKernel(noise_level=0.01**2)  # noise terms
+    k4 = ConstantKernel(constant_value = .01 ) # constant shift
     kernel_gp = k1 + k2 + k3 + k4
-    #kernel_gp = k2 + k3 
     Y_zeroth = Y_train[:,0].reshape(-1,1) #### CAREFUL HERE, using the shallow copy intentionally to address single output feature, numbers beyond nsamples will be bogus!!!
     Y_zeroth -= firstmodel.predict(X_train[:,1].reshape(-1,1)) 
     batch_gp = GaussianProcessRegressor(kernel=kernel_gp, alpha=0, normalize_y=True, n_restarts_optimizer = 2)
@@ -199,14 +208,17 @@ def main():
         print("kernel = %s"%batch_gp.kernel_)
         print("Log-marginal-likelihood: %.3f" % batch_gp.log_marginal_likelihood(batch_gp.kernel_.theta))
         if m:
-            fname_model += ['%sgp_model_%i.sav'%(m.group(1),i)]
+            fname_model += ['%sgp_model_%s_%i.sav'%(m.group(1),time.strftime('%Y.%m.%d.%H.%M'),i)]
             joblib.dump(batch_gp,fname_model[-1])
 
 
     print("Total time for pertubative GP model ensemble fitting: %.3f" % (time.time() - stime))
 
     if m:
+        Y_test_pred_collect = []
+        Y_valid_pred_collect = []
         for fname in fname_model:
+            stime = time.time()
             print('repeating for gpr in fname_model list')
             gpr = joblib.load(fname)
             nsamples = X_test.shape[0]//8
@@ -219,7 +231,11 @@ def main():
             print("Time for perturbative GP inference: %.3f" % (time.time() - stime))
             print('GP score (test): ',  metrics.r2_score(Y_test[:nsamples,:],Y_test_pred))
             print('GP score (validate): ',  metrics.r2_score(Y_valid[:nsamples,:],Y_valid_pred))
+            Y_test_pred_collect += [Y_test_pred]
+            Y_valid_pred_collect += [Y_valid_pred]
 
+        Y_test_pred = np.column_stack(Y_test_pred_collect[:])
+        Y_valid_pred = np.column_stack(Y_valid_pred_collect[:])
         headstring = 'vsetting\tlog(en)\tangle\tlog(tof)\typos\tpredtof\tpredypos'
         np.savetxt('%stest_GPperturb.dat'%(m.group(1)),np.column_stack((X_test[:nsamples,:],Y_test[:nsamples,:],Y_test_pred)),header=headstring)
         np.savetxt('%svalid_GPperturb.dat'%(m.group(1)),np.column_stack((X_valid[:nsamples,:],Y_valid[:nsamples,:],Y_valid_pred)),header=headstring)
