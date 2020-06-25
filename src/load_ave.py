@@ -185,8 +185,12 @@ def main():
     print("Moving on to perturbative GP")
 
     stime = time.time()
-    nsamples = 1000
+    nsamples = 100
     nmodels=10
+    k1p = 0.05**2 * RBF(
+            length_scale=np.ones(X_train.shape[1],dtype=float)
+            ,length_scale_bounds=(1e-5,20)
+            ) 
     k1 = 0.05**2 * RBF(
             length_scale=np.ones(X_train.shape[1],dtype=float)
             ,length_scale_bounds=(1e-5,20)
@@ -208,56 +212,85 @@ def main():
     k2 = 1.0**2 * DotProduct(sigma_0 = .1
             )**2
     '''
+    k2p = 1.0**2 * RationalQuadratic(
+            length_scale=1. 
+            ,alpha=0.1 
+            ,length_scale_bounds=(1e-5,20)
+            ) 
     k2 = 1.0**2 * RationalQuadratic(
             length_scale=1. 
             ,alpha=0.1 
             ,length_scale_bounds=(1e-5,20)
             ) 
+    k3p = .5*2 * WhiteKernel(noise_level=0.01**2)  # noise terms
+    k4p = ConstantKernel(constant_value = .01 ) # constant shift
     k3 = .5*2 * WhiteKernel(noise_level=0.01**2)  # noise terms
     k4 = ConstantKernel(constant_value = .01 ) # constant shift
-    kernel_gp = k1 + k2 + k3 + k4
+    kernel_gp_tof = k1 + k2 + k3 + k4
+    kernel_gp_pos = k1p + k2p + k3p + k4p
     Y_zeroth = Y_train[:,0].reshape(-1,1) #### CAREFUL HERE, using the shallow copy intentionally to address single output feature, numbers beyond nsamples will be bogus!!!
     Y_zeroth -= firstmodel.predict(X_train[:,1].reshape(-1,1)) 
-    batch_gp = GaussianProcessRegressor(kernel=kernel_gp, alpha=0, normalize_y=True, n_restarts_optimizer = 2)
+    tof_gp = GaussianProcessRegressor(kernel=kernel_gp_tof, alpha=0, normalize_y=True, n_restarts_optimizer = 2)
+    pos_gp = GaussianProcessRegressor(kernel=kernel_gp_pos, alpha=0, normalize_y=True, n_restarts_optimizer = 2)
     i=0
-    fname_model = []
+    fname_model_tof = []
+    fname_model_pos = []
     for i in range(nmodels):
-        batch_gp.fit(X_train[i*nsamples:(i+1)*nsamples,:], Y_train[i*nsamples:(i+1)*nsamples,:])
+        tof_gp.fit(X_train[i*nsamples:(i+1)*nsamples,:], Y_train[i*nsamples:(i+1)*nsamples,0].reshape(-1,1))
+        pos_gp.fit(X_train[i*nsamples:(i+1)*nsamples,:], Y_train[i*nsamples:(i+1)*nsamples,1].reshape(-1,1))
         print("Time for pertubative GP model fitting: %.3f" % (time.time() - stime))
-        print("kernel = %s"%batch_gp.kernel_)
-        print("Log-marginal-likelihood: %.3f" % batch_gp.log_marginal_likelihood(batch_gp.kernel_.theta))
+        print("tof kernel = %s"%tof_gp.kernel_)
+        print("tof kernel Log-marginal-likelihood: %.3f" % tof_gp.log_marginal_likelihood(tof_gp.kernel_.theta))
+        print("pos kernel = %s"%pos_gp.kernel_)
+        print("pos kernel Log-marginal-likelihood: %.3f" % pos_gp.log_marginal_likelihood(pos_gp.kernel_.theta))
         if m:
-            fname_model += ['%sgp_model_%s_%i.sav'%(m.group(1),time.strftime('%Y.%m.%d.%H.%M'),i)]
-            joblib.dump(batch_gp,fname_model[-1])
+            fname_model_tof += ['%sgp_model_tof_%s_%i.sav'%(m.group(1),time.strftime('%Y.%m.%d.%H.%M'),i)]
+            fname_model_pos += ['%sgp_model_pos_%s_%i.sav'%(m.group(1),time.strftime('%Y.%m.%d.%H.%M'),i)]
+            joblib.dump(tof_gp,fname_model_tof[-1])
+            joblib.dump(pos_gp,fname_model_pos[-1])
 
 
     print("Total time for pertubative GP model ensemble fitting: %.3f" % (time.time() - stime))
 
     if m:
-        Y_test_pred_collect = []
-        Y_valid_pred_collect = []
-        for fname in fname_model:
+        Y_test_tof_pred_collect = []
+        Y_valid_tof_pred_collect = []
+        Y_test_pos_pred_collect = []
+        Y_valid_pos_pred_collect = []
+        for i in range(nmodels):
             stime = time.time()
-            print('repeating for gpr in fname_model list')
-            gpr = joblib.load(fname)
+            fname_tof = fname_model_tof[i]
+            fname_pos = fname_model_pos[i]
+            print('repeating for gpr in fname_model list\n%s\n%s'%(fname_tof,fname_pos))
+            gpr_tof = joblib.load(fname_tof)
+            gpr_pos = joblib.load(fname_pos)
             nsamples = X_test.shape[0]//8
-            Y_test_pred = gpr.predict(X_test[:nsamples,:])
-            Y_valid_pred = gpr.predict(X_valid[:nsamples,:])
-            Y_test_pred0 = Y_test_pred[:,0].reshape(-1,1) #### CAREFUL HERE, using the shallow copy intentionally to address single output feature, numbers beyond nsamples will be bogus!!!
-            Y_valid_pred0 = Y_valid_pred[:,0].reshape(-1,1) #### CAREFUL HERE, using the shallow copy intentionally to address single output feature, numbers beyond nsamples will be bogus!!!
-            Y_test_pred0 += firstmodel.predict(X_test[:nsamples,1].reshape(-1,1))
-            Y_valid_pred0 += firstmodel.predict(X_valid[:nsamples,1].reshape(-1,1))
+            Y_test_tof_pred = gpr_tof.predict(X_test[:nsamples,:])
+            Y_valid_tof_pred = gpr_tof.predict(X_valid[:nsamples,:])
+            Y_test_pos_pred = gpr_pos.predict(X_test[:nsamples,:])
+            Y_valid_pos_pred = gpr_pos.predict(X_valid[:nsamples,:])
+            #Y_test_pred0 = Y_test_pred[:,0].reshape(-1,1) #### CAREFUL HERE, using the shallow copy intentionally to address single output feature, numbers beyond nsamples will be bogus!!!
+            #Y_valid_pred0 = Y_valid_pred[:,0].reshape(-1,1) #### CAREFUL HERE, using the shallow copy intentionally to address single output feature, numbers beyond nsamples will be bogus!!!
+            Y_test_tof_pred += firstmodel.predict(X_test[:nsamples,1].reshape(-1,1))
+            Y_valid_tof_pred += firstmodel.predict(X_valid[:nsamples,1].reshape(-1,1))
             print("Time for perturbative GP inference: %.3f" % (time.time() - stime))
-            print('GP score (test): ',  metrics.r2_score(Y_test[:nsamples,:],Y_test_pred))
-            print('GP score (validate): ',  metrics.r2_score(Y_valid[:nsamples,:],Y_valid_pred))
-            Y_test_pred_collect += [Y_test_pred]
-            Y_valid_pred_collect += [Y_valid_pred]
+            print('GP score tof (test): ',  metrics.r2_score(Y_test[:nsamples,0],Y_test_tof_pred))
+            print('GP score tof (validate): ',  metrics.r2_score(Y_valid[:nsamples,0],Y_valid_tof_pred))
+            print('GP score pos (test): ',  metrics.r2_score(Y_test[:nsamples,1],Y_test_pos_pred))
+            print('GP score pos (validate): ',  metrics.r2_score(Y_valid[:nsamples,1],Y_valid_pos_pred))
+            Y_test_tof_pred_collect += [Y_test_tof_pred]
+            Y_valid_tof_pred_collect += [Y_valid_tof_pred]
 
-        Y_test_pred = np.column_stack(Y_test_pred_collect[:])
-        Y_valid_pred = np.column_stack(Y_valid_pred_collect[:])
-        headstring = 'vsetting\tlog(en)\tangle\tlog(tof)\typos\tpredtof\tpredypos'
-        np.savetxt('%stest_GPperturb.dat'%(m.group(1)),np.column_stack((X_test[:nsamples,:],Y_test[:nsamples,:],Y_test_pred)),header=headstring)
-        np.savetxt('%svalid_GPperturb.dat'%(m.group(1)),np.column_stack((X_valid[:nsamples,:],Y_valid[:nsamples,:],Y_valid_pred)),header=headstring)
+        Y_test_tof_pred = np.column_stack(Y_test_tof_pred_collect[:])
+        Y_valid_tof_pred = np.column_stack(Y_valid_tof_pred_collect[:])
+        Y_test_pos_pred = np.column_stack(Y_test_pos_pred_collect[:])
+        Y_valid_pos_pred = np.column_stack(Y_valid_pos_pred_collect[:])
+        headstring = 'log(vsetting)\tlog(en)\tangle\tlog(tof)\typos\tpredtof\t...'
+        np.savetxt('%stest_GPperturb_tof.dat'%(m.group(1)),np.column_stack((X_test[:nsamples,:],Y_test[:nsamples,:],Y_test_tof_pred)),header=headstring)
+        np.savetxt('%svalid_GPperturb_tof.dat'%(m.group(1)),np.column_stack((X_valid[:nsamples,:],Y_valid[:nsamples,:],Y_valid_tof_pred)),header=headstring)
+        headstring = 'log(vsetting)\tlog(en)\tangle\tlog(tof)\typos\tpredpos\t...'
+        np.savetxt('%stest_GPperturb_pos.dat'%(m.group(1)),np.column_stack((X_test[:nsamples,:],Y_test[:nsamples,:],Y_test_pos_pred)),header=headstring)
+        np.savetxt('%svalid_GPperturb_pos.dat'%(m.group(1)),np.column_stack((X_valid[:nsamples,:],Y_valid[:nsamples,:],Y_valid_pos_pred)),header=headstring)
 
     return
 
