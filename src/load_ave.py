@@ -8,6 +8,7 @@ import sys
 import random
 import math
 from sklearn.multioutput import MultiOutputRegressor
+from sklearn import preprocessing
 from sklearn import linear_model
 from sklearn import metrics
 from sklearn.feature_selection import mutual_info_regression
@@ -62,7 +63,7 @@ def loaddata():
 
     for fname in sys.argv[1:]:
         f = h5py.File(fname,'r') #  IMORTANT NOTE: it looks like some h5py builds have a resouce lock that prevents easy parallelization... tread lightly and load files sequentially for now.
-        for vsetting in list(f.keys()):
+        for vsetting in list(f.keys())[3:-2]: # restricting to only the closest couple vsettings to optimal... correction, now only the central (optimal) one, but for each 'logos'
             elist = list(f[vsetting]['energy'])
             alist = list(f[vsetting]['angle'])
             amat = np.tile(alist,(len(elist),1)).flatten()
@@ -104,6 +105,26 @@ def main():
         return
     print("data loaded\tcontinuing to fitting")
     X_train,X_test,X_valid,X_oob,Y_train,Y_test,Y_valid,Y_oob = katiesplit(X_all,Y_all)
+
+
+
+    Xscaler = preprocessing.StandardScaler(copy=False).fit(X_train)
+    Yscaler = preprocessing.StandardScaler(copy=False).fit(Y_train)
+    #Xscaler = preprocessing.MinMaxScaler((0,64),copy=False).fit(X_train)
+    #Yscaler = preprocessing.MinMaxScaler((0,64),copy=False).fit(Y_train)
+
+    X_train = Xscaler.transform(X_train)
+    Y_train = Yscaler.transform(Y_train)
+
+    X_test = Xscaler.transform(X_test)
+    Y_test = Yscaler.transform(Y_test)
+
+    X_valid = Xscaler.transform(X_valid)
+    Y_valid = Yscaler.transform(Y_valid)
+
+    X_oob = Xscaler.transform(X_oob)
+    Y_oob = Yscaler.transform(Y_oob)
+
     mi_tof = mutual_info_regression(X_train,Y_train[:,0])
     mi_tof /= np.max(mi_tof)
     print('mi for tof time\t',mi_tof)
@@ -111,12 +132,28 @@ def main():
     mi_pos /= np.max(mi_pos)
     print('mi for y_position',mi_pos)
 
+
     #./data_ave/ind_25-plate_tune_grid_Range_*/analyzed_data.hdf5
     m = re.match('(.*)(ind.*/)analyzed_data.hdf5',sys.argv[-1])
     if m:
-        np.savetxt('%strain.dat'%(m.group(1)),np.column_stack((X_train,Y_train)))
-        np.savetxt('%soob.dat'%(m.group(1)),np.column_stack((X_oob,Y_oob)))
+        np.savetxt('%strain_transformed.dat'%(m.group(1)),np.column_stack((X_train,Y_train)))
+        np.savetxt('%soob_transformed.dat'%(m.group(1)),np.column_stack((X_oob,Y_oob)))
 
+        c = np.ones((5,5),dtype=float)  
+        sz = len(X_train[:,0])
+        c[0,1] = c[1,0] = np.correlate(X_train[:,0],X_train[:,1],mode='valid')/sz
+        c[1,2] = c[2,1] = np.correlate(X_train[:,1],X_train[:,2],mode='valid')/sz
+        c[2,0] = c[0,2] = np.correlate(X_train[:,2],X_train[:,0],mode='valid')/sz
+
+        c[0,3] = c[3,0] = np.correlate(X_train[:,0],Y_train[:,0],mode='valid')/sz
+        c[1,3] = c[3,1] = np.correlate(X_train[:,1],Y_train[:,0],mode='valid')/sz
+        c[2,3] = c[3,2] = np.correlate(X_train[:,2],Y_train[:,0],mode='valid')/sz
+        c[0,4] = c[4,0] = np.correlate(X_train[:,0],Y_train[:,1],mode='valid')/sz
+        c[1,4] = c[4,1] = np.correlate(X_train[:,1],Y_train[:,1],mode='valid')/sz
+        c[2,4] = c[4,2] = np.correlate(X_train[:,2],Y_train[:,1],mode='valid')/sz
+        c[3,4] = c[4,3] = np.correlate(Y_train[:,0],Y_train[:,1],mode='valid')/sz
+
+        np.savetxt('%sX_train_Y_train_featurecorr.dat'%(m.group(1)),c,fmt='%.3f')
 
     stime = time.time()
     firstmodel = linear_model.LinearRegression().fit(X_oob[:1000,1].reshape(-1,1), Y_oob[:1000,0].reshape(-1,1))
@@ -185,49 +222,55 @@ def main():
     print("Moving on to perturbative GP")
 
     stime = time.time()
-    nsamples = 100
+    nsamples = 1000
     nmodels=10
-    k1p = 0.05**2 * RBF(
+    k1 = 1.0**2 * RBF(
             length_scale=np.ones(X_train.shape[1],dtype=float)
-            ,length_scale_bounds=(1e-5,20)
-            ) 
-    k1 = 0.05**2 * RBF(
-            length_scale=np.ones(X_train.shape[1],dtype=float)
-            ,length_scale_bounds=(1e-5,20)
+            ,length_scale_bounds=(1e-5,100)
             ) 
     '''
     k1 = 1.**2 * Matern(
             length_scale=np.ones(X_train.shape[1],dtype=float)
-            ,length_scale_bounds=(1e-5,20)
+            ,length_scale_bounds=(1e-5,100)
             ,nu=1.5
             )
 
-    k2 = 1.**2 * Matern(
-            length_scale=np.ones(X_train.shape[1],dtype=float)
-            ,length_scale_bounds=(1e-5,20)
-            ,nu=3.5
-            )
     k2 = 1.0**2 * DotProduct(sigma_0 = .1
             ) 
-    k2 = 1.0**2 * DotProduct(sigma_0 = .1
-            )**2
     '''
-    k2p = 1.0**2 * RationalQuadratic(
-            length_scale=1. 
-            ,alpha=0.1 
-            ,length_scale_bounds=(1e-5,20)
-            ) 
     k2 = 1.0**2 * RationalQuadratic(
             length_scale=1. 
             ,alpha=0.1 
             ,length_scale_bounds=(1e-5,20)
             ) 
-    k3p = .5*2 * WhiteKernel(noise_level=0.01**2)  # noise terms
-    k4p = ConstantKernel(constant_value = .01 ) # constant shift
+
     k3 = .5*2 * WhiteKernel(noise_level=0.01**2)  # noise terms
     k4 = ConstantKernel(constant_value = .01 ) # constant shift
-    kernel_gp_tof = k1 + k2 + k3 + k4
+
+    k1p = 0.05**2 * RBF(
+            length_scale=np.ones(X_train.shape[1],dtype=float)
+            ,length_scale_bounds=(1e-5,20)
+            ) 
+    '''
+    k2p = 1.0**2 * DotProduct(sigma_0 = .1
+            )**2
+    k2p = 1.0**2 * RationalQuadratic(
+            length_scale=1. 
+            ,alpha=0.1 
+            ,length_scale_bounds=(1e-5,20)
+            ) 
+            '''
+    k2p = 1.**2 * Matern(
+            length_scale=np.ones(X_train.shape[1],dtype=float)
+            ,length_scale_bounds=(1e-5,20)
+            ,nu=1.5
+            )
+    k3p = .5*2 * WhiteKernel(noise_level=0.01**2)  # noise terms
+    k4p = ConstantKernel(constant_value = .01 ) # constant shift
+
+    kernel_gp_tof = k1 + k2 #+ k3 + k4
     kernel_gp_pos = k1p + k2p + k3p + k4p
+
     Y_zeroth = Y_train[:,0].reshape(-1,1) #### CAREFUL HERE, using the shallow copy intentionally to address single output feature, numbers beyond nsamples will be bogus!!!
     Y_zeroth -= firstmodel.predict(X_train[:,1].reshape(-1,1)) 
     tof_gp = GaussianProcessRegressor(kernel=kernel_gp_tof, alpha=0, normalize_y=True, n_restarts_optimizer = 2)
@@ -280,6 +323,8 @@ def main():
             print('GP score pos (validate): ',  metrics.r2_score(Y_valid[:nsamples,1],Y_valid_pos_pred))
             Y_test_tof_pred_collect += [Y_test_tof_pred]
             Y_valid_tof_pred_collect += [Y_valid_tof_pred]
+            Y_test_pos_pred_collect += [Y_test_pos_pred]
+            Y_valid_pos_pred_collect += [Y_valid_pos_pred]
 
         Y_test_tof_pred = np.column_stack(Y_test_tof_pred_collect[:])
         Y_valid_tof_pred = np.column_stack(Y_valid_tof_pred_collect[:])
