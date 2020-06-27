@@ -161,8 +161,8 @@ def main():
         np.savetxt('%sX_train_Y_train_featurecorr.dat'%(m.group(1)),c,fmt='%.3f')
 
     stime = time.time()
-    firstmodel = linear_model.LinearRegression().fit(X_oob[:,1].reshape(-1,1), Y_oob[:,0].reshape(-1,1))
-    print("Time for initial linear model fitting on out-of-bag samples: %.3f" % (time.time() - stime))
+    firstmodel = linear_model.LinearRegression().fit(X_oob[:1000,1].reshape(-1,1), Y_oob[:1000,0].reshape(-1,1))
+    print("Time for initial linear model fitting: %.3f" % (time.time() - stime))
     stime = time.time()
     Y_test_pred = firstmodel.predict(X_test[:,1].reshape(-1,1))
     Y_valid_pred = firstmodel.predict(X_valid[:,1].reshape(-1,1))
@@ -181,9 +181,9 @@ def main():
     '''
 
     stime = time.time()
-    X_featurized = featurizeX(np.copy(X_train)) 
+    X_featurized = featurizeX(X_train[:,:]) 
     perturbmodel_tof = linear_model.LinearRegression().fit(X_featurized, Y_train[:,0].reshape(-1,1) - firstmodel.predict(X_train[:,1].reshape(-1,1)))
-    perturbmodel_pos = linear_model.LinearRegression().fit(X_featurized, Y_train[:,1].reshape(-1,1) )
+    perturbmodel_pos = linear_model.LinearRegression().fit(X_featurized, Y_train[:,1].reshape(-1,1) - firstmodel.predict(X_train[:,1].reshape(-1,1)))
     print("Time for pertubative linear model fitting: %.3f" % (time.time() - stime))
 
     stime = time.time()
@@ -229,8 +229,8 @@ def main():
     print("Moving on to perturbative GP")
 
     stime = time.time()
-    nsamples = 300
-    nmodels=5
+    nsamples = 100
+    nmodels=10
     k1 = 1.0**2 * RBF(
             length_scale=np.ones(X_train.shape[1],dtype=float)
             ,length_scale_bounds=(1e-5,100)
@@ -329,7 +329,7 @@ def main():
                 Y_valid_pred_collect = Yscaler.inverse_transform(np.column_stack((Y_valid_tof_pred,Y_valid_pos_pred)))
             else:
                 Y_test_pred_collect = np.column_stack( (Y_test_pred_collect,Yscaler.inverse_transform(np.column_stack((Y_test_tof_pred,Y_test_pos_pred)))) )
-                Y_valid_pred_collect = np.column_stack( (Y_valid_pred_collect,Yscaler.inverse_transform(np.column_stack((Y_valid_tof_pred,Y_valid_pos_pred)))) )
+                Y_valid_pred_collect = np.column_stack( (Yscaler.inverse_transform(np.column_stack((Y_valid_tof_pred,Y_valid_pos_pred)))) )
 
         headstring = 'log(vsetting)\tlog(en)\tangle\tlog(tof)\typos\tpredlog(tof)\tpredpos\t...'
         np.savetxt('%stest_GPperturb.dat'%(m.group(1)),np.column_stack((Xscaler.inverse_transform(X_test[:nsamples,:]),Yscaler.inverse_transform(Y_test[:nsamples,:]),Y_test_pred_collect)),header=headstring)
