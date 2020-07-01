@@ -64,6 +64,7 @@ def loaddata():
     for fname in sys.argv[1:]:
         f = h5py.File(fname,'r') #  IMORTANT NOTE: it looks like some h5py builds have a resouce lock that prevents easy parallelization... tread lightly and load files sequentially for now.
         for vsetting in list(f.keys())[3:-2]: # restricting to only the closest couple vsettings to optimal... correction, now only the central (optimal) one, but for each 'logos'
+        #for vsetting in list(f.keys()): # restricting to only the closest couple vsettings to optimal... correction, now only the central (optimal) one, but for each 'logos'
             elist = list(f[vsetting]['energy'])
             alist = list(f[vsetting]['angle'])
             amat = np.tile(alist,(len(elist),1)).flatten()
@@ -74,7 +75,8 @@ def loaddata():
             xsplat = f[vsetting]['splat']['x'][()].flatten()
             vset = f[vsetting][ list(f[vsetting].keys())[0] ][-1][1] # eventually, extract the whole voltage vector as a feature vector for use in GP inference
             vsetvec = np.ones(xsplat.shape,dtype=float)*vset
-            validinds = np.where((abs(xsplat-185)<2) * (emat>0) * (abs(ydata)<.050))
+            # range of good spat[x] 182.5 187
+            validinds = np.where((xsplat>182.5) * (xsplat<187) * (emat>0) * (abs(ydata)<.050))
             nfeatures = 3
             ntruths = 2
             featuresvec = np.zeros((len(xsplat[validinds]),nfeatures),dtype=float)
@@ -188,23 +190,23 @@ def main():
     '''
 
     stime = time.time()
-    X_train_featurized = featurizeX(np.copy(X_train)) 
-    Y_train_tof_residual = np.copy(Y_train[:,0].reshape(-1,1)) - firstmodel.predict(X_train[:,1].reshape(-1,1))
-    Y_train_pos = np.copy(Y_train[:,1].reshape(-1,1))
+    X_train_featurized = featurizeX(X_train.copy()) 
+    Y_train_tof_residual = Y_train[:,0].copy().reshape(-1,1) - firstmodel.predict(X_train[:,1].reshape(-1,1))
+    Y_train_pos = Y_train[:,1].copy().reshape(-1,1)
     perturbmodel_tof = linear_model.LinearRegression().fit(X_train_featurized, Y_train_tof_residual)
     perturbmodel_pos = linear_model.LinearRegression().fit(X_train_featurized, Y_train_pos)
     print("Time for pertubative linear model fitting: %.3f" % (time.time() - stime))
-    fname_perturbmodel_tof = 'perturb_model_tof.sav'
-    fname_perturbmodel_pos = 'perturb_model_pos.sav'
+    fname_perturbmodel_tof = 'perturb_linear_model_tof.sav'
+    fname_perturbmodel_pos = 'perturb_linear_model_pos.sav'
     if m:
-        fname_perturbmodel_tof = '%sperturb_model_tof_%s.sav'%(m.group(1),time.strftime('%Y.%m.%d.%H.%M'))
-        fname_perturbmodel_pos = '%sperturb_model_pos_%s.sav'%(m.group(1),time.strftime('%Y.%m.%d.%H.%M'))
+        fname_perturbmodel_tof = '%sperturb_linear_model_tof_%s.sav'%(m.group(1),time.strftime('%Y.%m.%d.%H.%M'))
+        fname_perturbmodel_pos = '%sperturb_linear_model_pos_%s.sav'%(m.group(1),time.strftime('%Y.%m.%d.%H.%M'))
         joblib.dump(perturbmodel_tof,fname_perturbmodel_tof)
         joblib.dump(perturbmodel_pos,fname_perturbmodel_pos)
 
     stime = time.time()
-    X_test_featurized = featurizeX(np.copy(X_test))
-    X_valid_featurized = featurizeX(np.copy(X_valid))
+    X_test_featurized = featurizeX(X_test.copy())
+    X_valid_featurized = featurizeX(X_valid.copy())
     Y_test_pred_tof = perturbmodel_tof.predict(X_test_featurized) + firstmodel.predict(X_test_featurized[:,1].reshape(-1,1))
     Y_test_pred_pos = perturbmodel_pos.predict(X_test_featurized)
     Y_valid_pred_tof = perturbmodel_tof.predict(X_valid_featurized) + firstmodel.predict(X_valid_featurized[:,1].reshape(-1,1))
@@ -243,8 +245,8 @@ def main():
     print("Moving on to perturbative GP")
 
     stime = time.time()
-    nsamples = 300
-    nmodels=5
+    nsamples = 500
+    nmodels=8
     k1 = 1.0**2 * RBF(
             length_scale=np.ones(X_train.shape[1],dtype=float)
             ,length_scale_bounds=(1e-5,100)
@@ -292,17 +294,15 @@ def main():
     kernel_gp_tof = k1 + k2 #+ k3 + k4
     kernel_gp_pos = k1p + k2p + k3p + k4p
 
-    Y_zeroth = Y_train[:,0].reshape(-1,1) #### CAREFUL HERE, using the shallow copy intentionally to address single output feature, numbers beyond nsamples will be bogus!!!
-    Y_zeroth -= firstmodel.predict(X_train[:,1].reshape(-1,1)) 
     tof_gp = GaussianProcessRegressor(kernel=kernel_gp_tof, alpha=0, normalize_y=True, n_restarts_optimizer = 2)
     pos_gp = GaussianProcessRegressor(kernel=kernel_gp_pos, alpha=0, normalize_y=True, n_restarts_optimizer = 2)
     fname_model_tof = []
     fname_model_pos = []
     for i in range(nmodels):
         tof_gp.fit(X_train[i*nsamples:(i+1)*nsamples,:], 
-                Y_train[i*nsamples:(i+1)*nsamples,0].reshape(-1,1)
+                Y_train[i*nsamples:(i+1)*nsamples,0].copy().reshape(-1,1)
                 - perturbmodel_tof.predict(X_train_featurized[i*nsamples:(i+1)*nsamples,:])
-                - firstmodel.predict(X_train[i*nsamples:(i+1)*nsamples,1].reshape(-1,1))
+                - firstmodel.predict(X_train[i*nsamples:(i+1)*nsamples,1].copy().reshape(-1,1))
                 )
         pos_gp.fit(X_train[i*nsamples:(i+1)*nsamples,:], 
                 Y_train[i*nsamples:(i+1)*nsamples,1].reshape(-1,1)
@@ -332,25 +332,21 @@ def main():
             print('repeating for gpr in fname_model list\n%s\n%s'%(fname_tof,fname_pos))
             gpr_tof = joblib.load(fname_tof)
             gpr_pos = joblib.load(fname_pos)
-            nsamples = X_test.shape[0]//8
-            Y_test_tof_pred = gpr_tof.predict(X_test[:nsamples,:]) \
-                + perturbmodel_tof.predict(X_test_featurized[:nsamples,:]) \
-                + firstmodel.predict(X_test[:nsamples,1].reshape(-1,1))
-            Y_valid_tof_pred = gpr_tof.predict(X_valid[:nsamples,:]) \
-                + perturbmodel_tof.predict(X_valid_featurized[:nsamples,:]) \
-                + firstmodel.predict(X_valid[:nsamples,1].reshape(-1,1))
-            Y_test_pos_pred = gpr_pos.predict(X_test[:nsamples,:]) \
-                + perturbmodel_pos.predict(X_test_featurized[:nsamples,:])
-            Y_valid_pos_pred = gpr_pos.predict(X_valid[:nsamples,:]) \
-                + perturbmodel_pos.predict(X_valid_featurized[:nsamples,:])
-            #Y_test_tof_pred += firstmodel.predict(X_test[:nsamples,1].reshape(-1,1))
-            #Y_valid_tof_pred += firstmodel.predict(X_valid[:nsamples,1].reshape(-1,1))
+            Y_test_tof_pred = gpr_tof.predict(X_test) \
+                + perturbmodel_tof.predict(X_test_featurized) \
+                + firstmodel.predict(X_test[:,1].reshape(-1,1))
+            Y_valid_tof_pred = gpr_tof.predict(X_valid) \
+                + perturbmodel_tof.predict(X_valid_featurized) \
+                + firstmodel.predict(X_valid[:,1].reshape(-1,1))
+            Y_test_pos_pred = gpr_pos.predict(X_test) \
+                + perturbmodel_pos.predict(X_test_featurized)
+            Y_valid_pos_pred = gpr_pos.predict(X_valid) \
+                + perturbmodel_pos.predict(X_valid_featurized)
             print("Time for perturbative GP inference: %.3f" % (time.time() - stime))
-            print("HERE HERE HERE HERE --- \t this is still failing the r2_score\n \t\t as if there was a permanent change to test/train/validate Y data")
-            print('GP score tof (test): ',  metrics.r2_score(Y_test[:nsamples,0],Y_test_tof_pred))
-            print('GP score tof (validate): ',  metrics.r2_score(Y_valid[:nsamples,0],Y_valid_tof_pred))
-            print('GP score pos (test): ',  metrics.r2_score(Y_test[:nsamples,1],Y_test_pos_pred))
-            print('GP score pos (validate): ',  metrics.r2_score(Y_valid[:nsamples,1],Y_valid_pos_pred))
+            print('GP score tof (test): ',  metrics.r2_score(Y_test[:,0],Y_test_tof_pred))
+            print('GP score tof (validate): ',  metrics.r2_score(Y_valid[:,0],Y_valid_tof_pred))
+            print('GP score pos (test): ',  metrics.r2_score(Y_test[:,1],Y_test_pos_pred))
+            print('GP score pos (validate): ',  metrics.r2_score(Y_valid[:,1],Y_valid_pos_pred))
             if len(Y_test_pred_collect)<1:
                 Y_test_pred_collect = Yscaler.inverse_transform(np.column_stack((Y_test_tof_pred,Y_test_pos_pred)))
                 Y_valid_pred_collect = Yscaler.inverse_transform(np.column_stack((Y_valid_tof_pred,Y_valid_pos_pred)))
@@ -359,8 +355,8 @@ def main():
                 Y_valid_pred_collect = np.column_stack( (Y_valid_pred_collect,Yscaler.inverse_transform(np.column_stack((Y_valid_tof_pred,Y_valid_pos_pred)))) )
 
         headstring = 'log(vsetting)\tlog(en)\tangle\tlog(tof)\typos\tpredlog(tof)\tpredpos\t...'
-        np.savetxt('%stest_GPperturb.dat'%(m.group(1)),np.column_stack((Xscaler.inverse_transform(X_test[:nsamples,:]),Yscaler.inverse_transform(Y_test[:nsamples,:]),Y_test_pred_collect)),header=headstring)
-        np.savetxt('%svalid_GPperturb.dat'%(m.group(1)),np.column_stack((Xscaler.inverse_transform(X_valid[:nsamples,:]),Yscaler.inverse_transform(Y_valid[:nsamples,:]),Y_valid_pred_collect)),header=headstring)
+        np.savetxt('%stest_GPperturb.dat'%(m.group(1)),np.column_stack((Xscaler.inverse_transform(X_test),Yscaler.inverse_transform(Y_test),Y_test_pred_collect)),header=headstring)
+        np.savetxt('%svalid_GPperturb.dat'%(m.group(1)),np.column_stack((Xscaler.inverse_transform(X_valid),Yscaler.inverse_transform(Y_valid),Y_valid_pred_collect)),header=headstring)
 
     return
 
