@@ -115,12 +115,145 @@ def loadscaledata(print_mi = False):
     return x_all,y_all,Xscaler,Yscaler
 
 
+def featurizeX_taylor(X,n=4):
+    result = [X.copy()]
+    for p in range(n):
+        result += [result[0] * result[-1]]
+    return np.column_stack(result)
+
 def featurizeX(X):
-    first = X
-    second = 1./2*np.power(X,int(2))
-    third = 1./(2*3)*np.power(X,int(3))
-    fourth = 1./(2*3*4)*np.power(X,int(4))
+    first = X.copy()
+    second = 1./2*np.power(first,int(2))
+    third = 1./(2*3)*np.power(first,int(3))
+    fourth = 1./(2*3*4)*np.power(first,int(4))
     return np.column_stack((first,second,third,fourth))
+
+def fit_linear_tof(x,y,modelsfolder='./models'):
+    stime = time.time()
+    model = linear_model.LinearRegression().fit(x[:,1].reshape(-1,1),y[:,0].reshape(-1,1))
+    print("Time for initial linear model fitting on out-of-bag samples: %.3f" % (time.time() - stime))
+    fname_linearmodel_tof = '%s/linear_model_tof_%s.sav'%(modelsfolder,time.strftime('%Y.%m.%d.%H.%M'))
+    joblib.dump(model,fname_linearmodel_tof)
+    return fname_linearmodel_tof,model
+
+def fit_taylor_perturbative(x,y,featurefunc,model0,ntaylor,modelfolder='./models'):
+    stime = time.time()
+    x_f = featurefunc(x,n=ntaylor) 
+    y_tof_res = y[:,0].copy().reshape(-1,1) - model0.predict(x[:,1].reshape(-1,1))
+    y_pos = y[:,1].copy().reshape(-1,1)
+    perturbmodel_tof = linear_model.LinearRegression().fit(x_f, y_tof_res)
+    perturbmodel_pos = linear_model.LinearRegression().fit(x_f, y_pos)
+    print("Time for pertubative linear model fitting: %.3f" % (time.time() - stime))
+    fname_perturbmodel_tof = '%s/perturb_taylor_model_tof_%s.sav'%(modelfolder,time.strftime('%Y.%m.%d.%H.%M'))
+    fname_perturbmodel_pos = '%s/perturb_taylor_model_pos_%s.sav'%(modelfolder,time.strftime('%Y.%m.%d.%H.%M'))
+    joblib.dump(perturbmodel_tof,fname_perturbmodel_tof)
+    joblib.dump(perturbmodel_pos,fname_perturbmodel_pos)
+    return fname_perturbmodel_tof,perturbmodel_tof,fname_perturbmodel_pos,perturbmodel_pos
+
+def fit_gp_perturbative_ensemble(x,y,model1_tof,model1_pos,featurefunc,ntaylor,model0,modelfolder='./models',nmodels=8,nsamples=500):
+    fname_lin_tof = '%s/lin_tof-%s'%(modelfolder,time.strftime('%Y.%m.%d.%H.%M'))
+    fname_taylor_tof = '%s/taylor_tof-%s'%(modelfolder,time.strftime('%Y.%m.%d.%H.%M'))
+    fname_taylor_pos = '%s/taylor_pos-%s'%(modelfolder,time.strftime('%Y.%m.%d.%H.%M'))
+
+    joblib.dump(model0,fname_lin_tof)
+    joblib.dump(model1_tof,fname_taylor_tof)
+    joblib.dump(model1_pos,fname_taylor_pos)
+    x_f = featurefunc(x,n=ntaylor)
+
+    stime = time.time()
+    k1 = 1.0**2 * RBF(
+            length_scale=np.ones(x.shape[1],dtype=float)
+            ,length_scale_bounds=(1e-5,100)
+            ) 
+    k2 = 1.0**2 * RationalQuadratic(
+            length_scale=1. 
+            ,alpha=0.1 
+            ,length_scale_bounds=(1e-5,20)
+            ) 
+
+    k3 = .5*2 * WhiteKernel(noise_level=0.01**2)  # noise terms
+    k4 = ConstantKernel(constant_value = .01 ) # constant shift
+
+    k1p = 0.05**2 * RBF(
+            length_scale=np.ones(x.shape[1],dtype=float)
+            ,length_scale_bounds=(1e-5,20)
+            ) 
+    k2p = 1.**2 * Matern(
+            length_scale=np.ones(x.shape[1],dtype=float)
+            ,length_scale_bounds=(1e-5,20)
+            ,nu=1.5
+            )
+    k3p = .5*2 * WhiteKernel(noise_level=0.01**2)  # noise terms
+    k4p = ConstantKernel(constant_value = .01 ) # constant shift
+
+    kernel_gp_tof = k1 + k2 #+ k3 + k4
+    kernel_gp_pos = k1p + k2p + k3p + k4p
+
+    tof_gp = GaussianProcessRegressor(kernel=kernel_gp_tof, alpha=0, normalize_y=True, n_restarts_optimizer = 2)
+    pos_gp = GaussianProcessRegressor(kernel=kernel_gp_pos, alpha=0, normalize_y=True, n_restarts_optimizer = 2)
+    fname_list_gp_tof = []
+    fname_list_gp_pos = []
+    for i in range(nmodels):
+        tof_gp.fit(x[i*nsamples:(i+1)*nsamples,:], 
+                y[i*nsamples:(i+1)*nsamples,0].copy().reshape(-1,1)
+                - model1_tof.predict(x_f[i*nsamples:(i+1)*nsamples,:])
+                - model0.predict(x[i*nsamples:(i+1)*nsamples,1].copy().reshape(-1,1))
+                )
+        pos_gp.fit(x[i*nsamples:(i+1)*nsamples,:], 
+                y[i*nsamples:(i+1)*nsamples,1].reshape(-1,1)
+                - model1_pos.predict(x_f[i*nsamples:(i+1)*nsamples,:])
+                )
+        print("Time for pertubative GP model fitting: %.3f" % (time.time() - stime))
+        print("tof kernel = %s"%tof_gp.kernel_)
+        print("tof kernel Log-marginal-likelihood: %.3f" % tof_gp.log_marginal_likelihood(tof_gp.kernel_.theta))
+        print("pos kernel = %s"%pos_gp.kernel_)
+        print("pos kernel Log-marginal-likelihood: %.3f" % pos_gp.log_marginal_likelihood(pos_gp.kernel_.theta))
+        fname_list_gp_tof += ['%s/gp_model_tof_%s_%i.sav'%(modelfolder,time.strftime('%Y.%m.%d.%H.%M'),i)]
+        fname_list_gp_pos += ['%s/gp_model_pos_%s_%i.sav'%(modelfolder,time.strftime('%Y.%m.%d.%H.%M'),i)]
+        joblib.dump(tof_gp,fname_list_gp_tof[i])
+        joblib.dump(pos_gp,fname_list_gp_pos[i])
+    print("Total time for pertubative GP model ensemble fitting: %.3f" % (time.time() - stime))
+    return (fname_list_gp_tof,fname_list_gp_pos)
+
+def validate_lin_tof(x,y,model):
+    stime = time.time()
+    y_pred = model.predict(x[:,1].reshape(-1,1))
+    print("Average time for linear tof inference : %.3f usec" % ((time.time() - stime)*1e6/float(x.shape[0])))
+    print ("linear model score: ", metrics.r2_score(y[:,0], y_pred))
+    return
+
+def validate_perturb_pos(x,y,model,featurefunc,ntaylor):
+    stime = time.time()
+    x_f = featurefunc(x,ntaylor)
+    y_pred = model.predict(x_f)
+    print("Average time for perturbative linear pos inference : %.3f usec" % ((time.time() - stime)*1e6/float(x.shape[0])))
+    print ("Perturbative linear model pos score: ", metrics.r2_score(y[:,1], y_pred))
+    return
+
+def validate_perturb_tof(x,y,model,featurefunc,ntaylor,model0):
+    stime = time.time()
+    x_f = featurefunc(x,ntaylor)
+    y_pred = model.predict(x_f) + model0.predict(x[:,1].reshape(-1,1))
+    print("Average time for perturbative linear tof inference : %.3f usec" % ((time.time() - stime)*1e6/float(x.shape[0])))
+    print ("Perturbative linear model tof score: ", metrics.r2_score(y[:,0], y_pred))
+    return
+    
+def validate_gp_tof(x,y,gp_tof_model,model1_tof,featurefunc,ntaylor,model0):
+    stime = time.time()
+    x_f = featurefunc(x,ntaylor)
+    y_pred = gp_tof_model.predict(x) + model1_tof.predict(x_f) + model0.predict(x[:,1].reshape(-1,1))
+    print("Average time for perturbative GP tof inference : %.3f usec" % ((time.time() - stime)*1e6/float(x.shape[0])))
+    print('GP score tof: ',  metrics.r2_score(y[:,0],y_pred))
+    return y_pred
+
+def validate_gp_pos(x,y,gp_pos_model,model1_pos,featurefunc,ntaylor):
+    stime = time.time()
+    x_f = featurefunc(x,ntaylor)
+    y_pred = gp_pos_model.predict(x) + model1_pos.predict(x_f)
+    print("Average time for perturbative GP pos inference : %.3f usec" % ((time.time() - stime)*1e6/float(x.shape[0])))
+    print('GP score pos: ',  metrics.r2_score(y[:,1],y_pred))
+    return y_pred
+
 
 def crosscorrelation(fname,x,y):
         if x.shape[0] != y.shape[0]:
@@ -138,6 +271,37 @@ def crosscorrelation(fname,x,y):
         np.savetxt(fname,c,fmt='%.3f',header=headerstring)
         return True
 
+
+
+'''
+This is being ignored
+def fit_krr_perturbative(x,y,linmodel_tof,taylormodel_tof,taylormodel_pos,taylororder,modelfolder=modelsfolder,nmodels=nmodels,nsamples=nsamples):
+    # Fit KernelRidge with parameter selection based on 5-fold cross validation
+    param_grid = {"alpha": [1e0, 1e-1, 1e-2, 1e-3],
+                  "kernel": [RationalQuadratic(l, a)
+                  for l in np.logspace(-2, 2, 10)
+                  for a in np.logspace(0, 2, 10)]}
+    kr = GridSearchCV(KernelRidge(), param_grid=param_grid)
+    stime = time.time()
+    kr.fit(x[2000:4000,:], Y_train[2000:4000,:])
+    print("Time for KRR fitting: %.3f" % (time.time() - stime))
+    #print("KRR kernel: %s" % kr.kernel_)
+    return fname_KRRmodel_tof,KRRmodel_tof,fname_KRRmodel_pos,KRRmodel_pos
+'''
+
+'''
+def validate_krr_pos(X_test,Y_test,model=perturb_pos,featurefunc=featurizeX_taylor,n=ntaylor):
+    stime = time.time()
+    Y_test_pred = kr.predict(X_test)
+    Y_valid_pred = kr.predict(X_valid)
+    print("Time for KRR inference: %.3f" % (time.time() - stime))
+    print ("KRR model score (test): ", metrics.r2_score(Y_test, Y_test_pred))
+    print ("KRR model score (validate): ", metrics.r2_score(Y_valid, Y_valid_pred))
+
+'''
+
+
+
 def main():
     do_correlation = True
     X_all = []
@@ -152,220 +316,119 @@ def main():
     X_train,X_test,X_valid,X_oob,Y_train,Y_test,Y_valid,Y_oob = katiesplit(X_all,Y_all)
 
     #./data_ave/ind_25-plate_tune_grid_Range_*/analyzed_data.hdf5
-    m = re.match('(.*)(ind.*/)analyzed_data.hdf5',sys.argv[-1])
+    m = re.match('(.*)/(ind.*/)analyzed_data.hdf5',sys.argv[-1])
+    modelsfolder='./models'
     if m:
-        np.savetxt('%strain_transformed.dat'%(m.group(1)),np.column_stack((X_train,Y_train)))
-        np.savetxt('%soob_transformed.dat'%(m.group(1)),np.column_stack((X_oob,Y_oob)))
+        modelsfolder = '%s/models'%m.group(1)
+        np.savetxt('%s/train_transformed.dat'%(m.group(1)),np.column_stack((X_train,Y_train)))
+        np.savetxt('%s/oob_transformed.dat'%(m.group(1)),np.column_stack((X_oob,Y_oob)))
 
         if do_correlation:
             print('doing correlation')
-            outname = '%sX_Y_featurecorr.dat'%(m.group(1))
+            outname = '%s/X_Y_featurecorr.dat'%(m.group(1))
             if not crosscorrelation(outname,X_all,Y_all):
                 print('Failed crosscorrelation somehow')
                 return
+    else:
+        print('Going to fail model saving/recalling')
+        return
 
-    stime = time.time()
-    firstmodel = linear_model.LinearRegression().fit(X_oob[:,1].reshape(-1,1), Y_oob[:,0].reshape(-1,1))
-    print("Time for initial linear model fitting on out-of-bag samples: %.3f" % (time.time() - stime))
-    fname_linearmodel_tof = 'linear_model_tof.sav'
-    if m:
-        fname_linearmodel_tof = '%slinear_model_tof_%s.sav'%(m.group(1),time.strftime('%Y.%m.%d.%H.%M'))
-        joblib.dump(firstmodel,fname_linearmodel_tof)
+    printascii = False
+    taylor_order = 4
 
-    stime = time.time()
-    Y_test_pred = firstmodel.predict(X_test[:,1].reshape(-1,1))
-    Y_valid_pred = firstmodel.predict(X_valid[:,1].reshape(-1,1))
-    print("Time for initial linear model inference: %.3f" % (time.time() - stime))
-    print ("linear model score (test): ", metrics.r2_score(Y_test[:,0], Y_test_pred))
-    print ("linear model score (validate): ", metrics.r2_score(Y_valid[:,0], Y_valid_pred))
+    fname_lin_tof,lin_tof = fit_linear_tof(X_oob,Y_oob,modelsfolder=modelsfolder)
 
-    if m:
+    # passing the models, not the filenames
+    validate_lin_tof(X_test,Y_test,lin_tof)
+    validate_lin_tof(X_valid,Y_valid,lin_tof)
+
+    if printascii and m:
         headstring = 'vsetting\tlog(en)\tangle\tlog(tof)\typos\tpredtof'
-        np.savetxt('%stest.dat'%(m.group(1)),np.column_stack((X_test,Y_test,Y_test_pred)),header=headstring)
-        np.savetxt('%svalid.dat'%(m.group(1)),np.column_stack((X_valid,Y_valid,Y_valid_pred)),header=headstring)
+        np.savetxt('%s/test.dat'%(m.group(1)),np.column_stack((X_test,Y_test,Y_test_pred)),header=headstring)
+        np.savetxt('%s/valid.dat'%(m.group(1)),np.column_stack((X_valid,Y_valid,Y_valid_pred)),header=headstring)
 
-    print("Now moving to a perturbation linearRegression")
-    '''
-    print("Skipping PLR")
-    '''
+    print("Now moving to a taylor expansion of the residuals")
 
-    stime = time.time()
-    X_train_featurized = featurizeX(X_train.copy()) 
-    Y_train_tof_residual = Y_train[:,0].copy().reshape(-1,1) - firstmodel.predict(X_train[:,1].reshape(-1,1))
-    Y_train_pos = Y_train[:,1].copy().reshape(-1,1)
-    perturbmodel_tof = linear_model.LinearRegression().fit(X_train_featurized, Y_train_tof_residual)
-    perturbmodel_pos = linear_model.LinearRegression().fit(X_train_featurized, Y_train_pos)
-    print("Time for pertubative linear model fitting: %.3f" % (time.time() - stime))
-    fname_perturbmodel_tof = 'perturb_linear_model_tof.sav'
-    fname_perturbmodel_pos = 'perturb_linear_model_pos.sav'
-    if m:
-        fname_perturbmodel_tof = '%sperturb_linear_model_tof_%s.sav'%(m.group(1),time.strftime('%Y.%m.%d.%H.%M'))
-        fname_perturbmodel_pos = '%sperturb_linear_model_pos_%s.sav'%(m.group(1),time.strftime('%Y.%m.%d.%H.%M'))
-        joblib.dump(perturbmodel_tof,fname_perturbmodel_tof)
-        joblib.dump(perturbmodel_pos,fname_perturbmodel_pos)
+    fname_perturb_tof,perturb_tof,fname_perturb_pos,perturb_pos = fit_taylor_perturbative(
+            X_train,
+            Y_train,
+            featurefunc=featurizeX_taylor,
+            ntaylor=taylor_order,
+            model0=lin_tof,
+            modelfolder='%s/models'%m.group(1))
 
-    stime = time.time()
-    X_test_featurized = featurizeX(X_test.copy())
-    X_valid_featurized = featurizeX(X_valid.copy())
-    Y_test_pred_tof = perturbmodel_tof.predict(X_test_featurized) + firstmodel.predict(X_test_featurized[:,1].reshape(-1,1))
-    Y_test_pred_pos = perturbmodel_pos.predict(X_test_featurized)
-    Y_valid_pred_tof = perturbmodel_tof.predict(X_valid_featurized) + firstmodel.predict(X_valid_featurized[:,1].reshape(-1,1))
-    Y_valid_pred_pos = perturbmodel_pos.predict(X_valid_featurized)
-    print("Time for purturbative combination linear model inference: %.3f" % (time.time() - stime))
-    print ("Perturbative linear model tof score (test): ", metrics.r2_score(Y_test[:,0], Y_test_pred_tof))
-    print ("Perturbative linear model tof score (validate): ", metrics.r2_score(Y_valid[:,0], Y_valid_pred_tof))
-    print ("Perturbative linear model pos score (test): ", metrics.r2_score(Y_test[:,1], Y_test_pred_pos))
-    print ("Perturbative linear model pos score (validate): ", metrics.r2_score(Y_valid[:,1], Y_valid_pred_pos))
+    # passing the models, not the filenames
+    validate_perturb_tof(X_test,Y_test,model=perturb_tof,featurefunc=featurizeX_taylor,ntaylor=taylor_order,model0=lin_tof)
+    validate_perturb_tof(X_valid,Y_valid,model=perturb_tof,featurefunc=featurizeX_taylor,ntaylor=taylor_order,model0=lin_tof)
+    validate_perturb_pos(X_test,Y_test,model=perturb_pos,featurefunc=featurizeX_taylor,ntaylor=taylor_order)
+    validate_perturb_pos(X_valid,Y_valid,model=perturb_pos,featurefunc=featurizeX_taylor,ntaylor=taylor_order)
 
-    if m:
+
+    if printascii and m:
         headstring = 'vsetting\tlog(en)\tangle\tlog(tof)\typos\tpredtof\tpredypos'
-        np.savetxt('%stest_perturb_linear.dat'%(m.group(1)),np.column_stack((X_test,Y_test,Y_test_pred_tof,Y_test_pred_pos)),header=headstring)
-        np.savetxt('%svalid_perturb_linear.dat'%(m.group(1)),np.column_stack((X_valid,Y_valid,Y_valid_pred_tof,Y_valid_pred_pos)),header=headstring)
+        np.savetxt('%s/test_perturb_linear.dat'%(m.group(1)),np.column_stack((X_test,Y_test,Y_test_pred_tof,Y_test_pred_pos)),header=headstring)
+        np.savetxt('%s/valid_perturb_linear.dat'%(m.group(1)),np.column_stack((X_valid,Y_valid,Y_valid_pred_tof,Y_valid_pred_pos)),header=headstring)
+
+
 
     print("Skipping KRR")
     '''
-    # Fit KernelRidge with parameter selection based on 5-fold cross validation
-    param_grid = {"alpha": [1e0, 1e-1, 1e-2, 1e-3],
-                  "kernel": [RationalQuadratic(l, a)
-                  for l in np.logspace(-2, 2, 10)
-                  for a in np.logspace(0, 2, 10)]}
-    kr = GridSearchCV(KernelRidge(), param_grid=param_grid)
-    stime = time.time()
-    kr.fit(X_train[2000:4000,:], Y_train[2000:4000,:])
-    print("Time for KRR fitting: %.3f" % (time.time() - stime))
-    #print("KRR kernel: %s" % kr.kernel_)
-    stime = time.time()
-    Y_test_pred = kr.predict(X_test)
-    Y_valid_pred = kr.predict(X_valid)
-    print("Time for KRR inference: %.3f" % (time.time() - stime))
-    print ("KRR model score (test): ", metrics.r2_score(Y_test, Y_test_pred))
-    print ("KRR model score (validate): ", metrics.r2_score(Y_valid, Y_valid_pred))
+    fname_KRRmodel_tof,KRRmodel_tof,fname_KRRmodel_pos,KRRmodel_pos = fit_krr_perturbative(X_train,Y_train,linmodel_tof,taylormodel_tof,taylormodel_pos,taylororder,modelfolder=modelsfolder,nmodels=nmodels,nsamples=nsamples)
+
+    validate_krr_tof(X_test,Y_test,model=perturb_tof,featurefunc=featurizeX_taylor,model0=lin_tof,n=taylor_order)
+    validate_krr_pos(X_test,Y_test,model=perturb_pos,featurefunc=featurizeX_taylor,n=taylor_order)
     '''
+
 
     print("Moving on to perturbative GP")
 
-    stime = time.time()
-    nsamples = 500
-    nmodels=8
-    k1 = 1.0**2 * RBF(
-            length_scale=np.ones(X_train.shape[1],dtype=float)
-            ,length_scale_bounds=(1e-5,100)
-            ) 
-    '''
-    k1 = 1.**2 * Matern(
-            length_scale=np.ones(X_train.shape[1],dtype=float)
-            ,length_scale_bounds=(1e-5,100)
-            ,nu=1.5
-            )
+    modelsfolder = '%s/models'%m.group(1)
+    nmodels = 32 
+    nsamples = 100 # eventually 500
+    fnames_gp_tof,fnames_gp_pos = fit_gp_perturbative_ensemble(
+            X_train,
+            Y_train,
+            model1_tof = perturb_tof,
+            model1_pos = perturb_pos,
+            featurefunc = featurizeX_taylor,
+            ntaylor = taylor_order,
+            model0=lin_tof,
+            modelfolder='%s/models'%m.group(1),
+            nmodels=nmodels,
+            nsamples=nsamples)
 
-    k2 = 1.0**2 * DotProduct(sigma_0 = .1
-            ) 
-    '''
-    k2 = 1.0**2 * RationalQuadratic(
-            length_scale=1. 
-            ,alpha=0.1 
-            ,length_scale_bounds=(1e-5,20)
-            ) 
+    Y_test_pred_collect = []
+    Y_valid_pred_collect = []
 
-    k3 = .5*2 * WhiteKernel(noise_level=0.01**2)  # noise terms
-    k4 = ConstantKernel(constant_value = .01 ) # constant shift
+    lin_tof = joblib.load(fname_lin_tof)
+    taylor_tof = joblib.load(fname_perturb_tof)
+    taylor_pos = joblib.load(fname_perturb_pos)
 
-    k1p = 0.05**2 * RBF(
-            length_scale=np.ones(X_train.shape[1],dtype=float)
-            ,length_scale_bounds=(1e-5,20)
-            ) 
-    '''
-    k2p = 1.0**2 * DotProduct(sigma_0 = .1
-            )**2
-    k2p = 1.0**2 * RationalQuadratic(
-            length_scale=1. 
-            ,alpha=0.1 
-            ,length_scale_bounds=(1e-5,20)
-            ) 
-            '''
-    k2p = 1.**2 * Matern(
-            length_scale=np.ones(X_train.shape[1],dtype=float)
-            ,length_scale_bounds=(1e-5,20)
-            ,nu=1.5
-            )
-    k3p = .5*2 * WhiteKernel(noise_level=0.01**2)  # noise terms
-    k4p = ConstantKernel(constant_value = .01 ) # constant shift
-
-    kernel_gp_tof = k1 + k2 #+ k3 + k4
-    kernel_gp_pos = k1p + k2p + k3p + k4p
-
-    tof_gp = GaussianProcessRegressor(kernel=kernel_gp_tof, alpha=0, normalize_y=True, n_restarts_optimizer = 2)
-    pos_gp = GaussianProcessRegressor(kernel=kernel_gp_pos, alpha=0, normalize_y=True, n_restarts_optimizer = 2)
-    fname_model_tof = []
-    fname_model_pos = []
+    gp_tof_models = []
+    gp_pos_models = []
     for i in range(nmodels):
-        tof_gp.fit(X_train[i*nsamples:(i+1)*nsamples,:], 
-                Y_train[i*nsamples:(i+1)*nsamples,0].copy().reshape(-1,1)
-                - perturbmodel_tof.predict(X_train_featurized[i*nsamples:(i+1)*nsamples,:])
-                - firstmodel.predict(X_train[i*nsamples:(i+1)*nsamples,1].copy().reshape(-1,1))
-                )
-        pos_gp.fit(X_train[i*nsamples:(i+1)*nsamples,:], 
-                Y_train[i*nsamples:(i+1)*nsamples,1].reshape(-1,1)
-                - perturbmodel_pos.predict(X_train_featurized[i*nsamples:(i+1)*nsamples,:])
-                )
-        print("Time for pertubative GP model fitting: %.3f" % (time.time() - stime))
-        print("tof kernel = %s"%tof_gp.kernel_)
-        print("tof kernel Log-marginal-likelihood: %.3f" % tof_gp.log_marginal_likelihood(tof_gp.kernel_.theta))
-        print("pos kernel = %s"%pos_gp.kernel_)
-        print("pos kernel Log-marginal-likelihood: %.3f" % pos_gp.log_marginal_likelihood(pos_gp.kernel_.theta))
-        if m:
-            fname_model_tof += ['%sgp_model_tof_%s_%i.sav'%(m.group(1),time.strftime('%Y.%m.%d.%H.%M'),i)]
-            fname_model_pos += ['%sgp_model_pos_%s_%i.sav'%(m.group(1),time.strftime('%Y.%m.%d.%H.%M'),i)]
-            joblib.dump(tof_gp,fname_model_tof[-1])
-            joblib.dump(pos_gp,fname_model_pos[-1])
+        gp_tof_models += [joblib.load(fnames_gp_tof[i])]
+        gp_pos_models += [joblib.load(fnames_gp_pos[i])]
 
+    for i in range(nmodels):
+        Y_test_pred_tof = validate_gp_tof(X_test,Y_test,gp_tof_models[i],model1_tof = perturb_tof,featurefunc = featurizeX_taylor,ntaylor = taylor_order,model0=lin_tof)
+        Y_test_pred_pos = validate_gp_pos(X_test,Y_test,gp_pos_models[i],model1_pos = perturb_pos,featurefunc = featurizeX_taylor,ntaylor = taylor_order)
+        Y_valid_pred_tof = validate_gp_tof(X_valid,Y_valid,gp_tof_models[i],model1_tof = perturb_tof,featurefunc = featurizeX_taylor,ntaylor = taylor_order,model0=lin_tof)
+        Y_valid_pred_pos = validate_gp_pos(X_valid,Y_valid,gp_pos_models[i],model1_pos = perturb_pos,featurefunc = featurizeX_taylor,ntaylor = taylor_order)
 
-    print("Total time for pertubative GP model ensemble fitting: %.3f" % (time.time() - stime))
+        if len(Y_test_pred_collect)<1:
+            Y_test_pred_collect = Yscaler.inverse_transform(np.column_stack((Y_test_pred_tof,Y_test_pred_pos)))
+            Y_valid_pred_collect = Yscaler.inverse_transform(np.column_stack((Y_valid_pred_tof,Y_valid_pred_pos)))
+        else:
+            Y_test_pred_collect = np.column_stack( (Y_test_pred_collect,Yscaler.inverse_transform(np.column_stack((Y_test_pred_tof,Y_test_pred_pos)))) )
+            Y_valid_pred_collect = np.column_stack( (Y_valid_pred_collect,Yscaler.inverse_transform(np.column_stack((Y_valid_pred_tof,Y_valid_pred_pos)))) )
 
-    if m:
-        Y_test_pred_collect = []
-        Y_valid_pred_collect = []
-        for i in range(nmodels):
-            stime = time.time()
-            fname_tof = fname_model_tof[i]
-            fname_pos = fname_model_pos[i]
-            print('repeating for gpr in fname_model list\n%s\n%s'%(fname_tof,fname_pos))
-            gpr_tof = joblib.load(fname_tof)
-            gpr_pos = joblib.load(fname_pos)
-            Y_test_tof_pred = gpr_tof.predict(X_test) \
-                + perturbmodel_tof.predict(X_test_featurized) \
-                + firstmodel.predict(X_test[:,1].reshape(-1,1))
-            Y_valid_tof_pred = gpr_tof.predict(X_valid) \
-                + perturbmodel_tof.predict(X_valid_featurized) \
-                + firstmodel.predict(X_valid[:,1].reshape(-1,1))
-            Y_test_pos_pred = gpr_pos.predict(X_test) \
-                + perturbmodel_pos.predict(X_test_featurized)
-            Y_valid_pos_pred = gpr_pos.predict(X_valid) \
-                + perturbmodel_pos.predict(X_valid_featurized)
-            print("Time for perturbative GP inference: %.3f" % (time.time() - stime))
-            print('GP score tof (test): ',  metrics.r2_score(Y_test[:,0],Y_test_tof_pred))
-            print('GP score tof (validate): ',  metrics.r2_score(Y_valid[:,0],Y_valid_tof_pred))
-            print('GP score pos (test): ',  metrics.r2_score(Y_test[:,1],Y_test_pos_pred))
-            print('GP score pos (validate): ',  metrics.r2_score(Y_valid[:,1],Y_valid_pos_pred))
-            if len(Y_test_pred_collect)<1:
-                Y_test_pred_collect = Yscaler.inverse_transform(np.column_stack((Y_test_tof_pred,Y_test_pos_pred)))
-                Y_valid_pred_collect = Yscaler.inverse_transform(np.column_stack((Y_valid_tof_pred,Y_valid_pos_pred)))
-            else:
-                Y_test_pred_collect = np.column_stack( (Y_test_pred_collect,Yscaler.inverse_transform(np.column_stack((Y_test_tof_pred,Y_test_pos_pred)))) )
-                Y_valid_pred_collect = np.column_stack( (Y_valid_pred_collect,Yscaler.inverse_transform(np.column_stack((Y_valid_tof_pred,Y_valid_pos_pred)))) )
-
+    if printascii and m:
         headstring = 'log(vsetting)\tlog(en)\tangle\tlog(tof)\typos\tpredlog(tof)\tpredpos\t...'
-        np.savetxt('%stest_GPperturb.dat'%(m.group(1)),np.column_stack((Xscaler.inverse_transform(X_test),Yscaler.inverse_transform(Y_test),Y_test_pred_collect)),header=headstring)
-        np.savetxt('%svalid_GPperturb.dat'%(m.group(1)),np.column_stack((Xscaler.inverse_transform(X_valid),Yscaler.inverse_transform(Y_valid),Y_valid_pred_collect)),header=headstring)
+        np.savetxt('%s/test_GPperturb.dat'%(m.group(1)),np.column_stack((Xscaler.inverse_transform(X_test),Yscaler.inverse_transform(Y_test),Y_test_pred_collect)),header=headstring)
+        np.savetxt('%s/valid_GPperturb.dat'%(m.group(1)),np.column_stack((Xscaler.inverse_transform(X_valid),Yscaler.inverse_transform(Y_valid),Y_valid_pred_collect)),header=headstring)
 
     return
-
-'''
-    features = []
-    for v in x:
-        features.append((int((v-center)*8) , np.power(int((v-center)*8),int(2))//100 ))
-    return features
-    '''
 
 if __name__ == '__main__':
     main()
