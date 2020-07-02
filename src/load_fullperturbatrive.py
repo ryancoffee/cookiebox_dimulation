@@ -128,15 +128,15 @@ def featurizeX(X):
     fourth = 1./(2*3*4)*np.power(first,int(4))
     return np.column_stack((first,second,third,fourth))
 
-def fit_linear_tof(x,y,modelsfolder='./models'):
+def fit_linear_tof(x,y,modelfolder):
     stime = time.time()
     model = linear_model.LinearRegression().fit(x[:,1].reshape(-1,1),y[:,0].reshape(-1,1))
     print("Time for initial linear model fitting on out-of-bag samples: %.3f" % (time.time() - stime))
-    fname_linearmodel_tof = '%s/linear_model_tof_%s.sav'%(modelsfolder,time.strftime('%Y.%m.%d.%H.%M'))
+    fname_linearmodel_tof = '%s/linear_model_tof_%s.sav'%(modelfolder,time.strftime('%Y.%m.%d.%H.%M'))
     joblib.dump(model,fname_linearmodel_tof)
     return fname_linearmodel_tof,model
 
-def fit_taylor_perturbative(x,y,featurefunc,model0,ntaylor,modelfolder='./models'):
+def fit_taylor_perturbative(x,y,featurefunc,model0,ntaylor,modelfolder):
     stime = time.time()
     x_f = featurefunc(x,n=ntaylor) 
     y_tof_res = y[:,0].copy().reshape(-1,1) - model0.predict(x[:,1].reshape(-1,1))
@@ -150,7 +150,7 @@ def fit_taylor_perturbative(x,y,featurefunc,model0,ntaylor,modelfolder='./models
     joblib.dump(perturbmodel_pos,fname_perturbmodel_pos)
     return fname_perturbmodel_tof,perturbmodel_tof,fname_perturbmodel_pos,perturbmodel_pos
 
-def fit_gp_perturbative_ensemble(x,y,model1_tof,model1_pos,featurefunc,ntaylor,model0,modelfolder='./models',nmodels=8,nsamples=500):
+def fit_gp_perturbative_ensemble(x,y,model1_tof,model1_pos,featurefunc,ntaylor,model0,modelfolder,nmodels=8,nsamples=100):
     fname_lin_tof = '%s/lin_tof-%s'%(modelfolder,time.strftime('%Y.%m.%d.%H.%M'))
     fname_taylor_tof = '%s/taylor_tof-%s'%(modelfolder,time.strftime('%Y.%m.%d.%H.%M'))
     fname_taylor_pos = '%s/taylor_pos-%s'%(modelfolder,time.strftime('%Y.%m.%d.%H.%M'))
@@ -254,6 +254,23 @@ def validate_gp_pos(x,y,gp_pos_model,model1_pos,featurefunc,ntaylor):
     print('GP score pos: ',  metrics.r2_score(y[:,1],y_pred))
     return y_pred
 
+def inference_gp_tof(x,y,gp_tof_model,model1_tof,featurefunc,ntaylor,model0):
+    x_f = featurefunc(x,ntaylor)
+    y_pred,y_std = gp_tof_model.predict(x)
+    return y_pred + model1_tof.predict(x_f) + model0.predict(x[:,1].reshape(-1,1)), y_std
+
+def inference_gp_pos(x,y,gp_pos_model,model1_pos,featurefunc,ntaylor):
+    x_f = featurefunc(x,ntaylor)
+    y_pred,y_std = gp_pos_model.predict(x)
+    return y_pred + model1_pos.predict(x_f) , y_std
+
+def ensemble_vote_tof(x,y,fnames_gp_tof_models,model1_tof,featurefunc,ntaylor,model0):
+    print('HERE HERE HERE HERE, need to make the ensemble voting using inference_gp_* with all nmodels')
+    return
+
+def ensemble_vote_pos(x,y,fnames_gp_pos_models,model1_pos,featurefunc,ntaylor):
+    print('HERE HERE HERE HERE, need to make the ensemble voting using inference_gp_* with all nmodels')
+    return
 
 def crosscorrelation(fname,x,y):
         if x.shape[0] != y.shape[0]:
@@ -304,6 +321,16 @@ def validate_krr_pos(X_test,Y_test,model=perturb_pos,featurefunc=featurizeX_tayl
 
 def main():
     do_correlation = True
+    nmodels = 32 
+    nsamples = 800 # eventually 500
+    printascii = False
+    taylor_order = 4
+
+    #./data_ave/ind_25-plate_tune_grid_Range_*/analyzed_data.hdf5
+    m = re.match('(.*)/(ind.*/)analyzed_data.hdf5',sys.argv[-1])
+
+    modelsfolder = './models%i'%(nsamples)
+
     X_all = []
     Y_all = []
     X_all,Y_all,Xscaler,Yscaler = loadscaledata(print_mi=True)
@@ -315,11 +342,8 @@ def main():
 
     X_train,X_test,X_valid,X_oob,Y_train,Y_test,Y_valid,Y_oob = katiesplit(X_all,Y_all)
 
-    #./data_ave/ind_25-plate_tune_grid_Range_*/analyzed_data.hdf5
-    m = re.match('(.*)/(ind.*/)analyzed_data.hdf5',sys.argv[-1])
-    modelsfolder='./models'
     if m:
-        modelsfolder = '%s/models'%m.group(1)
+        modelsfolder = '%s/models%i'%(m.group(1),nsamples)
         np.savetxt('%s/train_transformed.dat'%(m.group(1)),np.column_stack((X_train,Y_train)))
         np.savetxt('%s/oob_transformed.dat'%(m.group(1)),np.column_stack((X_oob,Y_oob)))
 
@@ -333,10 +357,8 @@ def main():
         print('Going to fail model saving/recalling')
         return
 
-    printascii = False
-    taylor_order = 4
 
-    fname_lin_tof,lin_tof = fit_linear_tof(X_oob,Y_oob,modelsfolder=modelsfolder)
+    fname_lin_tof,lin_tof = fit_linear_tof(X_oob,Y_oob,modelfolder=modelsfolder)
 
     # passing the models, not the filenames
     validate_lin_tof(X_test,Y_test,lin_tof)
@@ -382,9 +404,7 @@ def main():
 
     print("Moving on to perturbative GP")
 
-    modelsfolder = '%s/models'%m.group(1)
-    nmodels = 32 
-    nsamples = 100 # eventually 500
+
     fnames_gp_tof,fnames_gp_pos = fit_gp_perturbative_ensemble(
             X_train,
             Y_train,
@@ -393,7 +413,7 @@ def main():
             featurefunc = featurizeX_taylor,
             ntaylor = taylor_order,
             model0=lin_tof,
-            modelfolder='%s/models'%m.group(1),
+            modelfolder=modelsfolder,
             nmodels=nmodels,
             nsamples=nsamples)
 
