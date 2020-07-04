@@ -165,6 +165,17 @@ def fit_gp_perturbative_ensemble(x,y,model1_tof,model1_pos,featurefunc,ntaylor,m
             length_scale=np.ones(x.shape[1],dtype=float)
             ,length_scale_bounds=(1e-5,100)
             ) 
+    k2 = 1.**2 * Matern(
+            length_scale=np.ones(x.shape[1],dtype=float)
+            ,length_scale_bounds=(1e-5,100)
+            ,nu=1.5
+            )
+    '''
+    k3 = 1.**2 * Matern(
+            length_scale=10*np.ones(x.shape[1],dtype=float)
+            ,length_scale_bounds=(1e-5,100)
+            ,nu=1.5
+            )
     k2 = 1.0**2 * RationalQuadratic(
             length_scale=1. 
             ,alpha=0.1 
@@ -173,21 +184,29 @@ def fit_gp_perturbative_ensemble(x,y,model1_tof,model1_pos,featurefunc,ntaylor,m
 
     k3 = .5*2 * WhiteKernel(noise_level=0.01**2)  # noise terms
     k4 = ConstantKernel(constant_value = .01 ) # constant shift
+            '''
 
     k1p = 0.05**2 * RBF(
             length_scale=np.ones(x.shape[1],dtype=float)
-            ,length_scale_bounds=(1e-5,20)
+            ,length_scale_bounds=(1e-5,100)
             ) 
     k2p = 1.**2 * Matern(
             length_scale=np.ones(x.shape[1],dtype=float)
-            ,length_scale_bounds=(1e-5,20)
-            ,nu=1.5
+            ,length_scale_bounds=(1e-5,100)
+            ,nu=2.5
             )
+    k3p = 1.**2 * Matern(
+            length_scale=np.ones(x.shape[1],dtype=float)
+            ,length_scale_bounds=(1e-5,100)
+            ,nu=1.0
+            )
+    '''
     k3p = .5*2 * WhiteKernel(noise_level=0.01**2)  # noise terms
     k4p = ConstantKernel(constant_value = .01 ) # constant shift
+    '''
 
-    kernel_gp_tof = k1 + k2 #+ k3 + k4
-    kernel_gp_pos = k1p + k2p + k3p + k4p
+    kernel_gp_tof = k2 
+    kernel_gp_pos = k2p #+ k2p #+ k3p# + k4p
 
     tof_gp = GaussianProcessRegressor(kernel=kernel_gp_tof, alpha=0, normalize_y=True, n_restarts_optimizer = 2)
     pos_gp = GaussianProcessRegressor(kernel=kernel_gp_pos, alpha=0, normalize_y=True, n_restarts_optimizer = 2)
@@ -264,13 +283,99 @@ def inference_gp_pos(x,y,gp_pos_model,model1_pos,featurefunc,ntaylor):
     y_pred,y_std = gp_pos_model.predict(x)
     return y_pred + model1_pos.predict(x_f) , y_std
 
-def ensemble_vote_tof(x,y,fnames_gp_tof_models,model1_tof,featurefunc,ntaylor,model0):
-    print('HERE HERE HERE HERE, need to make the ensemble voting using inference_gp_* with all nmodels')
-    return
+def ensemble_vote_tof(x,gp_tof_models,model1_tof,featurefunc,ntaylor,model0):
+    print("ensembling tof")
+    nmodels = len(gp_tof_models)
+    x_f = featurefunc(x,ntaylor)
+    y_pred = np.zeros(x.shape[0])
+    y_antipred = np.zeros(x.shape[0])
+    y_std = np.zeros(x.shape[0])
+    y_antistd = np.zeros(x.shape[0])
+    y_pred_model1 = model1_tof.predict(x_f)
+    y_pred_model0 = model0.predict(x[:,1].reshape(-1, 1))
+    y_pred_array = np.zeros((x.shape[0],nmodels),dtype=float)
+    y_antipred_array = np.zeros((x.shape[0],nmodels),dtype=float)
+    y_std_array = np.zeros((x.shape[0],nmodels),dtype=float)
+    nhistbins = 100
+    histbins = np.logspace(-6,-1,nhistbins)
+    y_std_hist_array = np.zeros((nhistbins-1,nmodels+1),dtype=float)
+    for i in range(nmodels):
+        gp_tof_model = gp_tof_models[i]
+        y_pred,y_std = gp_tof_model.predict(x,return_std=True)
+        y_pred_array[:,i] = y_pred.copy().reshape(-1)
+        y_std_array[:,i] = y_std.copy().reshape(-1)
+        h,b = np.histogram(y_std_array[:,i],histbins)
+        if i==0:
+            y_std_hist_array[:,i] = histbins[:-1]
+        y_std_hist_array[:,i+1] = h
 
-def ensemble_vote_pos(x,y,fnames_gp_pos_models,model1_pos,featurefunc,ntaylor):
-    print('HERE HERE HERE HERE, need to make the ensemble voting using inference_gp_* with all nmodels')
-    return
+    indsmax = np.argmax(y_std_array,axis=1)
+    y_pred = np.zeros(x.shape[0])
+    y_std = np.zeros(x.shape[0])
+    naverage = 4
+    for n in range(naverage):
+        indsmin = np.argmin(y_std_array,axis=1)
+        for i,v in enumerate(indsmin):
+            y_pred[i] += y_pred_array[i,v] / float(naverage)
+            y_std[i] += y_std_array[i,v] * np.power(float(naverage),-1.5)
+            y_std_array[i,v] = 1e3
+    h,b = np.histogram(y_std,histbins)
+    y_std_hist_array = np.column_stack((y_std_hist_array,h))
+
+    out = y_pred.copy() + y_pred_model1.reshape(-1) + y_pred_model0.reshape(-1)
+
+    for i,v in enumerate(indsmax):
+        y_antipred[i] = y_pred_array[i,v]
+        y_antistd[i] = y_std_array[i,v]
+    h,b = np.histogram(y_antistd,histbins)
+    y_std_hist_array = np.column_stack((y_std_hist_array,h))
+    return out,y_std.copy(),y_std_hist_array
+
+def ensemble_vote_pos(x,gp_pos_models,model1_pos,featurefunc,ntaylor):
+    print("ensembling pos")
+    nmodels = len(gp_pos_models)
+    x_f = featurefunc(x,ntaylor)
+    y_pred = np.zeros(x.shape[0])
+    y_antipred = np.zeros(x.shape[0])
+    y_std = np.zeros(x.shape[0])
+    y_antistd = np.zeros(x.shape[0])
+    y_pred_model1 = model1_pos.predict(x_f)
+    y_pred_array = np.zeros((x.shape[0],nmodels),dtype=float)
+    y_std_array = np.zeros((x.shape[0],nmodels),dtype=float)
+    nhistbins = 100
+    histbins = np.logspace(-5,1,nhistbins)
+    y_std_hist_array = np.zeros((nhistbins-1,nmodels+1),dtype=float)
+    for i in range(nmodels):
+        gp_pos_model = gp_pos_models[i]
+        y_pred,y_std = gp_pos_model.predict(x,return_std=True)
+        y_pred_array[:,i] = y_pred.copy().reshape(-1)
+        y_std_array[:,i] = y_std.copy().reshape(-1)
+        h,b = np.histogram(y_std_array[:,i],histbins)
+        if i==0:
+            y_std_hist_array[:,i] = histbins[:-1]
+        y_std_hist_array[:,i+1] = h
+
+    indsmax = np.argmax(np.abs(y_std_array),axis=1)
+    y_pred = np.zeros(x.shape[0])
+    y_std = np.zeros(x.shape[0])
+    naverage = 4
+    for n in range(naverage):
+        indsmin = np.argmin(np.abs(y_std_array),axis=1)
+        for i,v in enumerate(indsmin):
+            y_pred[i] += y_pred_array[i,v].copy() / float(naverage)
+            y_std[i] += y_std_array[i,v].copy() * np.power(float(naverage),-1.5)
+            y_std_array[i,v] = 1e3
+    h,b = np.histogram(y_std,histbins)
+    y_std_hist_array = np.column_stack((y_std_hist_array,h))
+
+    out = y_pred.copy() + y_pred_model1.reshape(-1)
+
+    for i,v in enumerate(indsmax):
+        y_antipred[i] = y_pred_array[i,v]
+        y_antistd[i] = y_std_array[i,v]
+    h,b = np.histogram(y_antistd,histbins)
+    y_std_hist_array = np.column_stack((y_std_hist_array,h))
+    return out,y_std.copy(),y_std_hist_array
 
 def crosscorrelation(fname,x,y):
         if x.shape[0] != y.shape[0]:
@@ -322,14 +427,14 @@ def validate_krr_pos(X_test,Y_test,model=perturb_pos,featurefunc=featurizeX_tayl
 def main():
     do_correlation = True
     nmodels = 32 
-    nsamples = 800 # eventually 500
+    nsamples = 100 # eventually 500
     printascii = False
     taylor_order = 4
 
     #./data_ave/ind_25-plate_tune_grid_Range_*/analyzed_data.hdf5
     m = re.match('(.*)/(ind.*/)analyzed_data.hdf5',sys.argv[-1])
 
-    modelsfolder = './models%i'%(nsamples)
+    modelsfolder = './ensembletests%imodels%isamples'%(nmodels,nsamples)
 
     X_all = []
     Y_all = []
@@ -343,7 +448,7 @@ def main():
     X_train,X_test,X_valid,X_oob,Y_train,Y_test,Y_valid,Y_oob = katiesplit(X_all,Y_all)
 
     if m:
-        modelsfolder = '%s/models%i'%(m.group(1),nsamples)
+        modelsfolder = '%s/ensembletests%imodels%isamples'%(m.group(1),nmodels,nsamples)
         np.savetxt('%s/train_transformed.dat'%(m.group(1)),np.column_stack((X_train,Y_train)))
         np.savetxt('%s/oob_transformed.dat'%(m.group(1)),np.column_stack((X_oob,Y_oob)))
 
@@ -358,11 +463,13 @@ def main():
         return
 
 
-    fname_lin_tof,lin_tof = fit_linear_tof(X_oob,Y_oob,modelfolder=modelsfolder)
+    print('Reserving X_oob/Y_oob for ensemble testing')
+    fname_lin_tof,lin_tof = fit_linear_tof(X_train,Y_train,modelfolder=modelsfolder)
 
+    print('Reserving X_valid/Y_valid for ensemble validation')
     # passing the models, not the filenames
     validate_lin_tof(X_test,Y_test,lin_tof)
-    validate_lin_tof(X_valid,Y_valid,lin_tof)
+    #validate_lin_tof(X_valid,Y_valid,lin_tof)
 
     if printascii and m:
         headstring = 'vsetting\tlog(en)\tangle\tlog(tof)\typos\tpredtof'
@@ -381,9 +488,9 @@ def main():
 
     # passing the models, not the filenames
     validate_perturb_tof(X_test,Y_test,model=perturb_tof,featurefunc=featurizeX_taylor,ntaylor=taylor_order,model0=lin_tof)
-    validate_perturb_tof(X_valid,Y_valid,model=perturb_tof,featurefunc=featurizeX_taylor,ntaylor=taylor_order,model0=lin_tof)
+    #validate_perturb_tof(X_valid,Y_valid,model=perturb_tof,featurefunc=featurizeX_taylor,ntaylor=taylor_order,model0=lin_tof)
     validate_perturb_pos(X_test,Y_test,model=perturb_pos,featurefunc=featurizeX_taylor,ntaylor=taylor_order)
-    validate_perturb_pos(X_valid,Y_valid,model=perturb_pos,featurefunc=featurizeX_taylor,ntaylor=taylor_order)
+    #validate_perturb_pos(X_valid,Y_valid,model=perturb_pos,featurefunc=featurizeX_taylor,ntaylor=taylor_order)
 
 
     if printascii and m:
@@ -430,6 +537,7 @@ def main():
         gp_tof_models += [joblib.load(fnames_gp_tof[i])]
         gp_pos_models += [joblib.load(fnames_gp_pos[i])]
 
+
     for i in range(nmodels):
         Y_test_pred_tof = validate_gp_tof(X_test,Y_test,gp_tof_models[i],model1_tof = perturb_tof,featurefunc = featurizeX_taylor,ntaylor = taylor_order,model0=lin_tof)
         Y_test_pred_pos = validate_gp_pos(X_test,Y_test,gp_pos_models[i],model1_pos = perturb_pos,featurefunc = featurizeX_taylor,ntaylor = taylor_order)
@@ -442,6 +550,17 @@ def main():
         else:
             Y_test_pred_collect = np.column_stack( (Y_test_pred_collect,Yscaler.inverse_transform(np.column_stack((Y_test_pred_tof,Y_test_pred_pos)))) )
             Y_valid_pred_collect = np.column_stack( (Y_valid_pred_collect,Yscaler.inverse_transform(np.column_stack((Y_valid_pred_tof,Y_valid_pred_pos)))) )
+
+    Y_oob_pred_tof,Y_valid_std_tof,Y_valid_std_hist_tof = ensemble_vote_tof(X_oob,gp_tof_models,model1_tof=perturb_tof,featurefunc=featurizeX_taylor,ntaylor=taylor_order,model0=lin_tof)
+    headstring = 'tof_std_bins\tmodel1\t...\tmodeln\tbesteach\tworsteach'
+    np.savetxt('%s/std_hist_tof.dat'%(m.group(1)),Y_valid_std_hist_tof)
+    Y_oob_pred_pos,Y_valid_std_pos,Y_valid_std_hist_pos = ensemble_vote_pos(X_oob,gp_pos_models,model1_pos=perturb_pos,featurefunc=featurizeX_taylor,ntaylor=taylor_order)
+    headstring = 'pos_std_bins\tmodel1\t...\tmodeln\tbesteach\tworsteach'
+    np.savetxt('%s/std_hist_pos.dat'%(m.group(1)),Y_valid_std_hist_pos)
+
+    print('GP score (out-of-bag) tof with voting: ',  metrics.r2_score(Y_oob[:,0],Y_oob_pred_tof))
+    print('GP score (out-of-bag) pos with voting: ',  metrics.r2_score(Y_oob[:,1],Y_oob_pred_pos))
+
 
     if printascii and m:
         headstring = 'log(vsetting)\tlog(en)\tangle\tlog(tof)\typos\tpredlog(tof)\tpredpos\t...'
