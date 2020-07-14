@@ -26,6 +26,9 @@ from warnings import simplefilter
 
 simplefilter(action='ignore', category=FutureWarning)
 
+maternnu_tof = 1.5
+maternnu_pos = 1.5
+binslatency = np.logspace(-1,2.7,200)
 
 def ydetToLorenzo(y):
     '''
@@ -168,7 +171,7 @@ def fit_gp_perturbative_ensemble(x,y,model1_tof,model1_pos,featurefunc,ntaylor,m
     k2 = 1.**2 * Matern(
             length_scale=np.ones(x.shape[1],dtype=float)
             ,length_scale_bounds=(1e-5,100)
-            ,nu=1.5
+            ,nu=maternnu_tof
             )
     '''
     k3 = 1.**2 * Matern(
@@ -193,7 +196,7 @@ def fit_gp_perturbative_ensemble(x,y,model1_tof,model1_pos,featurefunc,ntaylor,m
     k2p = 1.**2 * Matern(
             length_scale=np.ones(x.shape[1],dtype=float)
             ,length_scale_bounds=(1e-5,100)
-            ,nu=2.5
+            ,nu=maternnu_pos
             )
     k3p = 1.**2 * Matern(
             length_scale=np.ones(x.shape[1],dtype=float)
@@ -261,17 +264,19 @@ def validate_gp_tof(x,y,gp_tof_model,model1_tof,featurefunc,ntaylor,model0):
     stime = time.time()
     x_f = featurefunc(x,ntaylor)
     y_pred = gp_tof_model.predict(x) + model1_tof.predict(x_f) + model0.predict(x[:,1].reshape(-1,1))
-    print("Average time for perturbative GP tof inference : %.3f usec" % ((time.time() - stime)*1e6/float(x.shape[0])))
-    print('GP score tof: ',  metrics.r2_score(y[:,0],y_pred))
-    return y_pred
+    latency = (time.time() - stime)*1e6/float(x.shape[0])
+    score = metrics.r2_score(y[:,0],y_pred)
+    print("Average time for perturbative GP tof inference : %.3f usec\tscore : %.4f" % (latency,score))
+    return y_pred,latency,score
 
 def validate_gp_pos(x,y,gp_pos_model,model1_pos,featurefunc,ntaylor):
     stime = time.time()
     x_f = featurefunc(x,ntaylor)
     y_pred = gp_pos_model.predict(x) + model1_pos.predict(x_f)
-    print("Average time for perturbative GP pos inference : %.3f usec" % ((time.time() - stime)*1e6/float(x.shape[0])))
-    print('GP score pos: ',  metrics.r2_score(y[:,1],y_pred))
-    return y_pred
+    latency = (time.time() - stime)*1e6/float(x.shape[0])
+    score = metrics.r2_score(y[:,1],y_pred)
+    print("Average time for perturbative GP pos inference : %.3f usec\tscore : %.4f" % (latency,score))
+    return y_pred,latency,score
 
 def inference_gp_tof(x,y,gp_tof_model,model1_tof,featurefunc,ntaylor,model0):
     x_f = featurefunc(x,ntaylor)
@@ -309,24 +314,34 @@ def ensemble_vote_tof(x,gp_tof_models,model1_tof,featurefunc,ntaylor,model0):
             y_std_hist_array[:,i] = histbins[:-1]
         y_std_hist_array[:,i+1] = h
 
-    indsmax = np.argmax(y_std_array,axis=1)
+    #indsmax = np.argmax(y_std_array,axis=1)
     y_pred = np.zeros(x.shape[0])
     y_std = np.zeros(x.shape[0])
-    naverage = 4
+    naverage = nmodels//4
+    srtinds = np.argsort(y_std_array,axis=1)
+    y_pred_array = np.take_along_axis(y_pred_array, srtinds, axis=1)
+    y_std_array = np.take_along_axis(y_std_array, srtinds, axis=1)
+    y_pred = np.sum(y_pred_array[:,:naverage],axis=1)/float(naverage)
+    y_std = np.sum(y_std_array[:,:naverage],axis=1)/float(naverage)
+    '''
     for n in range(naverage):
         indsmin = np.argmin(y_std_array,axis=1)
         for i,v in enumerate(indsmin):
             y_pred[i] += y_pred_array[i,v] / float(naverage)
             y_std[i] += y_std_array[i,v] * np.power(float(naverage),-1.5)
             y_std_array[i,v] = 1e3
+    '''
     h,b = np.histogram(y_std,histbins)
     y_std_hist_array = np.column_stack((y_std_hist_array,h))
 
     out = y_pred.copy() + y_pred_model1.reshape(-1) + y_pred_model0.reshape(-1)
 
+    y_antistd = np.sum(y_std_array[:,-naverage-1:],axis=1)/float(naverage)
+    '''
     for i,v in enumerate(indsmax):
         y_antipred[i] = y_pred_array[i,v]
         y_antistd[i] = y_std_array[i,v]
+    '''
     h,b = np.histogram(y_antistd,histbins)
     y_std_hist_array = np.column_stack((y_std_hist_array,h))
     return out,y_std.copy(),y_std_hist_array
@@ -538,11 +553,23 @@ def main():
         gp_pos_models += [joblib.load(fnames_gp_pos[i])]
 
 
+    tof_latency = []
+    tof_score = []
+    pos_latency = []
+    pos_score = []
     for i in range(nmodels):
-        Y_test_pred_tof = validate_gp_tof(X_test,Y_test,gp_tof_models[i],model1_tof = perturb_tof,featurefunc = featurizeX_taylor,ntaylor = taylor_order,model0=lin_tof)
-        Y_test_pred_pos = validate_gp_pos(X_test,Y_test,gp_pos_models[i],model1_pos = perturb_pos,featurefunc = featurizeX_taylor,ntaylor = taylor_order)
-        Y_valid_pred_tof = validate_gp_tof(X_valid,Y_valid,gp_tof_models[i],model1_tof = perturb_tof,featurefunc = featurizeX_taylor,ntaylor = taylor_order,model0=lin_tof)
-        Y_valid_pred_pos = validate_gp_pos(X_valid,Y_valid,gp_pos_models[i],model1_pos = perturb_pos,featurefunc = featurizeX_taylor,ntaylor = taylor_order)
+        Y_test_pred_tof,latency,score = validate_gp_tof(X_test,Y_test,gp_tof_models[i],model1_tof = perturb_tof,featurefunc = featurizeX_taylor,ntaylor = taylor_order,model0=lin_tof)
+        tof_latency += [latency]
+        tof_score += [score]
+        Y_test_pred_pos,latency,score = validate_gp_pos(X_test,Y_test,gp_pos_models[i],model1_pos = perturb_pos,featurefunc = featurizeX_taylor,ntaylor = taylor_order)
+        pos_latency += [latency]
+        pos_score += [score]
+        Y_valid_pred_tof,latency,score = validate_gp_tof(X_valid,Y_valid,gp_tof_models[i],model1_tof = perturb_tof,featurefunc = featurizeX_taylor,ntaylor = taylor_order,model0=lin_tof)
+        tof_latency += [latency]
+        tof_score += [score]
+        Y_valid_pred_pos,latency,score = validate_gp_pos(X_valid,Y_valid,gp_pos_models[i],model1_pos = perturb_pos,featurefunc = featurizeX_taylor,ntaylor = taylor_order)
+        pos_latency += [latency]
+        pos_score += [score]
 
         if len(Y_test_pred_collect)<1:
             Y_test_pred_collect = Yscaler.inverse_transform(np.column_stack((Y_test_pred_tof,Y_test_pred_pos)))
@@ -551,17 +578,38 @@ def main():
             Y_test_pred_collect = np.column_stack( (Y_test_pred_collect,Yscaler.inverse_transform(np.column_stack((Y_test_pred_tof,Y_test_pred_pos)))) )
             Y_valid_pred_collect = np.column_stack( (Y_valid_pred_collect,Yscaler.inverse_transform(np.column_stack((Y_valid_pred_tof,Y_valid_pred_pos)))) )
 
-    Y_oob_pred_tof,Y_valid_std_tof,Y_valid_std_hist_tof = ensemble_vote_tof(X_oob,gp_tof_models,model1_tof=perturb_tof,featurefunc=featurizeX_taylor,ntaylor=taylor_order,model0=lin_tof)
-    headstring = 'tof_std_bins\tmodel1\t...\tmodeln\tbesteach\tworsteach'
-    np.savetxt('%s/std_hist_tof.dat'%(m.group(1)),Y_valid_std_hist_tof)
-    Y_oob_pred_pos,Y_valid_std_pos,Y_valid_std_hist_pos = ensemble_vote_pos(X_oob,gp_pos_models,model1_pos=perturb_pos,featurefunc=featurizeX_taylor,ntaylor=taylor_order)
-    headstring = 'pos_std_bins\tmodel1\t...\tmodeln\tbesteach\tworsteach'
-    np.savetxt('%s/std_hist_pos.dat'%(m.group(1)),Y_valid_std_hist_pos)
+    hl,bl = np.histogram(tof_latency,binslatency)
+    headstring = '%i ensembles tof latency'
+    np.savetxt('%s/latency_hist_tof_matern-nu%.1f.nsamples%i.taylororder%i.dat'%(m.group(1),maternnu_tof,nsamples,taylor_order),np.column_stack((bl[:-1],hl)),fmt='%.3f')
+    hl,bl = np.histogram(tof_latency,binslatency)
+    headstring = '%i ensembles pos latency'
+    np.savetxt('%s/latency_hist_pos-matern-nu%.1f.nsamples%i.taylororder%i.dat'%(m.group(1),maternnu_pos,nsamples,taylor_order),np.column_stack((bl[:-1],hl)),fmt='%.3f')
+
+
+
+    stime = time.time()
+    Y_oob_pred_tof,Y_oob_std_tof,Y_oob_std_hist_tof = ensemble_vote_tof(X_oob,gp_tof_models,model1_tof=perturb_tof,featurefunc=featurizeX_taylor,ntaylor=taylor_order,model0=lin_tof)
+    tof_latency = (time.time() - stime)*1e6/float(X_oob.shape[0])
+    headstring = '%i ensembles tof latency = %i\n#tof_std_bins\tmodel1\t...\tmodeln\tbesteach\tworsteach'%(nmodels,int(tof_latency))
+    np.savetxt('%s/std_hist_tof.matern-nu%.1f.nsamples%i.taylororder%i.dat'%(m.group(1),maternnu_tof,nsamples,taylor_order),Y_oob_std_hist_tof)
+
+    stime = time.time()
+    Y_oob_pred_pos,Y_oob_std_pos,Y_oob_std_hist_pos = ensemble_vote_pos(X_oob,gp_pos_models,model1_pos=perturb_pos,featurefunc=featurizeX_taylor,ntaylor=taylor_order)
+    tof_latency = (time.time() - stime)*1e6/float(X_oob.shape[0])
+    headstring = '%i ensembles tof latency = %i\n#pos_std_bins\tmodel1\t...\tmodeln\tbesteach\tworsteach'%(nmodels,int(tof_latency))
+    np.savetxt('%s/std_hist_pos.matern-nu%.1f.nsamples%i.taylororder%i.dat'%(m.group(1),maternnu_pos,nsamples,taylor_order),Y_oob_std_hist_pos)
 
     print('GP score (out-of-bag) tof with voting: ',  metrics.r2_score(Y_oob[:,0],Y_oob_pred_tof))
     print('GP score (out-of-bag) pos with voting: ',  metrics.r2_score(Y_oob[:,1],Y_oob_pred_pos))
 
-
+    headstring = '%i ensembles tof latency = %i\n#X_oob\tY_oob\tY_pred\tY_std'%(nmodels,int(tof_latency))
+    np.savetxt('%s/tof_pos_pred.tofmaternnu%.1f.posmaternnu%.1f.nsamples%i.taylororder%i.dat'%(m.group(1),maternnu_tof,maternnu_pos,nsamples,taylor_order),
+            np.column_stack((Xscaler.inverse_transform(X_oob),
+                Yscaler.inverse_transform(Y_oob),
+                Yscaler.inverse_transform(np.column_stack((Y_oob_pred_tof,Y_oob_pred_pos))),
+                Yscaler.inverse_transform(np.column_stack((Y_oob_std_tof,Y_oob_std_pos)))
+                ))
+            )
     if printascii and m:
         headstring = 'log(vsetting)\tlog(en)\tangle\tlog(tof)\typos\tpredlog(tof)\tpredpos\t...'
         np.savetxt('%s/test_GPperturb.dat'%(m.group(1)),np.column_stack((Xscaler.inverse_transform(X_test),Yscaler.inverse_transform(Y_test),Y_test_pred_collect)),header=headstring)
