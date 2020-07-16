@@ -16,6 +16,15 @@ def ydetToLorenzo(y):
     q = [2.*math.pi*random.random() for i in range(len(y))]
     return (np.array(q),1e4*np.array(r)*np.cos(q),1e4*np.array(r)*np.sin(q))
 
+def reservesplit(x,y,reserve = .2):
+    sz = x.shape[0] 
+    inds = np.arange(x.shape[0])
+    np.random.shuffle(inds)
+    splitind = int(sz*(1. - reserve))
+    maininds = inds[:splitind]
+    reserveinds = inds[splitind:]
+    return x[maininds,:],x[reserveinds,:],y[maininds,:],y[reserveinds,:]
+
 def katiesplit(x,y):
     sz = x.shape[0] 
     inds = np.arange(x.shape[0])
@@ -76,6 +85,13 @@ def loaddata():
                 x_all = np.row_stack((x_all,featuresvec))
                 y_all = np.row_stack((y_all,truthsvec))
     return x_all,y_all
+
+def scaledata(x,y):
+    Xscaler = preprocessing.StandardScaler(copy=False).fit(x)
+    Yscaler = preprocessing.StandardScaler(copy=False).fit(y.reshape(-1,1))
+    x = Xscaler.transform(x)
+    y = Yscaler.transform(y.reshape(-1,1))
+    return x,y,Xscaler,Yscaler
 
 def loadscaledata(print_mi = False):
     x_all,y_all = loaddata()

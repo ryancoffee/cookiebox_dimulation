@@ -42,6 +42,16 @@ def fit_linear_tof(x,y,modelfolder):
     joblib.dump(model,fname_linearmodel_tof)
     return fname_linearmodel_tof,model
 
+
+def fit_taylor(x,y,featurefunc,ntaylor,modelfolder):
+    stime = time.time()
+    x_f = featurefunc(x,n=ntaylor) 
+    taylormodel = linear_model.LinearRegression().fit(x_f,y.reshape(-1,1))
+    print("Time for inverse taylor model fitting: %.3f" % (time.time() - stime))
+    fname_taylormodel = '%s/inverse_taylor_model_%s.sav'%(modelfolder,time.strftime('%Y.%m.%d.%H.%M'))
+    joblib.dump(taylormodel,fname_taylormodel)
+    return fname_taylormodel,taylormodel
+
 def fit_taylor_perturbative(x,y,featurefunc,model0,ntaylor,modelfolder):
     stime = time.time()
     x_f = featurefunc(x,n=ntaylor) 
@@ -148,7 +158,7 @@ def validate_lin_tof(x,y,model):
     stime = time.time()
     y_pred = model.predict(x[:,1].reshape(-1,1))
     print("Average time for linear tof inference : %.3f usec" % ((time.time() - stime)*1e6/float(x.shape[0])))
-    print ("linear model score: ", metrics.r2_score(y[:,0], y_pred))
+    print ("linear model rmse: ", metrics.mean_squared_error(y[:,0], y_pred,squared=False))
     return
 
 def validate_perturb_pos(x,y,model,featurefunc,ntaylor):
@@ -156,7 +166,7 @@ def validate_perturb_pos(x,y,model,featurefunc,ntaylor):
     x_f = featurefunc(x,ntaylor)
     y_pred = model.predict(x_f)
     print("Average time for perturbative linear pos inference : %.3f usec" % ((time.time() - stime)*1e6/float(x.shape[0])))
-    print ("Perturbative linear model pos score: ", metrics.r2_score(y[:,1], y_pred))
+    print ("Perturbative linear model pos rmse: ", metrics.mean_squared_error(y[:,1], y_pred,squared=False))
     return
 
 def validate_perturb_tof(x,y,model,featurefunc,ntaylor,model0):
@@ -164,7 +174,7 @@ def validate_perturb_tof(x,y,model,featurefunc,ntaylor,model0):
     x_f = featurefunc(x,ntaylor)
     y_pred = model.predict(x_f) + model0.predict(x[:,1].reshape(-1,1))
     print("Average time for perturbative linear tof inference : %.3f usec" % ((time.time() - stime)*1e6/float(x.shape[0])))
-    print ("Perturbative linear model tof score: ", metrics.r2_score(y[:,0], y_pred))
+    print ("Perturbative linear model tof rmse: ", metrics.mean_squared_error(y[:,0], y_pred,squared=False))
     return
     
 def validate_gp_tof(x,y,gp_tof_model,model1_tof,featurefunc,ntaylor,model0):
@@ -172,8 +182,8 @@ def validate_gp_tof(x,y,gp_tof_model,model1_tof,featurefunc,ntaylor,model0):
     x_f = featurefunc(x,ntaylor)
     y_pred = gp_tof_model.predict(x) + model1_tof.predict(x_f) + model0.predict(x[:,1].reshape(-1,1))
     latency = (time.time() - stime)*1e6/float(x.shape[0])
-    score = metrics.r2_score(y[:,0],y_pred)
-    print("Average time for perturbative GP tof inference : %.3f usec\tscore : %.4f" % (latency,score))
+    score = metrics.mean_squared_error(y[:,0],y_pred,squared=False)
+    print("Average time for perturbative GP tof inference : %.3f usec\trmse : %.4f" % (latency,score))
     return y_pred,latency,score
 
 def validate_gp_pos(x,y,gp_pos_model,model1_pos,featurefunc,ntaylor):
@@ -181,19 +191,22 @@ def validate_gp_pos(x,y,gp_pos_model,model1_pos,featurefunc,ntaylor):
     x_f = featurefunc(x,ntaylor)
     y_pred = gp_pos_model.predict(x) + model1_pos.predict(x_f)
     latency = (time.time() - stime)*1e6/float(x.shape[0])
-    score = metrics.r2_score(y[:,1],y_pred)
-    print("Average time for perturbative GP pos inference : %.3f usec\tscore : %.4f" % (latency,score))
+    score = metrics.mean_squared_error(y[:,1],y_pred,squared=False)
+    print("Average time for perturbative GP pos inference : %.3f usec\trmse : %.4f" % (latency,score))
     return y_pred,latency,score
 
-def inference_gp_tof(x,y,gp_tof_model,model1_tof,featurefunc,ntaylor,model0):
+def inference_gp_tof(x,gp_tof_model,model1_tof,featurefunc,ntaylor,model0):
     x_f = featurefunc(x,ntaylor)
     y_pred,y_std = gp_tof_model.predict(x)
     return y_pred + model1_tof.predict(x_f) + model0.predict(x[:,1].reshape(-1,1)), y_std
 
-def inference_gp_pos(x,y,gp_pos_model,model1_pos,featurefunc,ntaylor):
+def inference_gp_pos(x,gp_pos_model,model1_pos,featurefunc,ntaylor):
     x_f = featurefunc(x,ntaylor)
     y_pred,y_std = gp_pos_model.predict(x)
     return y_pred + model1_pos.predict(x_f) , y_std
+
+def inference_taylor(x,taylor_model,featurefunc,ntaylor=2):
+    return taylor_model.predict(featurefunc(x,ntaylor))
 
 # in future, allow elitism to accept an array of weights, this couls allow for different voting blocks to have diminishing weights
 # furthermore, we could set a minimum limit on "agreement" like voting theory in order to trigger a "bad sample" or "anomaly" event
@@ -308,8 +321,8 @@ def validate_krr_pos(X_test,Y_test,model=perturb_pos,featurefunc=featurizeX_tayl
     Y_test_pred = kr.predict(X_test)
     Y_valid_pred = kr.predict(X_valid)
     print("Time for KRR inference: %.3f" % (time.time() - stime))
-    print ("KRR model score (test): ", metrics.r2_score(Y_test, Y_test_pred))
-    print ("KRR model score (validate): ", metrics.r2_score(Y_valid, Y_valid_pred))
+    print ("KRR model rmse (test): ", metrics.mean_squared_error(Y_test, Y_test_pred,squared=False))
+    print ("KRR model rmse (validate): ", metrics.mean_squared_error(Y_valid, Y_valid_pred,squared=False))
 
 '''
 

@@ -16,13 +16,17 @@ simplefilter(action='ignore', category=FutureWarning)
 
 def main():
     do_correlation = True
-    nmodels = 64 
-    nsamples = 100 # eventually 500
+    usealltrain = True
+    nmodels = 32 # It's looking like 24 or 32 models and 300 samples is good with an elitism of .125 this means we are averaging 4 model results
+    # but, the number of models doesn't hurt the latency in FPGA, so nsamples 300 and data set large enough for at least 24 models
+    nsamples = 300 # eventually 500
     printascii = False
     taylor_order = 4
     maternnu_tof = 1.5
     maternnu_pos = 1.5
     binslatency = np.logspace(-1,2.7,200)
+    elitism = 0.125
+
 
     #./data_ave/ind_25-plate_tune_grid_Range_*/analyzed_data.hdf5
     m = re.match('(.*)/(ind.*/)analyzed_data.hdf5',sys.argv[-1])
@@ -39,6 +43,10 @@ def main():
     print("data loaded\tcontinuing to fitting")
 
     X_train,X_test,X_valid,X_oob,Y_train,Y_test,Y_valid,Y_oob = DataUtils.katiesplit(X_all,Y_all)
+
+    if usealltrain:
+        nmodels = X_train.shape[0]//nsamples
+        print('\t\t========= Using %i models in GP e2tof ensemble ===========\n')
 
     if m:
         modelsfolder = '%s/ensembletests%imodels%isamples'%(m.group(1),nmodels,nsamples)
@@ -155,19 +163,19 @@ def main():
 
 
     stime = time.time()
-    Y_oob_pred_tof,Y_oob_std_tof,Y_oob_std_hist_tof = PerturbativeUtils.ensemble_vote_tof(X_oob,gp_tof_models,model1_tof=perturb_tof,featurefunc=PerturbativeUtils.featurizeX_taylor,ntaylor=taylor_order,model0=lin_tof,elitism = 0.2)
+    Y_oob_pred_tof,Y_oob_std_tof,Y_oob_std_hist_tof = PerturbativeUtils.ensemble_vote_tof(X_oob,gp_tof_models,model1_tof=perturb_tof,featurefunc=PerturbativeUtils.featurizeX_taylor,ntaylor=taylor_order,model0=lin_tof,elitism = elitism)
     tof_latency = (time.time() - stime)*1e6/float(X_oob.shape[0])
     headstring = '%i ensembles tof latency = %i\n#tof_std_bins\tmodel1\t...\tmodeln\tbesteach\tworsteach'%(nmodels,int(tof_latency))
     np.savetxt('%s/std_hist_tof.matern-nu%.1f.nsamples%i.taylororder%i.dat'%(m.group(1),maternnu_tof,nsamples,taylor_order),Y_oob_std_hist_tof)
 
     stime = time.time()
-    Y_oob_pred_pos,Y_oob_std_pos,Y_oob_std_hist_pos = PerturbativeUtils.ensemble_vote_pos(X_oob,gp_pos_models,model1_pos=perturb_pos,featurefunc=PerturbativeUtils.featurizeX_taylor,ntaylor=taylor_order,elitism=0.2)
-    tof_latency = (time.time() - stime)*1e6/float(X_oob.shape[0])
-    headstring = '%i ensembles tof latency = %i\n#pos_std_bins\tmodel1\t...\tmodeln\tbesteach\tworsteach'%(nmodels,int(tof_latency))
+    Y_oob_pred_pos,Y_oob_std_pos,Y_oob_std_hist_pos = PerturbativeUtils.ensemble_vote_pos(X_oob,gp_pos_models,model1_pos=perturb_pos,featurefunc=PerturbativeUtils.featurizeX_taylor,ntaylor=taylor_order,elitism=elitism)
+    pos_latency = (time.time() - stime)*1e6/float(X_oob.shape[0])
+    headstring = '%i ensembles pos latency = %i\n#pos_std_bins\tmodel1\t...\tmodeln\tbesteach\tworsteach'%(nmodels,int(pos_latency))
     np.savetxt('%s/std_hist_pos.matern-nu%.1f.nsamples%i.taylororder%i.dat'%(m.group(1),maternnu_pos,nsamples,taylor_order),Y_oob_std_hist_pos)
 
-    print('GP score (out-of-bag) tof with voting: ',  metrics.r2_score(Y_oob[:,0],Y_oob_pred_tof))
-    print('GP score (out-of-bag) pos with voting: ',  metrics.r2_score(Y_oob[:,1],Y_oob_pred_pos))
+    print('GP rmse (out-of-bag) log(tof) with voting: ',  metrics.mean_squared_error(Y_oob[:,0],Y_oob_pred_tof,squared=False))
+    print('GP rmse (out-of-bag) pos with voting: ',  metrics.mean_squared_error(Y_oob[:,1],Y_oob_pred_pos,squared=False))
 
     Y_oob_result = np.column_stack((Y_oob_pred_tof,Y_oob_pred_pos)).copy()
     Y_oob_result_std = np.column_stack((Y_oob_std_tof,Y_oob_std_pos)).copy()
@@ -183,7 +191,10 @@ def main():
     X_oob[:,1] = np.exp(X_oob[:,1])
     Y_oob[:,0] = np.exp(Y_oob[:,0])
     Y_oob_result[:,0] = np.exp(Y_oob_result[:,0])
-    print('GP score (out-of-bag) tof with voting in ns: ',  metrics.r2_score(Y_oob[:,0],Y_oob_result[:,0]))
+    tof_score = metrics.mean_squared_error(Y_oob[:,0],Y_oob_result[:,0],squared=False)
+    pos_score = metrics.mean_squared_error(Y_oob[:,1],Y_oob_result[:,1],squared=False)
+    print('GP rmse (out-of-bag) tof with voting in ns: ',  metrics.mean_squared_error(Y_oob[:,0],Y_oob_result[:,0],squared=False))
+    print('GP rmse (out-of-bag) pos with voting in m: ',  metrics.mean_squared_error(Y_oob[:,1],Y_oob_result[:,1],squared=False))
     headstring = '%i ensembles tof latency = %i\n#X_oob\tY_oob\tY_pred\tY_std'%(nmodels,int(tof_latency))
     np.savetxt('%s/tof_pos_pred_eV_ns.tofmaternnu%.1f.posmaternnu%.1f.nsamples%i.taylororder%i.dat'%(m.group(1),maternnu_tof,maternnu_pos,nsamples,taylor_order),
             np.column_stack((X_oob,
@@ -198,11 +209,40 @@ def main():
         np.savetxt('%s/test_GPperturb.dat'%(m.group(1)),np.column_stack((Xscaler.inverse_transform(X_test),Yscaler.inverse_transform(Y_test),Y_test_pred_collect)),header=headstring)
         np.savetxt('%s/valid_GPperturb.dat'%(m.group(1)),np.column_stack((Xscaler.inverse_transform(X_valid),Yscaler.inverse_transform(Y_valid),Y_valid_pred_collect)),header=headstring)
 
+    fname = 'performanceVparams.dat'
+    f = open(fname,'a')
+    outrowstring = '#nsamples\tnmodels\ttaylor_order\telitism\ttof_latency\tpos_latency\ttof_score\tpos_score\n'
+    outrowstring += '%i\t%i\t%i\t%.2f\t%.1f\t%.1f\t%.3f\t%.3f'%(nsamples,nmodels,taylor_order,elitism,tof_latency,pos_latency,tof_score,pos_score)
+    print(outrowstring,file=f)
+    f.close()
 
 
     print('\n\n\t\t==============\tNow moving onto inverse problem\t=================\n\n')
+    print('Reminder, \nX columns are:\tVret[V]\tEkin[eV]\tangle[deg]\nY columns are:\ttof[ns]\tpos[mm]\n\t... so add noise in real units, then go back to logarithmic space for Vret, Ekin, and tof\n\t... and of course flip the relationship of X to Y for inverse prediction\n\tUsing X_oob/Y_oob as training without noise, and then will add noise in the forward -- backward case.')
 
+    t_resolution = 0.125 # in nanoseconds
 
+    # + np.random.normal(loc=0,scale=t_resolution,size=Y_oob.shape)) don't train with noise, add it later
+    X_inv = np.column_stack(( np.log(X_oob[:,0]) , np.log(Y_oob[:,0]) )) #log(Vret [V]) \t log(tof [ns])
+    Y_inv = np.log(X_oob[:,1]) # energy is the Y value desired # log(Ekin [eV])
+
+    X_inv,Y_inv,X_inv_scaler,Y_inv_scaler = DataUtils.scaledata(X_inv,Y_inv)
+    X_inv_train,X_inv_test,Y_inv_train,Y_inv_test = DataUtils.reservesplit(X_inv,Y_inv,reserve = .2)
+       
+    
+    fname_t2e_model,t2e_model = PerturbativeUtils.fit_taylor(X_inv_train,Y_inv_train,featurefunc=PerturbativeUtils.featurizeX_taylor,ntaylor=2,modelfolder=modelsfolder)
+    Y_inv_pred = PerturbativeUtils.inference_taylor(X_inv_test,t2e_model,featurefunc=PerturbativeUtils.featurizeX_taylor,ntaylor=2)
+    
+    out_backinference = np.column_stack((
+        X_inv_scaler.inverse_transform(X_inv_test),
+        Y_inv_scaler.inverse_transform(Y_inv_test),
+        Y_inv_scaler.inverse_transform(Y_inv_pred)
+        ))
+    out_backinference = np.exp(out_backinference)
+
+    if printascii and m:
+        headstring = 'vsetting[V]\ttof[ns]\ten[eV]\tpred(en)[eV]'
+        np.savetxt('%s/test_backinference.dat'%(m.group(1)),out_backinference,header=headstring)
 
     return
 
