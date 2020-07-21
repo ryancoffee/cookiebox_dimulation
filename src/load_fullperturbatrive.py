@@ -3,6 +3,7 @@
 import time
 import numpy as np
 import sys
+import os
 import joblib
 import re
 
@@ -50,6 +51,8 @@ def main():
 
     if m:
         modelsfolder = '%s/ensembletests%imodels%isamples'%(m.group(1),nmodels,nsamples)
+        if not os.path.exists(modelsfolder):
+            os.makedirs(modelsfolder)
         np.savetxt('%s/train_transformed.dat'%(m.group(1)),np.column_stack((X_train,Y_train)))
         np.savetxt('%s/oob_transformed.dat'%(m.group(1)),np.column_stack((X_oob,Y_oob)))
 
