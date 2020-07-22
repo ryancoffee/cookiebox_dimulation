@@ -66,6 +66,69 @@ def fit_taylor_perturbative(x,y,featurefunc,model0,ntaylor,modelfolder):
     joblib.dump(perturbmodel_pos,fname_perturbmodel_pos)
     return fname_perturbmodel_tof,perturbmodel_tof,fname_perturbmodel_pos,perturbmodel_pos
 
+def ensemble_vote_t2e(x,gp_t2e_models,theta_model0,elitism = 0.2):
+    print("ensembling t2e")
+    nmodels = len(gp_t2e_models)
+    y_pred = np.zeros(x.shape[0])
+    y_std = np.zeros(x.shape[0])
+    y_pred_0 = DataUtils.prependOnesToX(x.copy()).dot(theta_model0)
+    y_pred_array = np.zeros((x.shape[0],nmodels),dtype=float)
+    y_std_array = np.zeros((x.shape[0],nmodels),dtype=float)
+    nhistbins = 100
+    histbins = np.logspace(-6,-1,nhistbins)
+    y_std_hist_array = np.zeros((nhistbins-1,nmodels+1),dtype=float)
+    for i in range(nmodels):
+        gp_t2e_model = gp_t2e_models[i]
+        y_pred,y_std = gp_t2e_model.predict(x,return_std=True)
+        y_pred_array[:,i] = y_pred.copy().reshape(-1)
+        y_std_array[:,i] = y_std.copy().reshape(-1)
+        h,b = np.histogram(y_std_array[:,i],histbins)
+        if i==0:
+            y_std_hist_array[:,i] = histbins[:-1]
+        y_std_hist_array[:,i+1] = h
+
+    y_pred = np.zeros(x.shape[0])
+    y_std = np.zeros(x.shape[0])
+    naverage = int(elitism*nmodels)
+    srtinds = np.argsort(y_std_array,axis=1)
+    y_pred_array = np.take_along_axis(y_pred_array, srtinds, axis=1)
+    y_std_array = np.take_along_axis(y_std_array, srtinds, axis=1)
+    y_pred = np.sum(y_pred_array[:,:naverage],axis=1)/float(naverage)
+    y_std = np.sum(y_std_array[:,:naverage],axis=1)/float(naverage)
+    h,b = np.histogram(y_std,histbins)
+    y_std_hist_array = np.column_stack((y_std_hist_array,h))
+
+    out = y_pred.copy() + y_pred_0.reshape(-1)
+
+    return out,y_std.copy(),y_std_hist_array
+
+def fit_gp_t2e_ensemble(x,y,maternnu,theta_model0,modelfolder,nmodels=8,nsamples=100):
+
+    stime = time.time()
+    kern = 1.**2 * Matern(
+            length_scale=np.ones(x.shape[1],dtype=float)
+            ,length_scale_bounds=(1e-5,100)
+            ,nu=maternnu
+            )
+
+    model_gp = GaussianProcessRegressor(kernel=kern, alpha=0, normalize_y=True, n_restarts_optimizer = 2)
+
+    fname_list_gp = []
+    if (nsamples * nmodels)>x.shape[0]:
+        nsamples = x.shape[0]//nmodels
+    for i in range(nmodels):
+        model_gp.fit(x[i*nsamples:(i+1)*nsamples,:], 
+                y[i*nsamples:(i+1)*nsamples,0].copy().reshape(-1,1)
+                - DataUtils.prependOnesToX(x[i*nsamples:(i+1)*nsamples,:].copy()).dot(theta_model0)
+                )
+        print("Time for pertubative GP model fitting: %.3f" % (time.time() - stime))
+        print("kernel = %s"%model_gp.kernel_)
+        print("kernel Log-marginal-likelihood: %.3f" % model_gp.log_marginal_likelihood(model_gp.kernel_.theta))
+        fname_list_gp += ['%s/gp_model_tof_%s_%i.sav'%(modelfolder,time.strftime('%Y.%m.%d.%H.%M'),i)]
+        joblib.dump(model_gp,fname_list_gp[i])
+    print("Total time for pertubative GP model ensemble fitting: %.3f" % (time.time() - stime))
+    return fname_list_gp
+
 def fit_gp_perturbative_ensemble(x,y,maternnu_tof,maternnu_pos,model1_tof,model1_pos,featurefunc,ntaylor,model0,modelfolder,nmodels=8,nsamples=100):
     fname_lin_tof = '%s/lin_tof-%s'%(modelfolder,time.strftime('%Y.%m.%d.%H.%M'))
     fname_taylor_tof = '%s/taylor_tof-%s'%(modelfolder,time.strftime('%Y.%m.%d.%H.%M'))

@@ -65,12 +65,11 @@ def loadT2Edata():
         print("syntax: %s <datafile>"%(sys.argv[0]) )
         return x_all,y_all
 
-    #for fname in sys.argv[1:]:
-    if True:# bypassing multiple retardation files
-        print('bypassing multiple retardation files')
-        fname = sys.argv[1]
+    for fname in sys.argv[1:]:
+    #if True:# bypassing multiple retardation files
+        #print('bypassing multiple retardation files')
+        #fname = sys.argv[1]
         f = h5py.File(fname,'r') #  IMORTANT NOTE: it looks like some h5py builds have a resouce lock that prevents easy parallelization... tread lightly and load files sequentially for now.
-        #for vsetting in list(f.keys())[3:-2]: # restricting to only the closest couple vsettings to optimal... correction, now only the central (optimal) one, but for each 'logos'
         if True: #bypassing the for loop on vsetting
             print('bypassing the for loop on vsetting')
             vsetting = list(f.keys())[3]
@@ -87,7 +86,7 @@ def loadT2Edata():
 
             # range of good splat[x] 182.5 187
             # for the back transform, using only the central 27mm diameter
-            validinds = np.where((xsplat>182.5) * (xsplat<187) * (emat>5) * (abs(ydata)<.0135) )
+            validinds = np.where((xsplat>182.5) * (xsplat<187) * (emat>0) * (abs(ydata)<.0135) )
             nfeatures = 2
             ntruths = 1
             featuresvec = np.zeros((len(xsplat[validinds]),nfeatures),dtype=float)
@@ -146,6 +145,13 @@ def loaddata():
                 x_all = np.row_stack((x_all,featuresvec))
                 y_all = np.row_stack((y_all,truthsvec))
     return np.array(x_all),np.array(y_all)
+
+def minmaxscaledata(x,y,feature_range = (1,3)):
+    Xscaler = preprocessing.MinMaxScaler(copy=False,feature_range = feature_range).fit(x)
+    Yscaler = preprocessing.MinMaxScaler(copy=False,feature_range = feature_range).fit(y.reshape(-1,1))
+    x = Xscaler.transform(x)
+    y = Yscaler.transform(y.reshape(-1,1))
+    return x,y,Xscaler,Yscaler
 
 def scaledata(x,y):
     Xscaler = preprocessing.StandardScaler(copy=False).fit(x)

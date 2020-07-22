@@ -166,6 +166,27 @@ set psdir
 set fit brief errorvariables nocovariancevariables errorscaling prescale nowrap v5
 GNUTERM = "qt"
 file = "data_ave/backinference/testpseudoinv.dat"
+set term png size 800,600
+set output 'figs/plotting.backinference.energy.png'
 ## Last datafile plotted: "data_ave/backinference/testpseudoinv.dat"
-plot file u (exp($2)):(exp($12)-exp($11))
+set multiplot
+set size 1,.5
+set origin 0,.5
+set log 
+set grid xtics ytics mxtics
+set xrange [.1:1e3]
+set key top left
+set pointsize .5
+set lmargin screen .15
+set rmargin screen .9
+set xlabel 'truth energy [eV]'
+set ylabel 'predicted energy [eV]'
+plot file u (exp($1)):(exp($2)) pt 7 title 'truth',\
+	file u (exp($1)):(exp($2)) pt 7 title 'prediction'
+set origin 0,0
+unset log y
+set yrange [-.5:.5]
+set ylabel 'residual [eV]'
+plot file u (exp($1)):(exp($2)-exp($1)):(exp($3)) palette pt 7 title 'residuals'
+unset multiplot
 #    EOF
