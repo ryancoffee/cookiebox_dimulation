@@ -54,9 +54,53 @@ def katiesplit(x,y):
     return (x_train,x_test,x_validate,x_oob,y_train,y_test,y_validate,y_oob)
 
 
+def loadT2Edata_tixel():
+    x_all = []
+    y_all = []
+    if len(sys.argv) < 2:
+        print("syntax: %s <datafile>"%(sys.argv[0]) )
+        return x_all,y_all
+
+    for fname in sys.argv[1:]:
+        f = h5py.File(fname,'r') #  IMORTANT NOTE: it looks like some h5py builds have a resouce lock that prevents easy parallelization... tread lightly and load files sequentially for now.
+        if True: #bypassing the for loop on vsetting
+            print('bypassing the for loop on vsetting')
+            vsetting = list(f.keys())[3]
+        #for vsetting in list(f.keys()): # restricting to only the closest couple vsettings to optimal... correction, now only the central (optimal) one, but for each 'logos'
+            elist = list(f[vsetting]['energy'])
+            alist = list(f[vsetting]['angle'])
+            amat = np.tile(alist,(len(elist),1)).flatten()
+            emat = np.tile(elist,(len(alist),1)).T.flatten()
+            tdata = f[vsetting]['t_offset'][()].flatten()
+            ydata = f[vsetting]['y_detector'][()].flatten()
+            xsplat = f[vsetting]['splat']['x'][()].flatten()
+            vset = f[vsetting][ list(f[vsetting].keys())[0] ][-1][1] # eventually, extract the whole voltage vector as a feature vector for use in GP inference
+            vsetvec = np.ones(xsplat.shape,dtype=float)*vset
+            
+            # range of good splat[x] 182.5 187
+            # for the back transform, using only the central 27mm diameter
+            validinds = np.where((xsplat>182.5) * (xsplat<187) * (emat>0) * (abs(ydata)<.0135) )
+            nfeatures = 2
+            ntruths = 1
+            featuresvec = np.zeros((len(xsplat[validinds]),nfeatures),dtype=float)
+            truthsvec = np.zeros((len(xsplat[validinds]),ntruths),dtype=float)
+            #featuresvec[:,0] = np.log(-1.*vsetvec[validinds])
+            featuresvec[:,0] = np.log(tdata[validinds])
+            featuresvec[:,1] = ydata[validinds]
+            truthsvec[:,0] = np.log(emat[validinds])
+            
+            if len(x_all)<1:
+                x_all = featuresvec.copy()
+                y_all = truthsvec.copy()
+            else:
+                x_all = np.row_stack((x_all,featuresvec))
+                y_all = np.row_stack((y_all,truthsvec))
+    return np.array(x_all),np.array(y_all)
+
 def loadT2Escaledata():
     x_all,y_all = loadT2Edata()
     return scaledata(x_all,y_all)
+
 
 def loadT2Edata():
     x_all = []
@@ -87,12 +131,12 @@ def loadT2Edata():
             # range of good splat[x] 182.5 187
             # for the back transform, using only the central 27mm diameter
             validinds = np.where((xsplat>182.5) * (xsplat<187) * (emat>0) * (abs(ydata)<.0135) )
-            nfeatures = 2
+            nfeatures = 1
             ntruths = 1
             featuresvec = np.zeros((len(xsplat[validinds]),nfeatures),dtype=float)
             truthsvec = np.zeros((len(xsplat[validinds]),ntruths),dtype=float)
-            featuresvec[:,0] = np.log(-1.*vsetvec[validinds])
-            featuresvec[:,1] = np.log(tdata[validinds])
+            #featuresvec[:,0] = np.log(-1.*vsetvec[validinds])
+            featuresvec[:,0] = np.log(tdata[validinds])
             truthsvec[:,0] = np.log(emat[validinds])
             
             if len(x_all)<1:

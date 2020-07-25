@@ -116,6 +116,7 @@ def fit_gp_t2e_ensemble(x,y,maternnu,theta_model0,modelfolder,nmodels=8,nsamples
     fname_list_gp = []
     if (nsamples * nmodels)>x.shape[0]:
         nsamples = x.shape[0]//nmodels
+        print('reducing the number of samples for ensemble to %i'%(nsamples))
     for i in range(nmodels):
         model_gp.fit(x[i*nsamples:(i+1)*nsamples,:], 
                 y[i*nsamples:(i+1)*nsamples,0].copy().reshape(-1,1)

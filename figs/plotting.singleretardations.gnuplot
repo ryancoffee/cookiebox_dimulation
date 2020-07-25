@@ -165,39 +165,63 @@ set fontpath
 set psdir
 set fit brief errorvariables nocovariancevariables errorscaling prescale nowrap v5
 GNUTERM = "qt"
-hist_NM = "data_ave_NMopt/backinference_ret9/backinfer.hist.dat"
+hist_NM = "data_ave_NMopt/backinference_9/backinfer.hist.dat"
 hist_1ovrR = "data_ave_1ovrR/backinference_ret9/backinfer.hist.dat"
 hist_NM_tix = "data_ave_NMopt/backinference_tixel_ret9/backinfer.hist.dat"
 hist_1ovrR_tix = "data_ave_1ovrR/backinference_tixel_ret9/backinfer.hist.dat"
 hist_NM_sipm = "data_ave_NMopt/backinference_SiPM_ret9/backinfer.hist.dat"
 hist_1ovrR_sipm = "data_ave_1ovrR/backinference_SiPM_ret9/backinfer.hist.dat"
+hist_NM(x) = sprintf('data_ave_NMopt/backinference_logos_%i/backinfer.hist.dat',x)
+hist_1ovrR(x) = sprintf('data_ave_1ovrR/backinference_logos_1ovrR_%i/backinfer.hist.dat',x)
 x = 0.0
 ## Last datafile plotted: "data_ave/backinference/backinfer.hist.dat"
-set term png size 1600,1200
-set output 'figs/plotting.residual.hist.ret9.png'
+set term png size 2000,1200
+set output 'figs/plotting.residual.hist.png'
 set log cb
 set cbrange [1e-4:1]
 set yrange [0:100]
 set xrange [-.25:.25]
 set multiplot
-set size .33,.5
-set origin 0,.5
-set title 'Nelder-Mead w/ MCP'
-splot hist_NM mat u (($1/40. - 1.)*.25):($2/50*256):3 notitle
-set origin 0,0
-set title '1/R potential w/ MCP'
-splot hist_1ovrR mat u (($1/40. -1.)*.25):($2/50*256):3 notitle
-set origin 0.33,0
-set title '1/R potential w/ Tixel'
-splot hist_1ovrR_tix mat u (($1/40. - 1.)*.25):($2/50*256):3 notitle
-set origin 0.33,.5
-set title 'Nelder-Mead w/ Tixel'
-splot hist_NM_tix mat u (($1/40. - 1.)*.25):($2/50*256):3 notitle
-set origin 0.66,.5
-set title 'Nelder-Mead w/ SiPM'
-splot hist_NM_sipm mat u (($1/40. - 1.)*.25):($2/50*256):3 notitle
-set origin 0.66,0
-set title '1/R potential w/ SiPM'
-splot hist_1ovrR_sipm mat u (($1/40. - 1.)*.25):($2/50*256):3 notitle
+set size .2,.5
+ret = 0
+set title sprintf('NM retardation %i',ret)
+set origin 0.2*ret,0.5
+splot hist_NM(ret) mat u (($1/40. - 1.)*.25):($2/50*256):3 notitle
+ret = 1
+set title sprintf('NM retardation %i',ret)
+set origin 0.2*ret,0.5
+splot hist_NM(ret) mat u (($1/40. - 1.)*.25):($2/50*256):3 notitle
+ret = 2
+set title sprintf('NM retardation %i',ret)
+set origin 0.2*ret,0.5
+splot hist_NM(ret) mat u (($1/40. - 1.)*.25):($2/50*256):3 notitle
+ret = 3
+set title sprintf('NM retardation %i',ret)
+set origin 0.2*ret,0.5
+splot hist_NM(ret) mat u (($1/40. - 1.)*.25):($2/50*256):3 notitle
+ret = 4
+set title sprintf('NM retardation %i',ret)
+set origin 0.2*ret,0.5
+splot hist_NM(ret) mat u (($1/40. - 1.)*.25):($2/50*256):3 notitle
+ret = 5
+set title sprintf('NM retardation %i',ret)
+set origin 0.2*(ret-5),0.
+splot hist_NM(ret) mat u (($1/40. - 1.)*.25):($2/50*256):3 notitle
+ret = 6
+set title sprintf('NM retardation %i',ret)
+set origin 0.2*(ret-5),0.
+splot hist_NM(ret) mat u (($1/40. - 1.)*.25):($2/50*256):3 notitle
+ret = 7
+set title sprintf('NM retardation %i',ret)
+set origin 0.2*(ret-5),0.
+splot hist_NM(ret) mat u (($1/40. - 1.)*.25):($2/50*256):3 notitle
+ret = 8
+set title sprintf('NM retardation %i',ret)
+set origin 0.2*(ret-5),0.
+splot hist_NM(ret) mat u (($1/40. - 1.)*.25):($2/50*256):3 notitle
+ret = 9
+set title sprintf('NM retardation %i',ret)
+set origin 0.2*(ret-5),0.
+splot hist_NM(ret) mat u (($1/40. - 1.)*.25):($2/50*256):3 notitle
 unset multiplot
 #    EOF
