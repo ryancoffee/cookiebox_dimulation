@@ -158,7 +158,9 @@ def loaddata():
 
     for fname in sys.argv[1:]:
         f = h5py.File(fname,'r') #  IMORTANT NOTE: it looks like some h5py builds have a resouce lock that prevents easy parallelization... tread lightly and load files sequentially for now.
-        for vsetting in list(f.keys())[3]: # restricting to only the closest vsettings to optimal... correction, now only the central (optimal) one, but for each 'logos'
+        #for vsetting in list(f.keys())[3]: # restricting to only the closest vsettings to optimal... correction, now only the central (optimal) one, but for each 'logos'
+        if True:
+            vsetting = list(f.keys())[3]
         #for vsetting in list(f.keys()): # restricting to only the closest couple vsettings to optimal... correction, now only the central (optimal) one, but for each 'logos'
             elist = list(f[vsetting]['energy'])
             alist = list(f[vsetting]['angle'])

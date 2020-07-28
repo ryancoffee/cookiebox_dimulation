@@ -90,3 +90,15 @@
 300	43	4	0.12	487.0	486.0	0.066	0.242
 #nsamples	nmodels	taylor_order	elitism	tof_latency	pos_latency	tof_score	pos_score
 300	43	4	0.12	486.7	486.3	0.041	0.266
+#nsamples	nmodels	taylor_order	elitism	tof_latency	pos_latency	tof_score	pos_score
+300	43	4	0.50	484.9	485.3	0.127	0.232
+#nsamples	nmodels	taylor_order	elitism	tof_latency	pos_latency	tof_score	pos_score
+300	43	4	0.25	484.2	484.2	0.062	0.231
+#nsamples	nmodels	taylor_order	elitism	tof_latency	pos_latency	tof_score	pos_score
+500	26	4	0.50	529.5	529.7	0.073	0.226
+#nsamples	nmodels	taylor_order	elitism	tof_latency	pos_latency	tof_score	pos_score
+500	26	4	0.50	529.2	528.9	0.070	0.230
+#nsamples	nmodels	taylor_order	elitism	tof_latency	pos_latency	tof_score	pos_score
+500	26	4	0.50	530.1	530.4	0.088	0.221
+#nsamples	nmodels	taylor_order	elitism	tof_latency	pos_latency	tof_score	pos_score
+500	76	4	0.50	1669.2	1669.4	0.059	0.217

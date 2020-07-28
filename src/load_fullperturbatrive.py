@@ -20,19 +20,21 @@ def main():
     usealltrain = True
     nmodels = 32 # It's looking like 24 or 32 models and 300 samples is good with an elitism of .125 this means we are averaging 4 model results
     # but, the number of models doesn't hurt the latency in FPGA, so nsamples 300 and data set large enough for at least 24 models
-    nsamples = 300 # eventually 500
+    nsamples = 500 # eventually 500
     printascii = False
     taylor_order = 4
     maternnu_tof = 1.5
     maternnu_pos = 1.5
     binslatency = np.logspace(-1,2.7,200)
-    elitism = 0.125
+    elitism = 0.5
 
 
     #./data_ave/ind_25-plate_tune_grid_Range_*/analyzed_data.hdf5
-    m = re.match('(.*)/(ind.*/)analyzed_data.hdf5',sys.argv[-1])
+    m = re.match('(.*)/(ind.*(logos_.*)/)analyzed_data.hdf5',sys.argv[-1])
+    if not m:
+        print('syntax: ./src/load_full_perturbatrive.py <./data_ave/ind_25-plate_tune_grid_Range_*/analyzed_data.hdf5> ')
+        return
 
-    modelsfolder = './ensembletests%imodels%isamples'%(nmodels,nsamples)
 
     X_all = []
     Y_all = []
@@ -43,28 +45,31 @@ def main():
         return
     print("data loaded\tcontinuing to fitting")
 
-    X_train,X_test,X_valid,X_oob,Y_train,Y_test,Y_valid,Y_oob = DataUtils.katiesplit(X_all,Y_all)
+    #X_train,X_test,X_valid,X_oob,Y_train,Y_test,Y_valid,Y_oob = DataUtils.katiesplit(X_all,Y_all)
+    X_train,X_test,Y_train,Y_test = DataUtils.reservesplit(X_all,Y_all,reserve = .1)
+    X_train,X_valid,Y_train,Y_valid = DataUtils.reservesplit(X_train,Y_train,reserve = .1)
+    X_train,X_oob,Y_train,Y_oob = DataUtils.reservesplit(X_train,Y_train,reserve = .1)
 
     if usealltrain:
         nmodels = X_train.shape[0]//nsamples
-        print('\t\t========= Using %i models in GP e2tof ensemble ===========\n')
+        print('\t\t========= Using %i models in GP e2tof ensemble ===========\n'%(nmodels))
 
-    if m:
+    modelsfolder = '%s/ensembletests%imodels%isamples'%(m.group(1),nmodels,nsamples)
+    if not os.path.exists(modelsfolder):
+        os.makedirs(modelsfolder)
         modelsfolder = '%s/ensembletests%imodels%isamples'%(m.group(1),nmodels,nsamples)
-        if not os.path.exists(modelsfolder):
-            os.makedirs(modelsfolder)
-        np.savetxt('%s/train_transformed.dat'%(m.group(1)),np.column_stack((X_train,Y_train)))
-        np.savetxt('%s/oob_transformed.dat'%(m.group(1)),np.column_stack((X_oob,Y_oob)))
+    np.savetxt('%s/train_transformed.dat'%(m.group(1)),np.column_stack((X_train,Y_train)))
+    np.savetxt('%s/oob_transformed.dat'%(m.group(1)),np.column_stack((X_oob,Y_oob)))
+    fname_Xscaler = '%s/Xscaler_%s.sav'%(modelsfolder,time.strftime('%Y.%m.%d.%H.%M'))
+    fname_Yscaler = '%s/Yscaler_%s.sav'%(modelsfolder,time.strftime('%Y.%m.%d.%H.%M'))
+    joblib.dump(Xscaler,fname_Xscaler)
+    joblib.dump(Yscaler,fname_Yscaler)
 
-        if do_correlation:
-            print('doing correlation')
-            outname = '%s/X_Y_featurecorr.dat'%(m.group(1))
-            if not DataUtils.crosscorrelation(outname,X_all,Y_all):
-                print('Failed crosscorrelation somehow')
-                return
-    else:
-        print('Going to fail model saving/recalling')
-        return
+    if do_correlation:
+        print('doing correlation')
+        outname = '%s/X_Y_featurecorr.dat'%(m.group(1))
+        if not DataUtils.crosscorrelation(outname,X_all,Y_all):
+            print('Failed crosscorrelation somehow')
 
 
     print('Reserving X_oob/Y_oob for ensemble testing')
@@ -88,7 +93,7 @@ def main():
             featurefunc=PerturbativeUtils.featurizeX_taylor,
             ntaylor=taylor_order,
             model0=lin_tof,
-            modelfolder='%s/models'%m.group(1))
+            modelfolder=modelsfolder)
 
     # passing the models, not the filenames
     PerturbativeUtils.validate_perturb_tof(X_test,Y_test,model=perturb_tof,featurefunc=PerturbativeUtils.featurizeX_taylor,ntaylor=taylor_order,model0=lin_tof)
@@ -177,8 +182,8 @@ def main():
     headstring = '%i ensembles pos latency = %i\n#pos_std_bins\tmodel1\t...\tmodeln\tbesteach\tworsteach'%(nmodels,int(pos_latency))
     np.savetxt('%s/std_hist_pos.matern-nu%.1f.nsamples%i.taylororder%i.dat'%(m.group(1),maternnu_pos,nsamples,taylor_order),Y_oob_std_hist_pos)
 
-    print('GP rmse (out-of-bag) log(tof) with voting: ',  metrics.mean_squared_error(Y_oob[:,0],Y_oob_pred_tof,squared=False))
-    print('GP rmse (out-of-bag) pos with voting: ',  metrics.mean_squared_error(Y_oob[:,1],Y_oob_pred_pos,squared=False))
+    print('GP rmse (out-of-bag) log(tof) with voting (before Ysacaler.inverse_transform()): ',  metrics.mean_squared_error(Y_oob[:,0],Y_oob_pred_tof,squared=False))
+    print('GP rmse (out-of-bag) pos with voting (before Ysacaler.inverse_transform()): ',  metrics.mean_squared_error(Y_oob[:,1],Y_oob_pred_pos,squared=False))
 
     Y_oob_result = np.column_stack((Y_oob_pred_tof,Y_oob_pred_pos)).copy()
     Y_oob_result_std = np.column_stack((Y_oob_std_tof,Y_oob_std_pos)).copy()
@@ -197,7 +202,7 @@ def main():
     tof_score = metrics.mean_squared_error(Y_oob[:,0],Y_oob_result[:,0],squared=False)
     pos_score = metrics.mean_squared_error(Y_oob[:,1],Y_oob_result[:,1],squared=False)
     print('GP rmse (out-of-bag) tof with voting in ns: ',  metrics.mean_squared_error(Y_oob[:,0],Y_oob_result[:,0],squared=False))
-    print('GP rmse (out-of-bag) pos with voting in m: ',  metrics.mean_squared_error(Y_oob[:,1],Y_oob_result[:,1],squared=False))
+    print('GP rmse (out-of-bag) pos with voting in mm: ',  metrics.mean_squared_error(Y_oob[:,1],Y_oob_result[:,1],squared=False))
     headstring = '%i ensembles tof latency = %i\n#X_oob\tY_oob\tY_pred\tY_std'%(nmodels,int(tof_latency))
     np.savetxt('%s/tof_pos_pred_eV_ns.tofmaternnu%.1f.posmaternnu%.1f.nsamples%i.taylororder%i.dat'%(m.group(1),maternnu_tof,maternnu_pos,nsamples,taylor_order),
             np.column_stack((X_oob,
@@ -218,37 +223,6 @@ def main():
     outrowstring += '%i\t%i\t%i\t%.2f\t%.1f\t%.1f\t%.3f\t%.3f'%(nsamples,nmodels,taylor_order,elitism,tof_latency,pos_latency,tof_score,pos_score)
     print(outrowstring,file=f)
     f.close()
-
-
-    print('\n\n\t\t==============\tNow moving onto inverse problem\t=================\n\n')
-    print('Reminder, \nX columns are:\tVret[V]\tEkin[eV]\tangle[deg]\nY columns are:\ttof[ns]\tpos[mm]\n\t... so add noise in real units, then go back to logarithmic space for Vret, Ekin, and tof\n\t... and of course flip the relationship of X to Y for inverse prediction\n\tUsing X_oob/Y_oob as training without noise, and then will add noise in the forward -- backward case.')
-
-    t_resolution = 0.125 # in nanoseconds
-
-    # + np.random.normal(loc=0,scale=t_resolution,size=Y_oob.shape)) don't train with noise, add it later
-    X_inv = np.column_stack(( np.log(X_oob[:,0]) , np.log(Y_oob[:,0]) )) #log(Vret [V]) \t log(tof [ns])
-    Y_inv = np.log(X_oob[:,1]) # energy is the Y value desired # log(Ekin [eV])
-
-    X_inv,Y_inv,X_inv_scaler,Y_inv_scaler = DataUtils.scaledata(X_inv,Y_inv)
-    X_inv_train,X_inv_test,Y_inv_train,Y_inv_test = DataUtils.reservesplit(X_inv,Y_inv,reserve = .2)
-       
-    
-    fname_t2e_model,t2e_model = PerturbativeUtils.fit_taylor(X_inv_train,Y_inv_train,featurefunc=PerturbativeUtils.featurizeX_taylor,ntaylor=2,modelfolder=modelsfolder)
-    Y_inv_pred = PerturbativeUtils.inference_taylor(X_inv_test,t2e_model,featurefunc=PerturbativeUtils.featurizeX_taylor,ntaylor=2)
-    
-    out_backinference = np.column_stack((
-        X_inv_scaler.inverse_transform(X_inv_test),
-        Y_inv_scaler.inverse_transform(Y_inv_test),
-        Y_inv_scaler.inverse_transform(Y_inv_pred)
-        ))
-    out_backinference = np.exp(out_backinference)
-
-    if printascii and m:
-        headstring = 'vsetting[V]\ttof[ns]\ten[eV]\tpred(en)[eV]'
-        np.savetxt('%s/test_backinference.dat'%(m.group(1)),out_backinference,header=headstring)
-
-    return
-
 if __name__ == '__main__':
     main()
 

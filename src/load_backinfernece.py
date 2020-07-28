@@ -32,7 +32,7 @@ def main():
     #./data_ave/ind_25-plate_tune_grid_Range_*/analyzed_data.hdf5
     m = re.match('(.*)/(ind.*(logos_.*)/)analyzed_data.hdf5',sys.argv[-1])
     if not m:
-        print('syntax: ./src/load_backinference.py <./data_ave/ind_25-plate_tune_grid_Range_*/analyzed_data.hdf5> ')
+        print('syntax: ./src/load_backinference.py <./data_ave/ind_25-plate_tune_grid_Range_[only one of these]/analyzed_data.hdf5> ')
         return
 
     modelsfolder = '%s/backinference_%s'%(m.group(1),m.group(3))

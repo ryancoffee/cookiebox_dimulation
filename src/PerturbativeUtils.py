@@ -60,8 +60,8 @@ def fit_taylor_perturbative(x,y,featurefunc,model0,ntaylor,modelfolder):
     perturbmodel_tof = linear_model.LinearRegression().fit(x_f, y_tof_res)
     perturbmodel_pos = linear_model.LinearRegression().fit(x_f, y_pos)
     print("Time for pertubative linear model fitting: %.3f" % (time.time() - stime))
-    fname_perturbmodel_tof = '%s/perturb_taylor_model_tof_%s.sav'%(modelfolder,time.strftime('%Y.%m.%d.%H.%M'))
-    fname_perturbmodel_pos = '%s/perturb_taylor_model_pos_%s.sav'%(modelfolder,time.strftime('%Y.%m.%d.%H.%M'))
+    fname_perturbmodel_tof = '%s/perturb_taylor_model_tof.order%i_%s.sav'%(modelfolder,ntaylor,time.strftime('%Y.%m.%d.%H.%M'))
+    fname_perturbmodel_pos = '%s/perturb_taylor_model_pos.order%i_%s.sav'%(modelfolder,ntaylor,time.strftime('%Y.%m.%d.%H.%M'))
     joblib.dump(perturbmodel_tof,fname_perturbmodel_tof)
     joblib.dump(perturbmodel_pos,fname_perturbmodel_pos)
     return fname_perturbmodel_tof,perturbmodel_tof,fname_perturbmodel_pos,perturbmodel_pos
@@ -141,54 +141,18 @@ def fit_gp_perturbative_ensemble(x,y,maternnu_tof,maternnu_pos,model1_tof,model1
     x_f = featurefunc(x,n=ntaylor)
 
     stime = time.time()
-    '''
-    k1 = 1.0**2 * RBF(
-            length_scale=np.ones(x.shape[1],dtype=float)
-            ,length_scale_bounds=(1e-5,100)
-            ) 
-    '''
-    k2 = 1.**2 * Matern(
+    k_tof = 1.**2 * Matern(
             length_scale=np.ones(x.shape[1],dtype=float)
             ,length_scale_bounds=(1e-5,100)
             ,nu=maternnu_tof
             )
-    '''
-    k3 = 1.**2 * Matern(
-            length_scale=10*np.ones(x.shape[1],dtype=float)
-            ,length_scale_bounds=(1e-5,100)
-            ,nu=1.5
-            )
-    k2 = 1.0**2 * RationalQuadratic(
-            length_scale=1. 
-            ,alpha=0.1 
-            ,length_scale_bounds=(1e-5,20)
-            ) 
-
-    k3 = .5*2 * WhiteKernel(noise_level=0.01**2)  # noise terms
-    k4 = ConstantKernel(constant_value = .01 ) # constant shift
-
-    k1p = 0.05**2 * RBF(
-            length_scale=np.ones(x.shape[1],dtype=float)
-            ,length_scale_bounds=(1e-5,100)
-            ) 
-    '''
-    k2p = 1.**2 * Matern(
+    k_pos = 1.**2 * Matern(
             length_scale=np.ones(x.shape[1],dtype=float)
             ,length_scale_bounds=(1e-5,100)
             ,nu=maternnu_pos
             )
-    '''
-    k3p = 1.**2 * Matern(
-            length_scale=np.ones(x.shape[1],dtype=float)
-            ,length_scale_bounds=(1e-5,100)
-            ,nu=1.0
-            )
-    k3p = .5*2 * WhiteKernel(noise_level=0.01**2)  # noise terms
-    k4p = ConstantKernel(constant_value = .01 ) # constant shift
-    '''
-
-    kernel_gp_tof = k2 
-    kernel_gp_pos = k2p
+    kernel_gp_tof = k_tof 
+    kernel_gp_pos = k_pos
 
     tof_gp = GaussianProcessRegressor(kernel=kernel_gp_tof, alpha=0, normalize_y=True, n_restarts_optimizer = 2)
     pos_gp = GaussianProcessRegressor(kernel=kernel_gp_pos, alpha=0, normalize_y=True, n_restarts_optimizer = 2)
@@ -197,6 +161,7 @@ def fit_gp_perturbative_ensemble(x,y,maternnu_tof,maternnu_pos,model1_tof,model1
     if (nsamples * nmodels)>x.shape[0]:
         nsamples = x.shape[0]//nmodels
     for i in range(nmodels):
+        print('\t=========\tfitting %i of %i models\t========'%(i,nmodels))
         tof_gp.fit(x[i*nsamples:(i+1)*nsamples,:], 
                 y[i*nsamples:(i+1)*nsamples,0].copy().reshape(-1,1)
                 - model1_tof.predict(x_f[i*nsamples:(i+1)*nsamples,:])
