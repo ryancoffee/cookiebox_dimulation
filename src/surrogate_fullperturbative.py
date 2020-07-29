@@ -6,6 +6,8 @@ import sys
 import os
 import joblib
 import re
+import pymc3
+#from arspy.ars import adaptive_rejection_sampling 
 
 from sklearn import metrics # remaining printout of GP metrics from main
 
@@ -53,10 +55,31 @@ def parsemodels(nameslist):
             fnames_gp_pos_ensemble += [m.group(0)]
 
     return fname_Xscaler,fname_Yscaler,fname_linear_tof,fname_taylor_tof,taylor_tof_order,fname_taylor_pos,taylor_pos_order,fnames_gp_tof_ensemble,fnames_gp_pos_ensemble
-        
 
+        
+def fillenergiesanglesphis(nsamples):
+    nsidebands = 80
+    nu = 1.55
+    centers = np.array([5+nu*i for i in range(nsidebands)])
+    widths = np.array([.0625 for i in range(nsidebands)])
+    sumgaussians = lambda x, centers=centers, widths = widths: np.sum(np.exp(-1.*np.power((x-centers)/widths,int(2))))
+    elist = []
+    for i in range(nsamples):
+        e = np.random.uniform(5-nu,(nsidebands+1)*nu,3)
+        pe = np.array([sumgaussians(v) for v in e])
+        j = np.argmax(pe)
+        elist += [e[j]]
+    #domain = (0,float("inf"))
+    #a = np.max(centers[0]-6.*widths[0],0)
+    #b = centers[-1]+6*widths[-1]
+    #energies = np.array(adaptive_rejection_sampling(logpdf=sumgaussians, a=a, b=b, domain=domain, n_samples=nsamples))
+    energies = np.array(elist)
+    angles = np.abs(np.random.normal(0.,2.,energies.shape))
+    phis = np.random.uniform(-np.pi,np.pi,energies.shape)
+    return energies,angles,phis
 
 def main():
+    print('Running on PyMC3 v{}'.format(pymc3.__version__))
     fname_Xscaler,fname_Yscaler,fname_linear_tof,fname_taylor_tof,taylor_tof_order,fname_taylor_pos,taylor_pos_order,fnames_gp_tof_ensemble,fnames_gp_pos_ensemble = parsemodels(sys.argv[1:])
     f = open(fname_Xscaler,'rb')
     Xscaler = joblib.load(f)
@@ -89,11 +112,9 @@ def main():
 
     print(len(fnames_gp_tof_ensemble),len(gp_tof))
 
-    nsamples = int(1e3)
+    nsamples = int(1e4)
     vsettings = np.ones(nsamples,dtype=float) * 100.
-    energies = np.random.normal(0,.25,nsamples) + np.random.uniform(10,90,nsamples)
-    angles = np.abs(np.random.normal(0.,2.,nsamples))
-    phis = np.random.uniform(-np.pi,np.pi,nsamples)
+    energies,angles,phis = fillenergiesanglesphis(nsamples)
 
     X = np.column_stack((np.log(vsettings),np.log(energies),angles))
     Xscaler.transform(X)
@@ -124,8 +145,9 @@ def main():
     Y_pred[:,0] = np.exp(Y_pred[:,0])
 
     #np.savetxt('%s/%s'%(path,outname),np.column_stack((X,Y_pred_tof,Y_pred_pos,Y_std_tof,Y_std_pos)))
-    np.savetxt('%s/%s'%(path,outname),np.column_stack((X,Y_pred,Y_vote_gp)),fmt='%.2f')
-    print(Y_pred[:10,:])
+    np.savetxt('%s/%s'%(path,outname),np.column_stack((X,Y_pred,Y_vote_gp)),fmt='%.3f')
+    h,b = np.histogram(Y_vote_gp,np.linspace(0,512,4097))
+    np.savetxt('%s/%s.hist'%(path,outname),np.column_stack((b[:-1],h)),fmt='%.3f')
 
     return
 
