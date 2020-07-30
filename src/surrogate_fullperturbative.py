@@ -6,7 +6,8 @@ import sys
 import os
 import joblib
 import re
-import pymc3
+import h5py
+#import pymc3
 #from arspy.ars import adaptive_rejection_sampling 
 
 from sklearn import metrics # remaining printout of GP metrics from main
@@ -79,7 +80,7 @@ def fillenergiesanglesphis(nsamples):
     return energies,angles,phis
 
 def main():
-    print('Running on PyMC3 v{}'.format(pymc3.__version__))
+    #print('Running on PyMC3 v{}'.format(pymc3.__version__))
     fname_Xscaler,fname_Yscaler,fname_linear_tof,fname_taylor_tof,taylor_tof_order,fname_taylor_pos,taylor_pos_order,fnames_gp_tof_ensemble,fnames_gp_pos_ensemble = parsemodels(sys.argv[1:])
     f = open(fname_Xscaler,'rb')
     Xscaler = joblib.load(f)
@@ -97,7 +98,7 @@ def main():
     taylor_pos = joblib.load(f)
     f.close()
 
-    elitism = .25
+    elitism = .5
 
     gp_tof = []
     for name in fnames_gp_tof_ensemble:
@@ -128,8 +129,9 @@ def main():
 
 
     m = re.match('(.*ensemble.*)/.*sav',sys.argv[-1])
-    outname = 'out_time_%s.out'%(time.strftime('%Y.%m.%d.%H.%M'))
-    path = 'data_ave/%s'%(outname)
+    outname = 'out_%s.dat'%(time.strftime('%Y.%m.%d.%H.%M'))
+    h5name = 'out_%s.h5'%(time.strftime('%Y.%m.%d.%H.%M'))
+    path = 'data_ave'
     if m:
         path = '%s/surroggate_out'%(m.group(1))
     if not os.path.exists(path):
@@ -143,11 +145,33 @@ def main():
     Xscaler.inverse_transform(X)
     X[:,:2] = np.exp(X[:,:2])
     Y_pred[:,0] = np.exp(Y_pred[:,0])
-
+    
     #np.savetxt('%s/%s'%(path,outname),np.column_stack((X,Y_pred_tof,Y_pred_pos,Y_std_tof,Y_std_pos)))
     np.savetxt('%s/%s'%(path,outname),np.column_stack((X,Y_pred,Y_vote_gp)),fmt='%.3f')
     h,b = np.histogram(Y_vote_gp,np.linspace(0,512,4097))
     np.savetxt('%s/%s.hist'%(path,outname),np.column_stack((b[:-1],h)),fmt='%.3f')
+
+    h5file = h5py.File('%s/%s'%(path,h5name),'w')
+    h5file.create_dataset('vsetting',data = X[:,0],dtype='f')
+    h5file.create_dataset('energies',data = X[:,1],dtype='f')
+    h5file.create_dataset('angles',data = X[:,2],dtype='f')
+    h5file.create_dataset('phis',data = phis,dtype='f')
+    h5file.create_dataset('tofs',data = Y_vote_gp[:,0],dtype='f')
+    h5file.create_dataset('radii',data = Y_vote_gp[:,1],dtype='f')
+    h5file.create_dataset('tofbins',data = b[:-1],dtype='f')
+    h5file.create_dataset('tofhist',data = h,dtype='i')
+    h5file.attrs.create('elitism',data = elitism)
+    h5file.attrs.create('nmodels_tof',data = len(gp_tof))
+    h5file.attrs.create('nmodels_pos',data = len(gp_pos))
+    h5file.attrs.create('taylor_tof_order',data = taylor_tof_order)
+    h5file.attrs.create('taylor_pos_order',data = taylor_pos_order)
+    h5file.attrs.create('fname_Xscaler',data = fname_Xscaler)
+    h5file.attrs.create('fname_Yscaler',data = fname_Yscaler)
+    h5file.attrs.create('fname_linear_tof',data = fname_linear_tof)
+    h5file.attrs.create('fname_taylor_tof',data = fname_taylor_tof)
+    h5file.attrs.create('fname_taylor_pos',data = fname_taylor_pos)
+    h5file.attrs.create('fnames_gp_tof_ensemble',data = fnames_gp_tof_ensemble)
+    h5file.attrs.create('fnames_gp_pos_ensemble',data = fnames_gp_pos_ensemble)
 
     return
 
