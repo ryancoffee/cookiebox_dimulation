@@ -1,0 +1,5 @@
+500 samples, full train (94 models), elitism .5
+new forward model
+rmse (test) tof in ns:  0.024820734115507743
+rmse (test) pos in mm:  0.07526846064843791
+

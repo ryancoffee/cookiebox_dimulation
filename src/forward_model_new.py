@@ -20,7 +20,7 @@ def main():
     do_correlation = True
     ensemble_all_train = True
 
-    nmodels = 64 # It's looking like 24 or 32 models and 300 samples is good with an elitism of .125 this means we are averaging 4 model results
+    nmodels = 32 # It's looking like 24 or 32 models and 300 samples is good with an elitism of .125 this means we are averaging 4 model results
     # but, the number of models doesn't hurt the latency in FPGA, so nsamples 300 and data set large enough for at least 24 models
     nsamples = 500 # eventually 500
     printascii = False
@@ -89,6 +89,10 @@ def main():
 
     fname_Xscaler = '%s/Xscaler_%s.sav'%(modelsfolder,time.strftime('%Y.%m.%d.%H.%M'))
     fname_Yscaler = '%s/Yscaler_%s.sav'%(modelsfolder,time.strftime('%Y.%m.%d.%H.%M'))
+    fname_theta0 = '%s/theta0_%s.sav'%(modelsfolder,time.strftime('%Y.%m.%d.%H.%M'))
+    fname_theta1 = '%s/theta1_%s.sav'%(modelsfolder,time.strftime('%Y.%m.%d.%H.%M'))
+    joblib.dump(theta0,fname_theta0)
+    joblib.dump(theta1,fname_theta1)
     joblib.dump(Xscaler,fname_Xscaler)
     joblib.dump(Yscaler,fname_Yscaler)
 
@@ -113,9 +117,13 @@ def main():
     gp_tof_models = []
     gp_pos_models = []
     for fname in fnames_gp_tof:
-        gp_tof_models += [joblib.load(fname,'r')]
+        f = open(fname,'rb')
+        gp_tof_models += [joblib.load(f)]
+        f.close()
     for fname in fnames_gp_pos:
-        gp_pos_models += [joblib.load(fname,'r')]
+        f = open(fname,'rb')
+        gp_pos_models += [joblib.load(f)]
+        f.close()
 
     Y_tof_residual = PerturbativeUtils.ensemble_vote_new(X_test_residual,gp_tof_models,elitism = 0.5)
     Y_pos_residual = PerturbativeUtils.ensemble_vote_new(X_test_residual,gp_pos_models,elitism = 0.5)
