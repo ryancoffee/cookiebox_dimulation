@@ -130,6 +130,48 @@ def fit_gp_t2e_ensemble(x,y,maternnu,theta_model0,modelfolder,nmodels=8,nsamples
     print("Total time for pertubative GP model ensemble fitting: %.3f" % (time.time() - stime))
     return fname_list_gp
 
+def fit_gp_new_ensemble(x,y,maternnu_tof,maternnu_pos,modelfolder,nmodels=8,nsamples=100):
+    fname_list_gp_tof = []
+    fname_list_gp_pos = []
+    stime = time.time()
+    k_tof = 1.**2 * Matern(
+            length_scale=np.ones(x.shape[1],dtype=float)
+            ,length_scale_bounds=(1e-5,100)
+            ,nu=maternnu_tof
+            )
+    k_pos = 1.**2 * Matern(
+            length_scale=np.ones(x.shape[1],dtype=float)
+            ,length_scale_bounds=(1e-5,100)
+            ,nu=maternnu_pos
+            )
+    kernel_gp_tof = k_tof
+    kernel_gp_pos = k_pos
+
+    tof_gp = GaussianProcessRegressor(kernel=kernel_gp_tof, alpha=0, normalize_y=True, n_restarts_optimizer = 2)
+    pos_gp = GaussianProcessRegressor(kernel=kernel_gp_pos, alpha=0, normalize_y=True, n_restarts_optimizer = 2)
+
+    if (nsamples * nmodels)>x.shape[0]:
+        nsamples = x.shape[0]//nmodels
+    for i in range(nmodels):
+        print('\t=========\tfitting %i of %i models\t========'%(i,nmodels))
+        tof_gp.fit(x[i*nsamples:(i+1)*nsamples,:],
+                y[i*nsamples:(i+1)*nsamples,0].copy().reshape(-1,1)
+                )
+        pos_gp.fit(x[i*nsamples:(i+1)*nsamples,:],
+                y[i*nsamples:(i+1)*nsamples,1].copy().reshape(-1,1)
+                )
+        print("Time for pertubative GP model fitting: %.3f" % (time.time() - stime))
+        print("tof kernel = %s"%tof_gp.kernel_)
+        print("tof kernel Log-marginal-likelihood: %.3f" % tof_gp.log_marginal_likelihood(tof_gp.kernel_.theta))
+        print("pos kernel = %s"%pos_gp.kernel_)
+        print("pos kernel Log-marginal-likelihood: %.3f" % pos_gp.log_marginal_likelihood(pos_gp.kernel_.theta))
+        fname_list_gp_tof += ['%s/gp_model_tof_%s_%i.sav'%(modelfolder,time.strftime('%Y.%m.%d.%H.%M'),i)]
+        fname_list_gp_pos += ['%s/gp_model_pos_%s_%i.sav'%(modelfolder,time.strftime('%Y.%m.%d.%H.%M'),i)]
+        joblib.dump(tof_gp,fname_list_gp_tof[i])
+        joblib.dump(pos_gp,fname_list_gp_pos[i])
+    print("Total time for pertubative GP model ensemble fitting: %.3f" % (time.time() - stime))
+    return (fname_list_gp_tof,fname_list_gp_pos)
+
 def fit_gp_perturbative_ensemble(x,y,maternnu_tof,maternnu_pos,model1_tof,model1_pos,featurefunc,ntaylor,model0,modelfolder,nmodels=8,nsamples=100):
     fname_lin_tof = '%s/lin_tof-%s'%(modelfolder,time.strftime('%Y.%m.%d.%H.%M'))
     fname_taylor_tof = '%s/taylor_tof-%s'%(modelfolder,time.strftime('%Y.%m.%d.%H.%M'))
@@ -240,6 +282,26 @@ def inference_taylor(x,taylor_model,featurefunc,ntaylor=2):
 # in future, allow elitism to accept an array of weights, this couls allow for different voting blocks to have diminishing weights
 # furthermore, we could set a minimum limit on "agreement" like voting theory in order to trigger a "bad sample" or "anomaly" event
 # baratza:~/papers/voting/*
+def ensemble_vote_new(x,gp_models,elitism = 0.2):
+    print("ensembling")
+    nmodels = len(gp_models)
+    y_pred_array = np.zeros((x.shape[0],nmodels),dtype=float)
+    y_std_array = np.zeros((x.shape[0],nmodels),dtype=float)
+        
+    for i in range(nmodels):
+        gp_model = gp_models[i]
+        y_pred,y_std = gp_model.predict(x,return_std=True)
+        y_pred_array[:,i] = y_pred.copy().reshape(-1)
+        y_std_array[:,i] = y_std.copy().reshape(-1)
+
+    y_pred = np.zeros(x.shape[0])
+    naverage = int(elitism*nmodels)
+    srtinds = np.argsort(y_std_array,axis=1)
+    y_pred_array = np.take_along_axis(y_pred_array, srtinds, axis=1)
+    y_std_array = np.take_along_axis(y_std_array, srtinds, axis=1)
+    y_pred = np.sum(y_pred_array[:,:naverage],axis=1)/float(naverage)
+    return y_pred 
+
 def ensemble_vote_tof(x,gp_tof_models,model1_tof,featurefunc,ntaylor,model0,elitism = 0.2):
     print("ensembling tof")
     nmodels = len(gp_tof_models)

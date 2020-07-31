@@ -11,6 +11,12 @@ from sklearn.feature_selection import mutual_info_regression
 from warnings import simplefilter
 simplefilter(action='ignore', category=FutureWarning)
 
+def appendTaylorToX(x,n=4):
+    result = [x.copy()]
+    for p in range(2,n+1):
+        result += [np.power(result[0],int(p))]
+    return np.column_stack(result)
+
 def prependOnesToX(x):
     # note, this may be a shallow bias add
     x_bias = x.copy()
@@ -149,7 +155,7 @@ def loadT2Edata():
     return np.array(x_all),np.array(y_all)
 
 
-def loaddata():
+def loaddata(print_mi = False):
     x_all = []
     y_all = []
     if len(sys.argv) < 2:
@@ -194,9 +200,12 @@ def loaddata():
 
 def minmaxscaledata(x,y,feature_range = (1,3)):
     Xscaler = preprocessing.MinMaxScaler(copy=False,feature_range = feature_range).fit(x)
-    Yscaler = preprocessing.MinMaxScaler(copy=False,feature_range = feature_range).fit(y.reshape(-1,1))
-    x = Xscaler.transform(x)
-    y = Yscaler.transform(y.reshape(-1,1))
+    if y.shape[1] == 1:
+        Yscaler = preprocessing.MinMaxScaler(copy=False,feature_range = feature_range).fit(y.reshape(-1,1))
+    else:
+        Yscaler = preprocessing.MinMaxScaler(copy=False,feature_range = feature_range).fit(y)
+    Xscaler.transform(x)
+    Yscaler.transform(y)
     return x,y,Xscaler,Yscaler
 
 def scaledata(x,y):
