@@ -3,3 +3,9 @@ new forward model
 rmse (test) tof in ns:  0.024820734115507743
 rmse (test) pos in mm:  0.07526846064843791
 
+
+
+rmse (test, gp vote) tof in ns:  0.023974078039262624
+rmse (test, gp vote) pos in mm:  0.080799231042717
+for 380 models of 500 samples using data_ave_NMopt_40rets/ simulations
+finished at 11:11 Aug 1 2020
