@@ -94,7 +94,12 @@ def loaddata():
     return x_all,y_all
 
 
-
+def featurizeX(X):
+    first = X
+    second = 1./2*np.power(X,int(2))
+    third = 1./(2*3)*np.power(X,int(3))
+    fourth = 1./(2*3*4)*np.power(X,int(4))
+    return np.column_stack((first,second,third,fourth))
 
 def main():
     X_all = []
@@ -156,8 +161,8 @@ def main():
         np.savetxt('%sX_train_Y_train_featurecorr.dat'%(m.group(1)),c,fmt='%.3f')
 
     stime = time.time()
-    firstmodel = linear_model.LinearRegression().fit(X_oob[:1000,1].reshape(-1,1), Y_oob[:1000,0].reshape(-1,1))
-    print("Time for initial linear model fitting: %.3f" % (time.time() - stime))
+    firstmodel = linear_model.LinearRegression().fit(X_oob[:,1].reshape(-1,1), Y_oob[:,0].reshape(-1,1))
+    print("Time for initial linear model fitting on out-of-bag samples: %.3f" % (time.time() - stime))
     stime = time.time()
     Y_test_pred = firstmodel.predict(X_test[:,1].reshape(-1,1))
     Y_valid_pred = firstmodel.predict(X_valid[:,1].reshape(-1,1))
@@ -171,33 +176,35 @@ def main():
         np.savetxt('%svalid.dat'%(m.group(1)),np.column_stack((X_valid,Y_valid,Y_valid_pred)),header=headstring)
 
     print("Now moving to a perturbation linearRegression")
-    print("Skipping PLR")
-
     '''
+    print("Skipping PLR")
+    '''
+
     stime = time.time()
-    nsamples=2000
-    Y_zeroth = Y_train[-nsamples:,0].reshape(-1,1) #### CAREFUL HERE, using the shallow copy intentionally to address single output feature, numbers beyond nsamples will be bogus!!!
-    Y_zeroth -= firstmodel.predict(X_train[-nsamples:,1].reshape(-1,1)) 
-    X_featurized = np.column_stack((X_train[-nsamples:,:],np.power(X_train[:nsamples,:],int(2))))
-    perturbmodel = linear_model.LinearRegression().fit(X_featurized[-nsamples:,:], Y_train[-nsamples:,:])
+    X_featurized = featurizeX(np.copy(X_train)) 
+    perturbmodel_tof = linear_model.LinearRegression().fit(X_featurized, Y_train[:,0].reshape(-1,1) - firstmodel.predict(X_train[:,1].reshape(-1,1)))
+    perturbmodel_pos = linear_model.LinearRegression().fit(X_featurized, Y_train[:,1].reshape(-1,1) )
     print("Time for pertubative linear model fitting: %.3f" % (time.time() - stime))
 
     stime = time.time()
-    Y_test_pred = perturbmodel.predict(np.column_stack((X_test,np.power(X_test,int(2)))))
-    Y_valid_pred = perturbmodel.predict(np.column_stack((X_valid,np.power(X_valid,int(2)))))
-    Y_test_pred0 = Y_test_pred[:,0].reshape(-1,1)
-    Y_valid_pred0 = Y_valid_pred[:,0].reshape(-1,1)
-    Y_test_pred0 += firstmodel.predict(X_test[:,1].reshape(-1,1))
-    Y_valid_pred0 += firstmodel.predict(X_valid[:,1].reshape(-1,1))
+    X_test_featurized = featurizeX(np.copy(X_test))
+    X_valid_featurized = featurizeX(np.copy(X_valid))
+    Y_test_pred_tof = perturbmodel_tof.predict(X_test_featurized)
+    Y_test_pred_pos = perturbmodel_pos.predict(X_test_featurized)
+    Y_valid_pred_tof = perturbmodel_tof.predict(X_valid_featurized)
+    Y_valid_pred_pos = perturbmodel_pos.predict(X_valid_featurized)
+    Y_test_pred_tof += firstmodel.predict(X_test_featurized[:,1].reshape(-1,1))
+    Y_valid_pred_tof += firstmodel.predict(X_valid_featurized[:,1].reshape(-1,1))
     print("Time for purturbative combination linear model inference: %.3f" % (time.time() - stime))
-    print ("Perturbative linear model score (test): ", metrics.r2_score(Y_test, Y_test_pred))
-    print ("Perturbative linear model score (validate): ", metrics.r2_score(Y_valid, Y_valid_pred))
+    print ("Perturbative linear model tof score (test): ", metrics.r2_score(Y_test[:,0], Y_test_pred_tof))
+    print ("Perturbative linear model tof score (validate): ", metrics.r2_score(Y_valid[:,0], Y_valid_pred_tof))
+    print ("Perturbative linear model pos score (test): ", metrics.r2_score(Y_test[:,1], Y_test_pred_pos))
+    print ("Perturbative linear model pos score (validate): ", metrics.r2_score(Y_valid[:,1], Y_valid_pred_pos))
 
     if m:
         headstring = 'vsetting\tlog(en)\tangle\tlog(tof)\typos\tpredtof\tpredypos'
-        np.savetxt('%stest_perturb.dat'%(m.group(1)),np.column_stack((X_test,Y_test,Y_test_pred)),header=headstring)
-        np.savetxt('%svalid_perturb.dat'%(m.group(1)),np.column_stack((X_valid,Y_valid,Y_valid_pred)),header=headstring)
-    '''
+        np.savetxt('%stest_perturb_linear.dat'%(m.group(1)),np.column_stack((X_test,Y_test,Y_test_pred_tof,Y_test_pred_pos)),header=headstring)
+        np.savetxt('%svalid_perturb_linear.dat'%(m.group(1)),np.column_stack((X_valid,Y_valid,Y_valid_pred_tof,Y_valid_pred_pos)),header=headstring)
 
     print("Skipping KRR")
     '''
@@ -222,8 +229,8 @@ def main():
     print("Moving on to perturbative GP")
 
     stime = time.time()
-    nsamples = 1000
-    nmodels=10
+    nsamples = 300
+    nmodels=5
     k1 = 1.0**2 * RBF(
             length_scale=np.ones(X_train.shape[1],dtype=float)
             ,length_scale_bounds=(1e-5,100)
@@ -296,10 +303,8 @@ def main():
     print("Total time for pertubative GP model ensemble fitting: %.3f" % (time.time() - stime))
 
     if m:
-        Y_test_tof_pred_collect = []
-        Y_valid_tof_pred_collect = []
-        Y_test_pos_pred_collect = []
-        Y_valid_pos_pred_collect = []
+        Y_test_pred_collect = []
+        Y_valid_pred_collect = []
         for i in range(nmodels):
             stime = time.time()
             fname_tof = fname_model_tof[i]
@@ -312,8 +317,6 @@ def main():
             Y_valid_tof_pred = gpr_tof.predict(X_valid[:nsamples,:])
             Y_test_pos_pred = gpr_pos.predict(X_test[:nsamples,:])
             Y_valid_pos_pred = gpr_pos.predict(X_valid[:nsamples,:])
-            #Y_test_pred0 = Y_test_pred[:,0].reshape(-1,1) #### CAREFUL HERE, using the shallow copy intentionally to address single output feature, numbers beyond nsamples will be bogus!!!
-            #Y_valid_pred0 = Y_valid_pred[:,0].reshape(-1,1) #### CAREFUL HERE, using the shallow copy intentionally to address single output feature, numbers beyond nsamples will be bogus!!!
             Y_test_tof_pred += firstmodel.predict(X_test[:nsamples,1].reshape(-1,1))
             Y_valid_tof_pred += firstmodel.predict(X_valid[:nsamples,1].reshape(-1,1))
             print("Time for perturbative GP inference: %.3f" % (time.time() - stime))
@@ -321,21 +324,16 @@ def main():
             print('GP score tof (validate): ',  metrics.r2_score(Y_valid[:nsamples,0],Y_valid_tof_pred))
             print('GP score pos (test): ',  metrics.r2_score(Y_test[:nsamples,1],Y_test_pos_pred))
             print('GP score pos (validate): ',  metrics.r2_score(Y_valid[:nsamples,1],Y_valid_pos_pred))
-            Y_test_tof_pred_collect += [Y_test_tof_pred]
-            Y_valid_tof_pred_collect += [Y_valid_tof_pred]
-            Y_test_pos_pred_collect += [Y_test_pos_pred]
-            Y_valid_pos_pred_collect += [Y_valid_pos_pred]
+            if len(Y_test_pred_collect)<1:
+                Y_test_pred_collect = Yscaler.inverse_transform(np.column_stack((Y_test_tof_pred,Y_test_pos_pred)))
+                Y_valid_pred_collect = Yscaler.inverse_transform(np.column_stack((Y_valid_tof_pred,Y_valid_pos_pred)))
+            else:
+                Y_test_pred_collect = np.column_stack( (Y_test_pred_collect,Yscaler.inverse_transform(np.column_stack((Y_test_tof_pred,Y_test_pos_pred)))) )
+                Y_valid_pred_collect = np.column_stack( (Y_valid_pred_collect,Yscaler.inverse_transform(np.column_stack((Y_valid_tof_pred,Y_valid_pos_pred)))) )
 
-        Y_test_tof_pred = np.column_stack(Y_test_tof_pred_collect[:])
-        Y_valid_tof_pred = np.column_stack(Y_valid_tof_pred_collect[:])
-        Y_test_pos_pred = np.column_stack(Y_test_pos_pred_collect[:])
-        Y_valid_pos_pred = np.column_stack(Y_valid_pos_pred_collect[:])
-        headstring = 'log(vsetting)\tlog(en)\tangle\tlog(tof)\typos\tpredtof\t...'
-        np.savetxt('%stest_GPperturb_tof.dat'%(m.group(1)),np.column_stack((X_test[:nsamples,:],Y_test[:nsamples,:],Y_test_tof_pred)),header=headstring)
-        np.savetxt('%svalid_GPperturb_tof.dat'%(m.group(1)),np.column_stack((X_valid[:nsamples,:],Y_valid[:nsamples,:],Y_valid_tof_pred)),header=headstring)
-        headstring = 'log(vsetting)\tlog(en)\tangle\tlog(tof)\typos\tpredpos\t...'
-        np.savetxt('%stest_GPperturb_pos.dat'%(m.group(1)),np.column_stack((X_test[:nsamples,:],Y_test[:nsamples,:],Y_test_pos_pred)),header=headstring)
-        np.savetxt('%svalid_GPperturb_pos.dat'%(m.group(1)),np.column_stack((X_valid[:nsamples,:],Y_valid[:nsamples,:],Y_valid_pos_pred)),header=headstring)
+        headstring = 'log(vsetting)\tlog(en)\tangle\tlog(tof)\typos\tpredlog(tof)\tpredpos\t...'
+        np.savetxt('%stest_GPperturb.dat'%(m.group(1)),np.column_stack((Xscaler.inverse_transform(X_test[:nsamples,:]),Yscaler.inverse_transform(Y_test[:nsamples,:]),Y_test_pred_collect)),header=headstring)
+        np.savetxt('%svalid_GPperturb.dat'%(m.group(1)),np.column_stack((Xscaler.inverse_transform(X_valid[:nsamples,:]),Yscaler.inverse_transform(Y_valid[:nsamples,:]),Y_valid_pred_collect)),header=headstring)
 
     return
 
