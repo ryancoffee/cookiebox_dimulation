@@ -39,17 +39,24 @@ set ttics format "% h"
 set timefmt "%d/%m/%y,%H:%M"
 set angles radians
 set tics back
-unset grid
+set grid nopolar
+set grid xtics mxtics ytics nomytics noztics nomztics nortics nomrtics \
+ nox2tics nomx2tics noy2tics nomy2tics nocbtics nomcbtics
+set grid layerdefault   lt 0 linecolor 0 linewidth 0.500,  lt 0 linecolor 0 linewidth 0.500
 unset raxis
 set theta counterclockwise right
 set style parallel front  lt black linewidth 2.000 dashtype solid
 set key title "" center
-set key fixed right bottom vertical Right noreverse enhanced autotitle nobox
+set key fixed left top vertical Right noreverse enhanced autotitle nobox
 set key noinvert samplen 4 spacing 1 width 0 height 0 
 set key maxcolumns 0 maxrows 0
 set key noopaque
 unset label
+set label 1 "2 = int( log_5(x) )" at 81.0000, 1.75000, 0.00000 center rotate by 90 back nopoint
+set label 2 "3 = int( log_2(x) )" at 12.6000, 2.50000, 0.00000 center rotate by 90 back nopoint
 unset arrow
+set arrow 1 from 90.0000, 0.795889, 0.00000 to 90.0000, 2.79589, 0.00000 heads back filled linewidth 1.000 dashtype solid
+set arrow 2 from 14.0000, 0.807355, 0.00000 to 14.0000, 3.80735, 0.00000 heads back filled linewidth 1.000 dashtype solid
 set style increment default
 unset style line
 unset style arrow
@@ -68,7 +75,7 @@ unset minussign
 set view 60, 30, 1, 1
 set view azimuth 0
 set rgbmax 255
-set samples 100, 100
+set samples 1000, 1000
 set isosamples 10, 10
 set surface 
 unset contour
@@ -104,7 +111,7 @@ set nomttics
 set xtics border in scale 1,0.5 mirror norotate  autojustify
 set xtics  norangelimit logscale autofreq 
 set ytics border in scale 1,0.5 mirror norotate  autojustify
-set ytics  norangelimit logscale autofreq 
+set ytics  norangelimit autofreq 
 set ztics border in scale 1,0.5 nomirror norotate  autojustify
 set ztics  norangelimit autofreq 
 unset x2tics
@@ -122,18 +129,18 @@ set timestamp  font "" textcolor lt -1 norotate
 set trange [ * : * ] noreverse nowriteback
 set urange [ * : * ] noreverse nowriteback
 set vrange [ * : * ] noreverse nowriteback
-set xlabel "" 
+set xlabel "x" 
 set xlabel  font "" textcolor lt -1 norotate
 set x2label "" 
 set x2label  font "" textcolor lt -1 norotate
-set xrange [ 0.100000 : 20.0000 ] noreverse writeback
-set x2range [ 0.100000 : 20.0000 ] noreverse writeback
-set ylabel "" 
+set xrange [ 1.00000 : 200.000 ] noreverse writeback
+set x2range [ 1.00000 : 10.0000 ] noreverse writeback
+set ylabel "y" 
 set ylabel  font "" textcolor lt -1 rotate
 set y2label "" 
 set y2label  font "" textcolor lt -1 rotate
-set yrange [ 3.16228e-05 : 3.16228 ] noreverse writeback
-set y2range [ 0.0713529 : 0.784323 ] noreverse writeback
+set yrange [ 0.00000 : 5.00000 ] noreverse writeback
+set y2range [ -2.00000 : 3.32193 ] noreverse writeback
 set zlabel "" 
 set zlabel  font "" textcolor lt -1 norotate
 set zrange [ * : * ] noreverse writeback
@@ -144,7 +151,6 @@ set rlabel ""
 set rlabel  font "" textcolor lt -1 norotate
 set rrange [ * : * ] noreverse writeback
 unset logscale
-set logscale y 10
 set logscale x 10
 unset jitter
 set zero 1e-08
@@ -166,26 +172,14 @@ set loadpath
 set fontpath 
 set psdir
 set fit brief errorvariables nocovariancevariables errorscaling prescale nowrap v5
-f(x,bg,p) = (x<bg?sin(pi/2*x/bg)**(2-p):1)*x**(p)
-g(x,bg,p) = tanh(x/bg)**(2-p)*(x/bg)**(p)
+log2(x) = log(x)/log(2)
+log5(x) = log(x)/log(5)
+loge(x) = log(x)
+declog2(x)= log2(x/(2**int(log2(x))))
+declog5(x)= log5(x/(5**int(log5(x))))
+declog10(x)= log10(x/(10**int(log10(x))))
 GNUTERM = "qt"
-## Last datafile plotted: "SEspeectrum.2400eV.dat"
-set term png size 700,700
-set output 'figs/plotting.secondaries.png'
-set xlabel 'energy [eV]'
-set ylabel 'normalized spectrum of secondaries [arb.]'
-set yrange [1e-5:1]
-set key at screen .4,.15 left
-#set title 'data MgO from Whetten \& Laponsky PRL v107 p1521 (1957)'
-set label 1 'model function g(x,b,p) = tanh(x/b)**(2-p) * (x/b)**(p)' at screen .5,.12 center
-set ytics ('10^0' 1, '10^{-1}' .1, '10^{-2}' .01, '10^{-3}' .001, '10^{-4}' .0001, '10^{-5}' .00001)
-plot 'references/SEspeectrum.100eV.dat' u 1:2 title 'e^- 100eV, MgO',\
-	'references/SEspeectrum.800eV.dat' u 1:($2/10.) title 'e^- 800eV, MgO',\
-	'references/SEspeectrum.2400eV.dat' u 1:($2/100) title 'e^- 2.4keV, MgO',\
-	'references/Wehner1966_fig2.2keV.dat' u 1:($2/1e3) pt 7 title 'He^+ 2keV, Mo',\
-	1.1*g(x,1.5,-1.25) lw 2 title 'g(x,1.5,-1.25)',\
-	.3*g(x,1.75,-2.5) lw 2 title 'g(x,1.75,-2.5)',\
-	.03*g(x,1.75,-2.75) lw 2 title 'g(x,1.75,-2.75)',\
-	.0033*g(x,1.75,-2.125) lw 2 title 'g(x,1.75,-2.125)'
-
+set term png size 800,600
+set output 'plotting.decimated.logs.png'
+plot log2(x) title 'log_2 x',log5(x) title 'log_5 x',declog2(x) lc 1 lw 2 title 'decimated log_2 x', declog5(x) lc 2 lw 2 title 'decimated log_5 x'
 #    EOF
