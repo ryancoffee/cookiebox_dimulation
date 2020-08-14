@@ -11,16 +11,25 @@ from sklearn.feature_selection import mutual_info_regression
 from warnings import simplefilter
 simplefilter(action='ignore', category=FutureWarning)
 
+def polyfeaturize(x,order=4):
+    poly = preprocessing.PolynomialFeatures(degree=order)
+    poly.fit(x)
+    return poly.transform(x),poly
+
 def appendTaylorToX(x,n=4):
     result = [x.copy()]
     for p in range(2,n+1):
         result += [np.power(result[0],int(p))]
     return np.column_stack(result)
 
+def prependOnes(x):
+    x = np.column_stack((np.ones(x.shape[0],dtype=x.dtype),x))
+    return x
+
 def prependOnesToX(x):
     # note, this may be a shallow bias add
     x_bias = x.copy()
-    x_bias = np.column_stack((np.ones(x.shape[0],dtype=float),x_bias))
+    x_bias = np.column_stack((np.ones(x.shape[0],dtype=x_bias.dtype),x_bias))
     return x_bias
 
 def pseudoinversemethod(x,y):
@@ -40,6 +49,20 @@ def reservesplit(x,y,reserve = .2):
     maininds = inds[:splitind]
     reserveinds = inds[splitind:]
     return x[maininds,:],x[reserveinds,:],y[maininds,:],y[reserveinds,:]
+
+def evensplitbags(x,y,nsplits=4,pct_test=0.1):
+    sz = x.shape[0] 
+    inds = np.arange(x.shape[0])
+    np.random.shuffle(inds)
+    xbags=[]
+    ybags=[]
+    testinds = inds[-int(sz*pct_test):]
+    xtest = x[inds[testinds],:]
+    ytest = y[inds[testinds],:]
+    splitsz = int(sz * (1.-pct_test)//nsplits)
+    xbags = [ x[inds[i*splitsz:(i+1)*splitsz],:] for i in range(nsplits) ] 
+    ybags = [ y[inds[i*splitsz:(i+1)*splitsz],:] for i in range(nsplits) ] 
+    return xbags,xtest,ybags,ytest
 
 def katiesplit(x,y):
     sz = x.shape[0] 
@@ -199,20 +222,35 @@ def loaddata(print_mi = False):
     return np.array(x_all),np.array(y_all)
 
 def minmaxscaledata(x,y,feature_range = (1,3)):
-    Xscaler = preprocessing.MinMaxScaler(copy=False,feature_range = feature_range).fit(x)
-    if y.shape[1] == 1:
+    if len(x.shape) < 2:
+        Xscaler = preprocessing.MinMaxScaler(copy=False,feature_range = feature_range).fit(x.reshape(-1,1))
+        Xscaler.transform(x.reshape(-1,1))
+    else:
+        Xscaler = preprocessing.MinMaxScaler(copy=False,feature_range = feature_range).fit(x)
+        Xscaler.transform(x)
+
+    if len(y.shape) < 2:
         Yscaler = preprocessing.MinMaxScaler(copy=False,feature_range = feature_range).fit(y.reshape(-1,1))
+        Yscaler.transform(y.reshape(-1,1))
     else:
         Yscaler = preprocessing.MinMaxScaler(copy=False,feature_range = feature_range).fit(y)
-    Xscaler.transform(x)
-    Yscaler.transform(y)
+        Yscaler.transform(y)
     return x,y,Xscaler,Yscaler
 
 def scaledata(x,y):
-    Xscaler = preprocessing.StandardScaler(copy=False).fit(x)
-    Yscaler = preprocessing.StandardScaler(copy=False).fit(y.reshape(-1,1))
-    x = Xscaler.transform(x)
-    y = Yscaler.transform(y.reshape(-1,1))
+    if len(x.shape) < 2:
+        Xscaler = preprocessing.StandardScaler(copy=False,feature_range = feature_range).fit(x.reshape(-1,1))
+        Xscaler.transform(x.reshape(-1,1))
+    else:
+        Xscaler = preprocessing.StandardScaler(copy=False,feature_range = feature_range).fit(x)
+        Xscaler.transform(x)
+
+    if len(y.shape) < 2:
+        Yscaler = preprocessing.StandardScaler(copy=False,feature_range = feature_range).fit(y.reshape(-1,1))
+        Yscaler.transform(y.reshape(-1,1))
+    else:
+        Yscaler = preprocessing.StandardScaler(copy=False,feature_range = feature_range).fit(y)
+        Yscaler.transform(y)
     return x,y,Xscaler,Yscaler
 
 def loadscaledata(print_mi = False):
