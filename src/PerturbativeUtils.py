@@ -8,6 +8,7 @@ import math
 import joblib
 
 from sklearn.multioutput import MultiOutputRegressor
+from sklearn.ensemble import RandomForestRegressor
 from sklearn import linear_model
 from sklearn import metrics
 from sklearn.gaussian_process import GaussianProcessRegressor
@@ -101,6 +102,21 @@ def ensemble_vote_t2e(x,gp_t2e_models,theta_model0,elitism = 0.2):
     out = y_pred.copy() + y_pred_0.reshape(-1)
 
     return out,y_std.copy(),y_std_hist_array
+
+
+def fit_forest(X,Y,nmodels=8):
+    m = RandomForestRegressor(
+            n_estimators = nmodels,
+            max_depth = 128,
+            oob_score = True,
+            n_jobs = -1,
+            max_samples = .8
+            )
+    m.fit(X,Y)
+    return m
+
+def vote_forest(X,m):
+    return m.predict(X)
 
 def fit_gp_t2e_ensemble(x,y,maternnu,theta_model0,modelfolder,nmodels=8,nsamples=100):
 
