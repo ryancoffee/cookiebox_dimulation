@@ -110,8 +110,9 @@ def main():
 
     errors = [metrics.mean_squared_error(np.exp(Y_bags[1][-2*nsamples:,0]), np.exp(Y_pred),squared=False) for Y_pred in Y_preds]
     print('\t\t======== OK, thing to change, use errors vetor to implement elitism ===========\n\n')
-    inds = np.argsort(errors).copy()[:int(nmodels*elitism)]
-    h,b = np.histogram(errors,9)
+    good_thetas = [ thetas[ i ] for i in np.argsort(errors).copy()[:int(nmodels*elitism)] ]
+    b = np.linspace(0,2,41)
+    h,b = np.histogram(errors,b)
     print ("histogram of polynomial ensemble model rmse [ns]:")
     [print('%.2f\t%s'%(b[i],'.'*h[i])) for i in range(len(h))]
     #([metrics.mean_squared_error(np.exp(Y_test[:,0]), np.exp(Y_pred),squared=False) for Y_pred in Y_preds]) )
@@ -125,26 +126,27 @@ def main():
     
     X = np.column_stack((X_bags[2],DataUtils.prependOnes(X_bags[2].copy()).dot(theta0))) # this should handle the removing of the residual from the linear order of the feature... like boosting I think
     X = Xscaler.transform( Polyscaler.transform(X) )
-    Y_preds = [Yscaler.inverse_transform( X.dot(thetas[i]).reshape(-1,1) ) for i in inds]
+    Y_preds = [Yscaler.inverse_transform( X.dot(th).reshape(-1,1) ) for th in good_thetas]
     X2 = np.column_stack((X_bags[2].copy(),np.column_stack(Y_preds)))
+    X2,Polyscaler2 = DataUtils.polyfeaturize(X2,order = 2)
     #Xrot = np.column_stack((MathUtils.Rot45(X_bags[2][:,:2]) , X_bags[2][:,2], np.column_stack(Y_preds)))
     #Xrot,Yrot,XrotScaler,YrotScaler = DataUtils.minmaxscaledata(Xrot,Y_bags[2][:,0].copy(),feature_range = (-1,1))
     X2,Y2,X2Scaler,Y2Scaler = DataUtils.minmaxscaledata(X2,Y_bags[2][:,0].copy(),feature_range = (-1,1))
 
 
-    nmodels = 16
-    print('fitting random forest')
+    nmodels =32 
+    print('fitting random forest\t... next to try maybe GP instead of RF')
     rf_model = PerturbativeUtils.fit_forest(X2,Y2,nmodels = nmodels)
     print('done fitting')
 
     print('Now running on test set')
     X = np.column_stack((X_test.copy(),DataUtils.prependOnes(X_test.copy()).dot(theta0))) # this should handle the removing of the residual from the linear order of the feature... like boosting I think
     X = Xscaler.transform( Polyscaler.transform(X) )
-    Y_preds = [Yscaler.inverse_transform( X.dot(thetas[i]).reshape(-1,1) ) for i in inds]
+    Y_preds = [Yscaler.inverse_transform( X.dot(th).reshape(-1,1) ) for th in good_thetas]
     #Xrot = np.column_stack((MathUtils.Rot45(X_test[:,:2].copy()) , X_test[:,2].copy(), np.column_stack(Y_preds)))
     #Xrot = XrotScaler.transform(Xrot)
     X2 = np.column_stack((X_test.copy(),np.column_stack(Y_preds)))
-    X2 = X2Scaler.transform(X2)
+    X2 = X2Scaler.transform( Polyscaler2.transform(X2) )
     Y_pred_test = Y2Scaler.inverse_transform(PerturbativeUtils.vote_forest(X2,rf_model).reshape(-1,1))
     print ("random forest blender model rmse (mean) [ns]: \n%s"%( metrics.mean_squared_error(np.exp(Y_test[:,0]), np.exp( Y_pred_test) ,squared=False) ) )
 
