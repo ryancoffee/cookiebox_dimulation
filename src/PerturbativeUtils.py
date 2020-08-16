@@ -107,10 +107,10 @@ def ensemble_vote_t2e(x,gp_t2e_models,theta_model0,elitism = 0.2):
 def fit_forest(X,Y,nmodels=8):
     m = RandomForestRegressor(
             n_estimators = nmodels,
-            max_depth = 128,
+            max_depth = 32,
             oob_score = True,
             n_jobs = -1,
-            max_samples = .8
+            max_samples = .9
             )
     m.fit(X,Y)
     return m

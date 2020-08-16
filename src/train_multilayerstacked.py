@@ -80,43 +80,40 @@ def main():
         np.savetxt('%s/pred0.dat'%(m.group(1)),np.column_stack((X_test,Y_test,Y_pred0)))
 
 
-    '''
-    print('scaling data')
-    X_all,Y_all,Xscaler,Yscaler = DataUtils.minmaxscaledata(X_all,Y_all,feature_range = (-1,1))
-
-    fname_Xscaler = '%s/Xscaler_%s.sav'%(modelsfolder,timestamp)
-    fname_Yscaler = '%s/Yscaler_%s.sav'%(modelsfolder,timestamp)
-    joblib.dump(Xscaler,fname_Xscaler)
-    joblib.dump(Yscaler,fname_Yscaler)
-    '''
-
     print('using bag #1')
 
     nsamples = 300
     nmodels = 64
     if usealltrain:
         nmodels = X_bags[1].shape[0]//nsamples
-    nmodels -= 2 # holding out 2 sets of nsamples for validation
+    nmodels -= 2 
+    print('holding out 2 sets of nsamples for validation')
     print('Not the residual idea, adding Ypred0 as feature...\n\tensembling %i models with %i samples'%(nmodels,nsamples))
-    X = np.column_stack((X_bags[1],DataUtils.prependOnes(X_bags[1].copy()).dot(theta0))) # this should handle the removing of the residual from the linear order of the feature... like boosting I think
+    Y0 = DataUtils.prependOnes(X_bags[1].copy()).dot(theta0)
+    X = np.column_stack((X_bags[1][:-2*nsamples,:],Y0[:-2*nsamples])) # this should handle the removing of the residual from the linear order of the feature... like boosting I think
     X,Polyscaler = DataUtils.polyfeaturize(X,order=6) # this has a sharp cutoff at 6, 7 has no improvement, 5 is nearly up to 1ns 
-    X,Y,Xscaler,Yscaler = DataUtils.minmaxscaledata(X,Y_bags[1][:,0].copy(),feature_range = (-1,1))
+    X,Y,Xscaler,Yscaler = DataUtils.minmaxscaledata(X,Y_bags[1][:-2*nsamples,0].copy()-Y0[:-2*nsamples],feature_range = (-1,1))
     thetas = [np.linalg.pinv(X[i*nsamples:(i+1)*nsamples,:]).dot(Y[i*nsamples:(i+1)*nsamples]) for i in range(nmodels)]
     #print('Ensemble thetas:')
     #[print('%s'%(th)) for th in thetas]
-    X = np.column_stack((X_bags[1][-2*nsamples:,:].copy(),DataUtils.prependOnes(X_bags[1][-2*nsamples:,:].copy()).dot(theta0)))
+    X = np.column_stack((X_bags[1][-2*nsamples:,:].copy(),Y0[-2*nsamples:]))
     X = Xscaler.transform( Polyscaler.transform(X) )
     Y_preds = [Yscaler.inverse_transform( X.dot(th).reshape(-1,1) ) for th in thetas]
 
-    errors = [metrics.mean_squared_error(np.exp(Y_bags[1][-2*nsamples:,0]), np.exp(Y_pred),squared=False) for Y_pred in Y_preds]
-    print('\t\t======== OK, thing to change, use errors vetor to implement elitism ===========\n\n')
+    tof_true = np.exp(Y_bags[1][-2*nsamples:,0])
+    tof_y0 = np.exp(Y0[-2*nsamples:])
+    errors = [metrics.mean_squared_error(tof_true, [np.exp(Y_pred[i])*tof_y0[i] for i in range(len(Y_pred))],squared=False) for Y_pred in Y_preds]
+    #errors = [metrics.mean_squared_error(np.exp(Y_bags[1][-2*nsamples:,0]), np.exp(Y_pred + Y0[-2*nsamples:]),squared=False) for Y_pred in Y_preds]
     good_thetas = [ thetas[ i ] for i in np.argsort(errors).copy()[:int(nmodels*elitism)] ]
-    b = np.linspace(0,2,41)
+    b = np.linspace(0,1,41)
     h,b = np.histogram(errors,b)
     print ("histogram of polynomial ensemble model rmse [ns]:")
     [print('%.2f\t%s'%(b[i],'.'*h[i])) for i in range(len(h))]
     #([metrics.mean_squared_error(np.exp(Y_test[:,0]), np.exp(Y_pred),squared=False) for Y_pred in Y_preds]) )
-    print ("polynomial model rmse (mean) [ns]: \n%s"%( metrics.mean_squared_error(np.exp(Y_bags[1][-2*nsamples:,0]), np.exp( np.sum(np.column_stack((Y_preds)),axis = 1 )/len(Y_preds)) ,squared=False) ) )
+    Y_good_preds = [Yscaler.inverse_transform( X.dot(th).reshape(-1,1) ) for th in good_thetas]
+    Y_preds_mean = np.sum(np.column_stack((Y_good_preds)),axis = 1 )/len(Y_good_preds)
+    tof_residual2 = np.exp(Y_preds_mean)
+    print ("polynomial model rmse (mean) [ns]: \n%s"%( metrics.mean_squared_error(tof_true, tof_y0 * tof_residual2 ,squared=False) ) )
 
     print('Keep in mind that the residual depends on the 45 deg rotation of the X[:,0] and X[:,1] features')
     print('It may be getting time to build a transformer pipeline')
@@ -124,33 +121,43 @@ def main():
 
     print('using bag #2 for blender')
     
-    X = np.column_stack((X_bags[2],DataUtils.prependOnes(X_bags[2].copy()).dot(theta0))) # this should handle the removing of the residual from the linear order of the feature... like boosting I think
+    Y0 = DataUtils.prependOnes(X_bags[2].copy()).dot(theta0)
+    X = np.column_stack((X_bags[2],Y0)) # this should handle the removing of the residual from the linear order of the feature... like boosting I think
     X = Xscaler.transform( Polyscaler.transform(X) )
     Y_preds = [Yscaler.inverse_transform( X.dot(th).reshape(-1,1) ) for th in good_thetas]
+    Y_preds_mean = np.sum(np.column_stack((Y_preds)),axis = 1 )/len(Y_preds)
     X2 = np.column_stack((X_bags[2].copy(),np.column_stack(Y_preds)))
     X2,Polyscaler2 = DataUtils.polyfeaturize(X2,order = 2)
     #Xrot = np.column_stack((MathUtils.Rot45(X_bags[2][:,:2]) , X_bags[2][:,2], np.column_stack(Y_preds)))
     #Xrot,Yrot,XrotScaler,YrotScaler = DataUtils.minmaxscaledata(Xrot,Y_bags[2][:,0].copy(),feature_range = (-1,1))
-    X2,Y2,X2Scaler,Y2Scaler = DataUtils.minmaxscaledata(X2,Y_bags[2][:,0].copy(),feature_range = (-1,1))
+    X2,Y2,X2Scaler,Y2Scaler = DataUtils.minmaxscaledata(X2,Y_bags[2][:,0].copy()-Y_preds_mean-Y0,feature_range = (-1,1))
 
 
-    nmodels =32 
+    nmodels =64 
     print('fitting random forest\t... next to try maybe GP instead of RF')
     rf_model = PerturbativeUtils.fit_forest(X2,Y2,nmodels = nmodels)
     print('done fitting')
 
     print('Now running on test set')
-    X = np.column_stack((X_test.copy(),DataUtils.prependOnes(X_test.copy()).dot(theta0))) # this should handle the removing of the residual from the linear order of the feature... like boosting I think
+    Y0 = DataUtils.prependOnes(X_test.copy()).dot(theta0)
+    X = np.column_stack((X_test.copy(),Y0)) # this should handle the removing of the residual from the linear order of the feature... like boosting I think
     X = Xscaler.transform( Polyscaler.transform(X) )
     Y_preds = [Yscaler.inverse_transform( X.dot(th).reshape(-1,1) ) for th in good_thetas]
+    Y_preds_mean = np.sum(np.column_stack((Y_preds)),axis = 1 )/len(Y_preds)
     #Xrot = np.column_stack((MathUtils.Rot45(X_test[:,:2].copy()) , X_test[:,2].copy(), np.column_stack(Y_preds)))
     #Xrot = XrotScaler.transform(Xrot)
     X2 = np.column_stack((X_test.copy(),np.column_stack(Y_preds)))
     X2 = X2Scaler.transform( Polyscaler2.transform(X2) )
     Y_pred_test = Y2Scaler.inverse_transform(PerturbativeUtils.vote_forest(X2,rf_model).reshape(-1,1))
-    print ("random forest blender model rmse (mean) [ns]: \n%s"%( metrics.mean_squared_error(np.exp(Y_test[:,0]), np.exp( Y_pred_test) ,squared=False) ) )
+    tof_true = np.exp(Y_test[:,0])
+    tof_residual3 = np.exp( Y_pred_test )
+    tof_residual2 = np.exp(Y_preds_mean)
+    tof_y0 = np.exp(Y0)
 
-    print('Still not as good as the 0.03 rmse from the elitist GP ensemble')
+
+    print ("random forest blender model rmse (mean) [ns]: \n%s"%( metrics.mean_squared_error(tof_true, [tof_y0[i] * tof_residual2[i] * tof_residual3[i] for i in range(len(tof_true))] ,squared=False) ) )
+
+    print('Now it is pretty darn close to the GP errors')
 
     return
 
