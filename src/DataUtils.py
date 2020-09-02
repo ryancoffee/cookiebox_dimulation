@@ -83,6 +83,34 @@ def katiesplit(x,y):
     return (x_train,x_test,x_validate,x_oob,y_train,y_test,y_validate,y_oob)
 
 
+def loadData_logt_loge(fnamelist):
+    x_all = []
+    y_all = []
+    for fname in fnamelist:
+        f = h5py.File(fname,'r') #  IMORTANT NOTE: it looks like some h5py builds have a resouce lock that prevents easy parallelization... tread lightly and load files sequentially for now.
+        vsetting = list(f.keys())[3]
+        elist = list(f[vsetting]['energy'])
+        alist = list(f[vsetting]['angle'])
+        amat = np.tile(alist,(len(elist),1)).flatten()
+        emat = np.tile(elist,(len(alist),1)).T.flatten()
+        tdata = f[vsetting]['t_offset'][()].flatten()
+        ydata = f[vsetting]['y_detector'][()].flatten()
+        xsplat = f[vsetting]['splat']['x'][()].flatten()
+        vset = f[vsetting][ list(f[vsetting].keys())[0] ][-1][1]
+        vsetvec = np.ones(xsplat.shape,dtype=float)*vset*-1. # donet forget to invert the retardation voltage before taking the log
+        validinds = np.where((xsplat>182.5) * (xsplat<187) * (emat>0) * (abs(ydata)<.0135) )
+        nfeatures = 1
+        ntruths = 1
+        featuresvec = np.log(np.c_[tdata[validinds],vsetvec[validinds]])
+        truthsvec = np.log(emat[validinds]).reshape(-1,1)
+        if len(x_all)<1:
+            x_all = featuresvec.copy()
+            y_all = truthsvec.copy()
+        else:
+            x_all = np.row_stack((x_all,featuresvec))
+            y_all = np.row_stack((y_all,truthsvec))
+    return x_all,y_all 
+
 def loadT2Edata_tixel():
     x_all = []
     y_all = []

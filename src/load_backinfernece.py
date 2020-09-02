@@ -78,7 +78,7 @@ def main():
     #truebins = np.logspace(-1,2,41)
     truebins = np.linspace(0,256,51)
     #resbins = np.concatenate((-np.logspace(0.5,-2,11),np.logspace(-2,0.5,11)),axis=0)
-    resbins = np.linspace(-.25,.25,81)
+    resbins = np.linspace(-.5,.5,81)
     #reshist,xedges,yedges = np.histogram2d(true.reshape(-1),residual.reshape(-1),bins = (truebins,resbins), density = True)
     reshist,xedges,yedges = np.histogram2d(true.reshape(-1),residual.reshape(-1),bins = (truebins,resbins), density = True)
     X,Y = np.meshgrid((xedges[:-1]+xedges[1:])/2.,(yedges[:-1]+yedges[-1:])/2.)
@@ -90,8 +90,6 @@ def main():
     #np.savetxt('%s/backinfer.hist.dat'%(modelsfolder),np.column_stack((Y.flatten(),X.flatten(),reshist.flatten())))
     np.savetxt('%s/backinfer.hist.dat'%(modelsfolder),reshist)
 
-    print('Left to do: ')
-    print('Print our the histogram of residuals versus true energy')
 
     return
 
