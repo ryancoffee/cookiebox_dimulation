@@ -8,34 +8,42 @@ from matplotlib import cm
 
 def main():
     if len(sys.argv)<3:
-        print('syntax:\t%s <outputfilehead> <nimages> <streakamp optional>'%(sys.argv[0]))
+        print('syntax:\t%s <outputfilehead> <nimages> <streakamp optional> <nelectrons scale optional>'%(sys.argv[0]))
         return
     streakamp = 20.
     nimages = 10
+    scale = 100
     if len(sys.argv)>2:
         nimages = int(sys.argv[2])
     if len(sys.argv)>3:
         streakamp = float(sys.argv[3])
+    if len(sys.argv)>4:
+        scale = int(sys.argv[4])
 
     outhead = sys.argv[1]
-    nangles = 256 
-    nenergies = 256 
+    nangles = 64 
+    nenergies = 1024 
     emin = 0
-    emax = 100
+    emax = 512
 
     etotalwidth = 10.
-    ecentral = 50.
+    ecentral = 30.
     angles = np.linspace(0,np.pi*2.,nangles+1)
     energies = np.linspace(emin,emax,nenergies+1)
-    scale = 100
     
     for img in range(nimages):
         hist_ens = np.zeros((nenergies,nangles),dtype=int)
+        hist_ens_auger = np.zeros((nenergies,nangles),dtype=int)
         outname = '%s.%02i'%(outhead,img)
         npulses = int(np.random.uniform(3,8))
         ecenters = np.random.normal(ecentral,etotalwidth,(npulses,))
-        ewidths = np.random.gamma(5.,.125,(npulses,))+1
+        ewidths = np.random.gamma(2.5,.125,(npulses,))+.5
         ephases= np.random.uniform(0.,2.*np.pi,(npulses,))
+        # rather than this, let's eventually switch to using a dict for the AUger features and then for every ncounts photoelectron, we pick from this distribution an Auger electron.
+        augerfeatures = {505:2.5,497:1.,492:1.,365:1.5,369:1.5,372:1.5,250.:3.,255.:2.5,260.:2.5}
+        #augerfeatures = {505:1.5,492:1.,365:1.5,372:1.5,250.:1.,260.:1.5}
+        nitrogencenters = ecenters+540.-410.
+        carboncenters = ecenters+540.-285.
 
         for i in range(npulses):
             c0 = 1.
@@ -43,13 +51,20 @@ def main():
             c4 = np.random.uniform(-(c0+c2),c0+c2)
             poldist = np.polynomial.legendre.Legendre([c0,0,c2,0,c4])(np.cos(angles[:-1]))
             for a in range(nangles):
-                ncounts = int(poldist[a] * scale)
+                ncounts = int(poldist[a] * scale/3.)
+                augercounts = int(scale)
                 if ncounts > 0:
                     streak = streakamp*np.cos(angles[a]-ephases[i])
                     hist_ens[:,a] += np.histogram(np.random.normal(ecenters[i]+streak,ewidths[i],(ncounts,)),energies)[0]
+                    hist_ens[:,a] += np.histogram(np.random.normal(nitrogencenters[i]+streak,ewidths[i],(ncounts,)),energies)[0]
+                    hist_ens[:,a] += np.histogram(np.random.normal(carboncenters[i]+streak,ewidths[i],(ncounts,)),energies)[0]
+                    augercenters = np.random.choice(list(augerfeatures.keys()),(augercounts,))
+                    ens_auger = [np.random.normal(c,augerfeatures[c])+streak for c in augercenters]
+                    hist_ens_auger[:,a] += np.histogram(ens_auger,energies)[0]
 
-
-    np.savetxt(outname,hist_ens,fmt='%i')
+        np.savetxt(outname,hist_ens,fmt='%i')
+        np.savetxt('%s.%s'%(outname,'augers'),hist_ens_auger,fmt='%i')
+        np.savetxt('%s.%s'%(outname,'full'),hist_ens_auger+hist_ens,fmt='%i')
     '''
     fig, ax = plt.subplots()#subplot_kw={"projection": "3d"})
     X,Y = np.meshgrid(angles,energies)
