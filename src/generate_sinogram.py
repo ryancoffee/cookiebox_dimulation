@@ -2,8 +2,6 @@
 
 import sys
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib import cm
 
 
 def main():
@@ -27,23 +25,26 @@ def main():
     emax = 512
 
     etotalwidth = 10.
-    ecentral = 30.
+    ecentral = 0.
     angles = np.linspace(0,np.pi*2.,nangles+1)
     energies = np.linspace(emin,emax,nenergies+1)
     
     for img in range(nimages):
-        hist_ens = np.zeros((nenergies,nangles),dtype=int)
-        hist_ens_auger = np.zeros((nenergies,nangles),dtype=int)
+        hist_ens_NNO = np.zeros((nenergies,nangles),dtype=int)
+        hist_ens_OCO = np.zeros((nenergies,nangles),dtype=int)
+        hist_ens_auger_NNO = np.zeros((nenergies,nangles),dtype=int)
+        hist_ens_auger_OCO = np.zeros((nenergies,nangles),dtype=int)
         outname = '%s.%02i'%(outhead,img)
         npulses = int(np.random.uniform(3,8))
         ecenters = np.random.normal(ecentral,etotalwidth,(npulses,))
-        ewidths = np.random.gamma(2.5,.125,(npulses,))+.5
+        ewidths = np.random.gamma(3.5,.125,(npulses,))+.5
         ephases= np.random.uniform(0.,2.*np.pi,(npulses,))
         # rather than this, let's eventually switch to using a dict for the AUger features and then for every ncounts photoelectron, we pick from this distribution an Auger electron.
-        augerfeatures = {505:2.5,497:1.,492:1.,365:1.5,369:1.5,372:1.5,250.:3.,255.:2.5,260.:2.5}
+        augerfeatures_NNO = {505:2.5,497:1.,492:1.,365:1.5,369:1.5,372:1.5}
+        augerfeatures_OCO = {505:2.5,497:1.,492:1.,250.:3.,255.:2.5,260.:2.5}
         #augerfeatures = {505:1.5,492:1.,365:1.5,372:1.5,250.:1.,260.:1.5}
-        nitrogencenters = ecenters+540.-410.
-        carboncenters = ecenters+540.-285.
+        nitrogencenters = ecenters+535.-410.
+        carboncenters = ecenters+535.-285.
 
         for i in range(npulses):
             c0 = 1.
@@ -55,16 +56,21 @@ def main():
                 augercounts = int(scale)
                 if ncounts > 0:
                     streak = streakamp*np.cos(angles[a]-ephases[i])
-                    hist_ens[:,a] += np.histogram(np.random.normal(ecenters[i]+streak,ewidths[i],(ncounts,)),energies)[0]
-                    hist_ens[:,a] += np.histogram(np.random.normal(nitrogencenters[i]+streak,ewidths[i],(ncounts,)),energies)[0]
-                    hist_ens[:,a] += np.histogram(np.random.normal(carboncenters[i]+streak,ewidths[i],(ncounts,)),energies)[0]
-                    augercenters = np.random.choice(list(augerfeatures.keys()),(augercounts,))
-                    ens_auger = [np.random.normal(c,augerfeatures[c])+streak for c in augercenters]
-                    hist_ens_auger[:,a] += np.histogram(ens_auger,energies)[0]
+                    #hist_ens_NNO[:,a] += np.histogram(np.random.normal(ecenters[i]+streak,ewidths[i],(ncounts,)),energies)[0]
+                    hist_ens_NNO[:,a] += np.histogram(np.random.normal(nitrogencenters[i]+streak,ewidths[i],(ncounts,)),energies)[0]
+                    augercenters_NNO = np.random.choice(list(augerfeatures_NNO.keys()),(augercounts,))
+                    ens_auger_NNO = [np.random.normal(c,augerfeatures_NNO[c])+streak for c in augercenters_NNO]
+                    hist_ens_auger_NNO[:,a] += np.histogram(ens_auger_NNO,energies)[0]
+                    #hist_ens_OCO[:,a] += np.histogram(np.random.normal(ecenters[i]+streak,ewidths[i],(ncounts,)),energies)[0]
+                    hist_ens_OCO[:,a] += np.histogram(np.random.normal(carboncenters[i]+streak,ewidths[i],(ncounts,)),energies)[0]
+                    augercenters_OCO = np.random.choice(list(augerfeatures_OCO.keys()),(augercounts,))
+                    ens_auger_OCO = [np.random.normal(c,augerfeatures_OCO[c])+streak for c in augercenters_OCO]
+                    hist_ens_auger_OCO[:,a] += np.histogram(ens_auger_OCO,energies)[0]
 
-        np.savetxt(outname,hist_ens,fmt='%i')
-        np.savetxt('%s.%s'%(outname,'augers'),hist_ens_auger,fmt='%i')
-        np.savetxt('%s.%s'%(outname,'full'),hist_ens_auger+hist_ens,fmt='%i')
+        #np.savetxt(outname,hist_ens,fmt='%i')
+        #np.savetxt('%s.%s'%(outname,'augers'),hist_ens_auger,fmt='%i')
+        np.savetxt('%s.%s'%(outname,'full_NNO'),hist_ens_auger_NNO+hist_ens_NNO,fmt='%i')
+        np.savetxt('%s.%s'%(outname,'full_OCO'),hist_ens_auger_OCO+hist_ens_OCO,fmt='%i')
     '''
     fig, ax = plt.subplots()#subplot_kw={"projection": "3d"})
     X,Y = np.meshgrid(angles,energies)
