@@ -1,0 +1,10 @@
+Prof. Dr. Thomas Feurer (U Bern)	Time Domain Ptychography
+
+One of the major open questions to answer before the CookieBox style detection scheme is fully realized at high repetition rate FELs is the count rate limit for MCP sensors.
+This limit imacts the algorithms which reconstruct the x-ray pulse shape via angular streaking and also impacts the interpretation of the "delay" for photo electron emission and Auger electron emission in cases where attosecond xFEL pulses are not available or desirable.  
+In our proposed ptychography-like reconstruction of the photo and Auger emission spectrogram, we are not able to make a simple reorientation of the atto-clock in order to measure relative ime-delays, instead we must reconstruct the results statistically as in spatial ptychography, by knowing the time-energy distribution of the partially coherent incoming pulses.
+In this way
+
+To train the forward inference model used for the statistical reconstruction method, we will employ the concept of Ref,~\cite [Sajal and Jan Michael] since this relaxes our reliance on full simulation of the molecular electronic system and instead allows us to leverage many simpler calculations as a training set that the trained model effectively uses to make a composite prediction that expresses the fuller chemical system.
+As was shown in that reference, the increased complexity of the SASE pulses actually broadense the scope of investigation, as compared to the more conventional though much more recently developed XLEAP pulses.
+Basically this statistical treatment with SASE pulses is like spooktroscopy on steroids.

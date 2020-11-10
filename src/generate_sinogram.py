@@ -5,6 +5,32 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
 
+class Auger():
+    def __init__(self):
+        self.center = 512.
+        self.width = 1.25
+        self.delay = .25
+        self.name = 'unnamed'
+    def print(self):
+        outstring = '%s:\t%.2f\t%.2f\t%.2f'%(self.name,self.center,self.width,self.delay)
+        print(outstring)
+
+    def setname(self,x):
+        self.name = x
+    def setcenter(self,x):
+        self.center = x
+    def setwidth(self,x):
+        self.width = x
+    def setdelay(self,x):
+        self.delay = x
+    def setcenterwidthdelay(self,x,y,z):
+        self.center = x
+        self.width = y
+        self.delay = z
+    def __call__(self):
+        return self.center,self.width,self.delay
+
+
 
 def main():
     if len(sys.argv)<3:
@@ -30,6 +56,25 @@ def main():
     ecentral = 30.
     angles = np.linspace(0,np.pi*2.,nangles+1)
     energies = np.linspace(emin,emax,nenergies+1)
+
+    nitrogenaugers = [Auger() for i in range(3)]
+    nitrogenaugers[0].setcenterwidthdelay(365,1.5,.5)
+    nitrogenaugers[1].setcenterwidthdelay(369,1.5,.25)
+    nitrogenaugers[2].setcenterwidthdelay(372,1.5,.25)
+
+    carbonaugers = [Auger() for i in range(3)]
+    carbonaugers[0].setcenterwidthdelay(255,2.5,.5)
+    carbonaugers[1].setcenterwidthdelay(260,2.5,.25)
+    carbonaugers[2].setcenterwidthdelay(252,1.5,.75)
+
+    oxygenaugers = [Auger() for i in range(6)]
+    oxygenaugers[0].setcenterwidthdelay(495,2.5,.125)
+    oxygenaugers[1].setcenterwidthdelay(480,2.5,.25)
+    oxygenaugers[2].setcenterwidthdelay(482,1.5,.25)
+    oxygenaugers[3].setcenterwidthdelay(502,1.5,.5)
+    oxygenaugers[4].setcenterwidthdelay(507,1.0,.5)
+    oxygenaugers[5].setcenterwidthdelay(507,0.5,1.75)
+
     
     for img in range(nimages):
         hist_ens = np.zeros((nenergies,nangles),dtype=int)
