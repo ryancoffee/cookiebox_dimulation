@@ -15,26 +15,54 @@ class electron():
 
     def setname(self,x):
         self.name = x
+        return self
     def setcenter(self,x):
         self.center = x
+        return self
     def setwidth(self,x):
         self.width = x
+        return self
     def setdelay(self,x):
         self.delay = x
+        return self
     def setcenterwidthdelay(self,x,y,z):
         self.center = x
         self.width = y
         self.delay = z
+        return self
     def __call__(self):
         return self.center,self.width,self.delay
 
 class Photo(electron):
+    def setcenterwidthdelay(self,x,y,z):
+        self.center = x - self.binding
+        self.width = y
+        self.delay = z
+        return self
     def setbinding(self,x):
         self.binding = x
+        return self
 
 class Auger(electron):
     def this(self):
         self.this = 0
+        return self
+
+def e2ind(e,emin,emax,n):
+    v = int((e-emin)*n/(emax-emin))
+    if v<1:
+        return int(0)
+    if v>n-1:
+        return int(n-1)
+    return int(v)
+
+def phi2ind(p,pmin,pmax,n):
+    phase = int((p-pmin)*n/(pmax-pmin))
+    if p<1:
+        return int(0)
+    if p>n-1:
+        return int(n-1)
+    return int(p)
 
 
 def main():
@@ -43,22 +71,22 @@ def main():
         return
     streakamp = 20.
     nimages = 10
-    scale = 100
+    scalein = 100
     if len(sys.argv)>2:
         nimages = int(sys.argv[2])
     if len(sys.argv)>3:
         streakamp = float(sys.argv[3])
     if len(sys.argv)>4:
-        scale = int(sys.argv[4])
+        scalein = int(sys.argv[4])
 
     outhead = sys.argv[1]
     nangles = 64 
-    nenergies = 1024 
+    nenergies = 2048 
     emin = 0
-    emax = 512
+    emax = 2048
 
     etotalwidth = 10.
-    ecentral = 0.
+    ecentral = 534.5
     angles = np.linspace(0,np.pi*2.,nangles+1)
     energies = np.linspace(emin,emax,nenergies+1)
 
@@ -80,9 +108,13 @@ def main():
     oxygenaugers[4].setcenterwidthdelay(507,1.0,.5)
     oxygenaugers[5].setcenterwidthdelay(507,0.5,1.75)
 
+    nphases = int(512)
+    
 
     
     for img in range(nimages):
+        timeenergy_NNO = np.zeros((nenergies,nphases),dtype=int)
+        timeenergy_OCO = np.zeros((nenergies,nphases),dtype=int)
         hist_ens_NNO = np.zeros((nenergies,nangles),dtype=int)
         hist_ens_OCO = np.zeros((nenergies,nangles),dtype=int)
         hist_ens_auger_NNO = np.zeros((nenergies,nangles),dtype=int)
@@ -99,36 +131,49 @@ def main():
         nitrogencenters = ecenters+535.-410.
         carboncenters = ecenters+535.-285.
 
+        oxygenphotos = [Photo().setbinding(543.1).setcenterwidthdelay(ecenters[i],ewidths[i],ephases[i]) for i in range(npulses)]
+        oxygenvalencephotos = [Photo().setbinding(41.6).setcenterwidthdelay(ecenters[i],ewidths[i],ephases[i]) for i in range(npulses)]
+        nitrogenphotos = [Photo().setbinding(409.9).setcenterwidthdelay(ecenters[i],ewidths[i],ephases[i]) for i in range(npulses)]
+        nitrogenvalencephotos = [Photo().setbinding(37.3).setcenterwidthdelay(ecenters[i],ewidths[i],ephases[i]) for i in range(npulses)]
+        carbonphotos = [Photo().setbinding(284.2).setcenterwidthdelay(ecenters[i],ewidths[i],ephases[i]) for i in range(npulses)]
+        scale = [int(v) for v in np.random.normal(scalein,scalein/10.,npulses)]
         for i in range(npulses):
-            oxygenphotos = [Photo() for i in range(npulses)]
-            nitrogenphotos = [Photo() for i in range(npulses)]
-            carbonphotos = [Photo() for i in range(npulses)]
             c0 = 1.
             c2 = np.random.uniform(-1,1)
             c2 = -1.
             c4 = np.random.uniform(-(c0+c2),c0+c2)
             c4 = 0.
             poldist = np.polynomial.legendre.Legendre([c0,0,c2,0,c4])(np.cos(angles[:-1]))
+            c,w,p = nitrogenphotos[i]()
+            timeenergy_NNO[e2ind(c,emin,emax,nenergies) , phi2ind(p,0,2*np.pi,nphases)] += scale[i]
+            c,w,p = carbonphotos[i]()
+            timeenergy_OCO[e2ind(c,emin,emax,nenergies) , phi2ind(p,0,2*np.pi,nphases)] += scale[i]
+
             for a in range(nangles):
-                ncounts = int(poldist[a] * scale)
-                augercounts = int(scale)
+                ncounts = int(poldist[a] * scale[i])
+                augercounts = scale[i]
                 if ncounts > 0:
-                    streak = streakamp*np.cos(angles[a]-ephases[i])
+
                     #hist_ens_NNO[:,a] += np.histogram(np.random.normal(ecenters[i]+streak,ewidths[i],(ncounts,)),energies)[0]
-                    hist_ens_NNO[:,a] += np.histogram(np.random.normal(nitrogencenters[i]+streak,ewidths[i],(ncounts,)),energies)[0]
-                    augercenters_NNO = np.random.choice(list(augerfeatures_NNO.keys()),(augercounts,))
-                    ens_auger_NNO = [np.random.normal(c,augerfeatures_NNO[c])+streak for c in augercenters_NNO]
-                    hist_ens_auger_NNO[:,a] += np.histogram(ens_auger_NNO,energies)[0]
+                    c,w,p = nitrogenphotos[i]()
+                    streak = streakamp*np.cos(angles[a]-p)
+                    hist_ens_NNO[:,a] += np.histogram(np.random.normal(c+streak,w,(ncounts,)),energies)[0]
+                    #augercenters_NNO = np.random.choice(list(augerfeatures_NNO.keys()),(augercounts,))
+                    #ens_auger_NNO = [np.random.normal(c,augerfeatures_NNO[c])+streak for c in augercenters_NNO]
+                    #hist_ens_auger_NNO[:,a] += np.histogram(ens_auger_NNO,energies)[0]
                     #hist_ens_OCO[:,a] += np.histogram(np.random.normal(ecenters[i]+streak,ewidths[i],(ncounts,)),energies)[0]
-                    hist_ens_OCO[:,a] += np.histogram(np.random.normal(carboncenters[i]+streak,ewidths[i],(ncounts,)),energies)[0]
-                    augercenters_OCO = np.random.choice(list(augerfeatures_OCO.keys()),(augercounts,))
-                    ens_auger_OCO = [np.random.normal(c,augerfeatures_OCO[c])+streak for c in augercenters_OCO]
-                    hist_ens_auger_OCO[:,a] += np.histogram(ens_auger_OCO,energies)[0]
+                    c,w,p = carbonphotos[i]()
+                    hist_ens_OCO[:,a] += np.histogram(np.random.normal(c+streak,w,(ncounts,)),energies)[0]
+                    #augercenters_OCO = np.random.choice(list(augerfeatures_OCO.keys()),(augercounts,))
+                    #ens_auger_OCO = [np.random.normal(c,augerfeatures_OCO[c])+streak for c in augercenters_OCO]
+                    #hist_ens_auger_OCO[:,a] += np.histogram(ens_auger_OCO,energies)[0]
 
         #np.savetxt(outname,hist_ens,fmt='%i')
         #np.savetxt('%s.%s'%(outname,'augers'),hist_ens_auger,fmt='%i')
-        np.savetxt('%s.%s'%(outname,'full_NNO'),hist_ens_auger_NNO+hist_ens_NNO,fmt='%i')
-        np.savetxt('%s.%s'%(outname,'full_OCO'),hist_ens_auger_OCO+hist_ens_OCO,fmt='%i')
+        np.savetxt('%s.%s'%(outname,'timeenergy_NNO'),timeenergy_NNO,fmt='%i')
+        np.savetxt('%s.%s'%(outname,'timeenergy_OCO'),timeenergy_OCO,fmt='%i')
+        np.savetxt('%s.%s'%(outname,'full_NNO'),hist_ens_NNO,fmt='%i')
+        np.savetxt('%s.%s'%(outname,'full_OCO'),hist_ens_OCO,fmt='%i')
     '''
     fig, ax = plt.subplots()#subplot_kw={"projection": "3d"})
     X,Y = np.meshgrid(angles,energies)
