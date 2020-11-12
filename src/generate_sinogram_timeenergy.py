@@ -2,6 +2,7 @@
 
 import sys
 import numpy as np
+from scipy.sparse import coo_matrix
 
 class electron():
     def __init__(self):
@@ -49,7 +50,7 @@ class Auger(electron):
         return self
 
 def e2ind(e,emin,emax,n):
-    v = int((e-emin)*n/(emax-emin))
+    v = int((float(e)-emin)*float(n)/float(emax-emin))
     if v<1:
         return int(0)
     if v>n-1:
@@ -57,13 +58,16 @@ def e2ind(e,emin,emax,n):
     return int(v)
 
 def phi2ind(p,pmin,pmax,n):
-    phase = int((p-pmin)*n/(pmax-pmin))
-    if p<1:
+    phase = int((float(p)-pmin)*float(n)/float(pmax-pmin))
+    if phase<1:
         return int(0)
-    if p>n-1:
+    if phase>n-1:
         return int(n-1)
-    return int(p)
+    return int(phase)
 
+def coordout(mat):
+    inds = np.where(mat)
+    return np.c_[np.c_[inds],mat[inds]]
 
 def main():
     if len(sys.argv)<3:
@@ -83,7 +87,7 @@ def main():
     nangles = 64 
     nenergies = 2048 
     emin = 0
-    emax = 2048
+    emax = 512
 
     etotalwidth = 10.
     ecentral = 534.5
@@ -108,7 +112,7 @@ def main():
     oxygenaugers[4].setcenterwidthdelay(507,1.0,.5)
     oxygenaugers[5].setcenterwidthdelay(507,0.5,1.75)
 
-    nphases = int(512)
+    nphases = int(64)
     
 
     
@@ -170,10 +174,12 @@ def main():
 
         #np.savetxt(outname,hist_ens,fmt='%i')
         #np.savetxt('%s.%s'%(outname,'augers'),hist_ens_auger,fmt='%i')
-        np.savetxt('%s.%s'%(outname,'timeenergy_NNO'),timeenergy_NNO,fmt='%i')
-        np.savetxt('%s.%s'%(outname,'timeenergy_OCO'),timeenergy_OCO,fmt='%i')
-        np.savetxt('%s.%s'%(outname,'full_NNO'),hist_ens_NNO,fmt='%i')
-        np.savetxt('%s.%s'%(outname,'full_OCO'),hist_ens_OCO,fmt='%i')
+        np.savetxt('%s.%s'%(outname,'timeenergy_NNO'),coordout(timeenergy_NNO),fmt='%i')
+        np.savetxt('%s.%s'%(outname,'timeenergy_OCO'),coordout(timeenergy_OCO),fmt='%i')
+        #np.savetxt('%s.%s'%(outname,'full_NNO'),hist_ens_NNO.T,fmt='%i')
+        #np.savetxt('%s.%s'%(outname,'full_OCO'),hist_ens_OCO.T,fmt='%i')
+        np.savetxt('%s.%s'%(outname,'full_NNO'),coordout(hist_ens_NNO),fmt='%i')
+        np.savetxt('%s.%s'%(outname,'full_OCO'),coordout(hist_ens_OCO),fmt='%i')
     '''
     fig, ax = plt.subplots()#subplot_kw={"projection": "3d"})
     X,Y = np.meshgrid(angles,energies)
