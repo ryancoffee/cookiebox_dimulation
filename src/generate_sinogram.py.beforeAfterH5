@@ -61,6 +61,7 @@ def main():
     emax = 512
 
     etotalwidth = 10.
+<<<<<<< HEAD
     ecentral = 535.
     angles = np.linspace(0,np.pi*2.,nangles+1)
     energies = np.linspace(emin,emax,nenergies+1)
@@ -94,7 +95,7 @@ def main():
         for p in range(img.attrs['npulses']):
             img.attrs['legcoeffs'][p,:] = [1., 0., np.random.uniform(-1,1), 0., np.random.uniform(-(c0+c2),c0+c2)]
             poldist = np.polynomial.legendre.Legendre(img.attrs['legcoeffs'][p,:])(np.cos(angles[:-1]))
-'''
+=======
     ecentral = 0.
     angles = np.linspace(0,np.pi*2.,nangles+1)
     energies = np.linspace(emin,emax,nenergies+1)
@@ -147,11 +148,11 @@ def main():
             c4 = 0.
             poldist = np.polynomial.legendre.Legendre([c0,0,c2,0,c4])(np.cos(angles[:-1]))
 >>>>>>> 5b5a106b2e5b917e410e4627281b95684d4ded05
-'''
             for a in range(nangles):
                 ncounts = int(poldist[a] * scale)
                 augercounts = int(scale)
                 if ncounts > 0:
+<<<<<<< HEAD
                     streak = img.attrs['streakamp']*np.cos(angles[a]-img.attrs['ephases'][i]+img.attrs['carrier'])
                     ens = [v for v in np.random.normal(img.attrs['esase'][p]+streak,img.attrs['ewidths'][p],(ncounts,)))]
                     ens += [v for v in np.random.normal(img.attrs['nitrogencenters'][p]+streak,img.attrs['ewidths'][p],(ncounts,)))]
@@ -170,7 +171,7 @@ def main():
         np.savetxt('%s.%s'%(outname,'full'),hist_ens_auger+hist_ens,fmt='%i')
 
     h5f.close()
-                    '''
+=======
                     streak = streakamp*np.cos(angles[a]-ephases[i])
                     #hist_ens_NNO[:,a] += np.histogram(np.random.normal(ecenters[i]+streak,ewidths[i],(ncounts,)),energies)[0]
                     hist_ens_NNO[:,a] += np.histogram(np.random.normal(nitrogencenters[i]+streak,ewidths[i],(ncounts,)),energies)[0]
@@ -188,8 +189,6 @@ def main():
         np.savetxt('%s.%s'%(outname,'full_NNO'),hist_ens_auger_NNO+hist_ens_NNO,fmt='%i')
         np.savetxt('%s.%s'%(outname,'full_OCO'),hist_ens_auger_OCO+hist_ens_OCO,fmt='%i')
 >>>>>>> 5b5a106b2e5b917e410e4627281b95684d4ded05
-'''
-
     '''
     fig, ax = plt.subplots()#subplot_kw={"projection": "3d"})
     X,Y = np.meshgrid(angles,energies)
