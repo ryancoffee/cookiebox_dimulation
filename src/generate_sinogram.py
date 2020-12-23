@@ -56,7 +56,6 @@ def main():
 
         photofeatures = {**carboncenters,**nitrogencenters}
         img.create_group('photos')
-        print(list(photofeatures.keys()))
         for center in list(photofeatures.keys()):
             img['photos'].attrs['%.2f'%center] = float(photofeatures[center])
 
@@ -72,6 +71,7 @@ def main():
         ens = []
         for a in range(nangles):
             ens.append([])
+
         for p in range(img.attrs['npulses']):
             c0 = 1.
             c2 = np.random.uniform(-1,1)
@@ -83,28 +83,25 @@ def main():
                 augercounts = int(scale)
                 if ncounts > 0:
                     streak = img.attrs['streakamp']*np.cos(angles[a]-img.attrs['ephases'][p]+img.attrs['carrier'])
-                    centers = list(np.random.choice(list(img['photos'].attrs.keys()),ncounts))
-                    ens[a] += [np.random.normal(float(c),float(img['photos'].attrs[c]),ncounts) for c in centers]
-                    '''
-                    ens = [v for v in np.random(center + streak, width,)]
-                    ens = [v for v in np.random.normal(img.attrs['esase'][p]+streak,img.attrs['ewidths'][p],(ncounts,))]
-                    ens += [v for v in np.random.normal(img['photos'].attrs['nitrogencenters'][p]+streak,img.attrs['ewidths'][p],(ncounts,))]
-                    ens += [v for v in np.random.normal(img.attrs['carboncenters'][p]+streak,img.attrs['ewidths'][p],(ncounts,))]
-                    ens += [v for v in np.random.normal(img.attrs['nvalencecenters'][p]+streak,img.attrs['ewidths'][p],(ncounts,))]
-                    ens += [v for v in np.random.normal(img.attrs['ovalencecenters'][p]+streak,img.attrs['ewidths'][p],(ncounts,))]
-                    augercenters = np.random.choice(list(img.attrs['augers'].keys()),(augercounts,))
-                    ens += [np.random.normal(c,augerfeatures[c])+streak for c in augercenters]
-                    nens = len(ens)
-                    print(nens)
-                    '''
+                    centers = list(np.random.choice(list(img['photos'].attrs.keys()),int(np.sqrt(ncounts))))
+                    for c in centers:
+                        ens[a] += list(np.random.normal(float(c)+float(streak),float(img['photos'].attrs[c]),int(np.sqrt(ncounts))))
+                    centers = list(np.random.choice(list(img['augers'].attrs.keys()),int(np.sqrt(augercounts))))
+                    for c in centers:
+                        ens[a] += list(np.random.normal(float(c)+float(streak),float(img['augers'].attrs[c]),int(np.sqrt(augercounts))))
+                    centers = list(np.random.choice(list(img['valencephotos'].attrs.keys()),int(np.sqrt(ncounts//10))))
+                    for c in centers:
+                        ens[a] += list(np.random.normal(float(c)+float(streak),float(img['valencephotos'].attrs[c]),int(np.sqrt(ncounts//10))))
         h = np.zeros((nenergies,nangles),dtype=int)
         for a in range(nangles):
-            print(ens[a])
             h[:,a] = np.histogram(ens[a],energies)[0]
         img.create_dataset('hist',data=h)
+        img.create_dataset('energies',data=energies[:-1])
+
         hits = img.create_group('hits')
-        for a in range(nangles):
-            hits.create_dataset('%i'%a,ens[a])
+        for a in range(len(ens)):
+            #print(len(ens[a]))
+            hits.create_dataset('%i'%a,data=ens[a][:])
     h5f.close()
 
     return
