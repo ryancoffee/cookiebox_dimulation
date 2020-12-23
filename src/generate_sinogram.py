@@ -2,51 +2,15 @@
 
 import sys
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib import cm
 import h5py
 
-class electron():
-    def __init__(self):
-        self.center = 512.
-        self.width = 1.25
-        self.delay = .25
-        self.name = 'unnamed'
-    def print(self):
-        outstring = '%s:\t%.2f\t%.2f\t%.2f'%(self.name,self.center,self.width,self.delay)
-        print(outstring)
-
-    def setname(self,x):
-        self.name = x
-    def setcenter(self,x):
-        self.center = x
-    def setwidth(self,x):
-        self.width = x
-    def setdelay(self,x):
-        self.delay = x
-    def setcenterwidthdelay(self,x,y,z):
-        self.center = x
-        self.width = y
-        self.delay = z
-    def __call__(self):
-        return self.center,self.width,self.delay
-
-class Photo(electron):
-    def setbinding(self,x):
-        self.binding = x
-
-class Auger(electron):
-    def this(self):
-        self.this = 0
-
-
 def main():
-    if len(sys.argv)<3:
+    if len(sys.argv)<2:
         print('syntax:\t%s <outputfilehead> <nimages> <streakamp optional> <nelectrons scale optional>'%(sys.argv[0]))
         return
     streakamp = 20.
     nimages = 10
-    scale = 100
+    scale = 10
     if len(sys.argv)>2:
         nimages = int(sys.argv[2])
     if len(sys.argv)>3:
@@ -56,7 +20,7 @@ def main():
 
     outhead = sys.argv[1]
     nangles = 16 
-    nenergies = 1024 
+    nenergies = 2048 
     emin = 0
     emax = 512
 
@@ -70,139 +34,79 @@ def main():
     for i in range(nimages):
         img = h5f.create_group('img%05i'%i)
 
-        hist = np.zeros((nenergies,nangles),dtype=int)
-        img.create_dataset('hits',maxshape = (None,nangles))
-        img.attrs['npulses'] = int(np.random.uniform(1,10))
-        img.attrs['esase'] = np.random.normal(ecentral,etotalwidth,(npulses,))
-        img.attrs['ewidths'] = np.random.gamma(1.5,.125,(npulses,))+.5
-        img.attrs['ephases'] = np.random.uniform(0.,2.*np.pi,(npulses,))
+        img.attrs['npulses'] = int(np.random.uniform(1,4))
+        img.attrs['esase'] = np.random.normal(ecentral,etotalwidth,(img.attrs['npulses'],))
+        img.attrs['ewidths'] = np.random.gamma(1.5,.125,(img.attrs['npulses'],))+.5
+        img.attrs['ephases'] = np.random.uniform(0.,2.*np.pi,(img.attrs['npulses'],))
         # rather than this, let's eventually switch to using a dict for the Auger features and then for every ncounts photoelectron, we pick from this distribution an Auger electron.
         naugerfeatures = {365:1.5,369:1.5,372:1.5}
         caugerfeatures = {250.:3.,255.:2.5,260.:2.5}
         oaugerfeatures = {505:2.5,497:1.,492:1.}
-        img.attrs['augers'] = {**naugerfeatures,**caugerfeatures,**oaugerfeatures}
-        nitrogencenters = img.attrs['esase']-409.9
-        carboncenters = img.attrs['esase']-284.2
-        nvalencecenters = img.attrs['esase']-37.3
-        ovalencecenters = img.attrs['esase']-41.6
-        img.attrs['photos'] = {**carboncenters,**nitrogencenters}
-        img.attrs['valencephotos'] = {**nvalencecenters,**ovalencecenters}
+        augerfeatures = {**naugerfeatures,**caugerfeatures,**oaugerfeatures}
+        img.create_group('augers')
+        for center in list(augerfeatures.keys()):
+            img['augers'].attrs['%.2f'%center] = float(augerfeatures[center])
+            #print('%.2f'%center)
+            #print(img['augers'].attrs['%.2f'%center])
+        for center in (img.attrs['esase']):
+            nitrogencenters = {center-409.9 : 0.5}
+            carboncenters = {center-284.2 : 0.5}
+            nvalencecenters = {center-37.3 : 0.5}
+            ovalencecenters = {center-41.6 : 0.5}
+
+        photofeatures = {**carboncenters,**nitrogencenters}
+        img.create_group('photos')
+        print(list(photofeatures.keys()))
+        for center in list(photofeatures.keys()):
+            img['photos'].attrs['%.2f'%center] = float(photofeatures[center])
+
+        valencefeatures = {**nvalencecenters,**ovalencecenters}
+        img.create_group('valencephotos')
+        for center in list(valencefeatures.keys()):
+            img['valencephotos'].attrs['%.2f'%center] = float(valencefeatures[center])
+
         img.attrs['carrier'] = np.random.uniform(0.,2.*np.pi)
         img.attrs['streakamp'] = streakamp
-        img.attrs['legcoeffs'] = np.zeros((npulses,5),dtype=float) # only allowing for the 0,2,4 even coeffs for now
+        img.create_dataset('legcoeffs',shape=(img.attrs['npulses'],5),dtype=float) # only allowing for the 0,2,4 even coeffs for now
 
+        ens = []
+        for a in range(nangles):
+            ens.append([])
         for p in range(img.attrs['npulses']):
-            img.attrs['legcoeffs'][p,:] = [1., 0., np.random.uniform(-1,1), 0., np.random.uniform(-(c0+c2),c0+c2)]
-            poldist = np.polynomial.legendre.Legendre(img.attrs['legcoeffs'][p,:])(np.cos(angles[:-1]))
-'''
-    ecentral = 0.
-    angles = np.linspace(0,np.pi*2.,nangles+1)
-    energies = np.linspace(emin,emax,nenergies+1)
-
-    nitrogenaugers = [Auger() for i in range(3)]
-    nitrogenaugers[0].setcenterwidthdelay(365,1.5,.5)
-    nitrogenaugers[1].setcenterwidthdelay(369,1.5,.25)
-    nitrogenaugers[2].setcenterwidthdelay(372,1.5,.25)
-
-    carbonaugers = [Auger() for i in range(3)]
-    carbonaugers[0].setcenterwidthdelay(255,2.5,.5)
-    carbonaugers[1].setcenterwidthdelay(260,2.5,.25)
-    carbonaugers[2].setcenterwidthdelay(252,1.5,.75)
-
-    oxygenaugers = [Auger() for i in range(6)]
-    oxygenaugers[0].setcenterwidthdelay(495,2.5,.125)
-    oxygenaugers[1].setcenterwidthdelay(480,2.5,.25)
-    oxygenaugers[2].setcenterwidthdelay(482,1.5,.25)
-    oxygenaugers[3].setcenterwidthdelay(502,1.5,.5)
-    oxygenaugers[4].setcenterwidthdelay(507,1.0,.5)
-    oxygenaugers[5].setcenterwidthdelay(507,0.5,1.75)
-
-
-    
-    for img in range(nimages):
-        hist_ens_NNO = np.zeros((nenergies,nangles),dtype=int)
-        hist_ens_OCO = np.zeros((nenergies,nangles),dtype=int)
-        hist_ens_auger_NNO = np.zeros((nenergies,nangles),dtype=int)
-        hist_ens_auger_OCO = np.zeros((nenergies,nangles),dtype=int)
-        outname = '%s.%02i'%(outhead,img)
-        npulses = int(np.random.uniform(3,8))
-        ecenters = np.random.normal(ecentral,etotalwidth,(npulses,))
-        ewidths = np.random.gamma(3.5,.125,(npulses,))+.5
-        ephases= np.random.uniform(0.,2.*np.pi,(npulses,))
-        # rather than this, let's eventually switch to using a dict for the AUger features and then for every ncounts photoelectron, we pick from this distribution an Auger electron.
-        augerfeatures_NNO = {505:2.5,497:1.,492:1.,365:1.5,369:1.5,372:1.5}
-        augerfeatures_OCO = {505:2.5,497:1.,492:1.,250.:3.,255.:2.5,260.:2.5}
-        #augerfeatures = {505:1.5,492:1.,365:1.5,372:1.5,250.:1.,260.:1.5}
-        nitrogencenters = ecenters+535.-410.
-        carboncenters = ecenters+535.-285.
-
-        for i in range(npulses):
-            oxygenphotos = [Photo() for i in range(npulses)]
-            nitrogenphotos = [Photo() for i in range(npulses)]
-            carbonphotos = [Photo() for i in range(npulses)]
             c0 = 1.
             c2 = np.random.uniform(-1,1)
-            c2 = -1.
             c4 = np.random.uniform(-(c0+c2),c0+c2)
-            c4 = 0.
-            poldist = np.polynomial.legendre.Legendre([c0,0,c2,0,c4])(np.cos(angles[:-1]))
->>>>>>> 5b5a106b2e5b917e410e4627281b95684d4ded05
-'''
+            img['legcoeffs'][p,:] = [c0, 0., c2, 0., c4]
+            poldist = np.polynomial.legendre.Legendre(img['legcoeffs'][p,:])(np.cos(angles[:-1]))
             for a in range(nangles):
                 ncounts = int(poldist[a] * scale)
                 augercounts = int(scale)
                 if ncounts > 0:
-                    streak = img.attrs['streakamp']*np.cos(angles[a]-img.attrs['ephases'][i]+img.attrs['carrier'])
-                    ens = [v for v in np.random.normal(img.attrs['esase'][p]+streak,img.attrs['ewidths'][p],(ncounts,)))]
-                    ens += [v for v in np.random.normal(img.attrs['nitrogencenters'][p]+streak,img.attrs['ewidths'][p],(ncounts,)))]
-                    ens += [v for v in np.random.normal(img.attrs['carboncenters'][p]+streak,img.attrs['ewidths'][p],(ncounts,)))]
-                    ens += [v for v in np.random.normal(img.attrs['nvalencecenters'][p]+streak,img.attrs['ewidths'][p],(ncounts,)))]
-                    ens += [v for v in np.random.normal(img.attrs['ovalencecenters'][p]+streak,img.attrs['ewidths'][p],(ncounts,)))]
+                    streak = img.attrs['streakamp']*np.cos(angles[a]-img.attrs['ephases'][p]+img.attrs['carrier'])
+                    centers = list(np.random.choice(list(img['photos'].attrs.keys()),ncounts))
+                    ens[a] += [np.random.normal(float(c),float(img['photos'].attrs[c]),ncounts) for c in centers]
+                    '''
+                    ens = [v for v in np.random(center + streak, width,)]
+                    ens = [v for v in np.random.normal(img.attrs['esase'][p]+streak,img.attrs['ewidths'][p],(ncounts,))]
+                    ens += [v for v in np.random.normal(img['photos'].attrs['nitrogencenters'][p]+streak,img.attrs['ewidths'][p],(ncounts,))]
+                    ens += [v for v in np.random.normal(img.attrs['carboncenters'][p]+streak,img.attrs['ewidths'][p],(ncounts,))]
+                    ens += [v for v in np.random.normal(img.attrs['nvalencecenters'][p]+streak,img.attrs['ewidths'][p],(ncounts,))]
+                    ens += [v for v in np.random.normal(img.attrs['ovalencecenters'][p]+streak,img.attrs['ewidths'][p],(ncounts,))]
                     augercenters = np.random.choice(list(img.attrs['augers'].keys()),(augercounts,))
                     ens += [np.random.normal(c,augerfeatures[c])+streak for c in augercenters]
-                    img['hist'][:,a] += np.histogram(ens,energies)[0]
-            HERE HERE HERE trying to set an accumulation oint for all the hits as list of energies.
-
-        img.create_dataset('hist',data=hist)
-
-        np.savetxt(outname,hist_ens,fmt='%i')
-        np.savetxt('%s.%s'%(outname,'augers'),hist_ens_auger,fmt='%i')
-        np.savetxt('%s.%s'%(outname,'full'),hist_ens_auger+hist_ens,fmt='%i')
-
-    h5f.close()
+                    nens = len(ens)
+                    print(nens)
                     '''
-                    streak = streakamp*np.cos(angles[a]-ephases[i])
-                    #hist_ens_NNO[:,a] += np.histogram(np.random.normal(ecenters[i]+streak,ewidths[i],(ncounts,)),energies)[0]
-                    hist_ens_NNO[:,a] += np.histogram(np.random.normal(nitrogencenters[i]+streak,ewidths[i],(ncounts,)),energies)[0]
-                    augercenters_NNO = np.random.choice(list(augerfeatures_NNO.keys()),(augercounts,))
-                    ens_auger_NNO = [np.random.normal(c,augerfeatures_NNO[c])+streak for c in augercenters_NNO]
-                    hist_ens_auger_NNO[:,a] += np.histogram(ens_auger_NNO,energies)[0]
-                    #hist_ens_OCO[:,a] += np.histogram(np.random.normal(ecenters[i]+streak,ewidths[i],(ncounts,)),energies)[0]
-                    hist_ens_OCO[:,a] += np.histogram(np.random.normal(carboncenters[i]+streak,ewidths[i],(ncounts,)),energies)[0]
-                    augercenters_OCO = np.random.choice(list(augerfeatures_OCO.keys()),(augercounts,))
-                    ens_auger_OCO = [np.random.normal(c,augerfeatures_OCO[c])+streak for c in augercenters_OCO]
-                    hist_ens_auger_OCO[:,a] += np.histogram(ens_auger_OCO,energies)[0]
+        h = np.zeros((nenergies,nangles),dtype=int)
+        for a in range(nangles):
+            print(ens[a])
+            h[:,a] = np.histogram(ens[a],energies)[0]
+        img.create_dataset('hist',data=h)
+        hits = img.create_group('hits')
+        for a in range(nangles):
+            hits.create_dataset('%i'%a,ens[a])
+    h5f.close()
 
-        #np.savetxt(outname,hist_ens,fmt='%i')
-        #np.savetxt('%s.%s'%(outname,'augers'),hist_ens_auger,fmt='%i')
-        np.savetxt('%s.%s'%(outname,'full_NNO'),hist_ens_auger_NNO+hist_ens_NNO,fmt='%i')
-        np.savetxt('%s.%s'%(outname,'full_OCO'),hist_ens_auger_OCO+hist_ens_OCO,fmt='%i')
->>>>>>> 5b5a106b2e5b917e410e4627281b95684d4ded05
-'''
-
-    '''
-    fig, ax = plt.subplots()#subplot_kw={"projection": "3d"})
-    X,Y = np.meshgrid(angles,energies)
-    Z = hist_ens.copy()
-    surf = ax.plot_surface(X, Y, Z, cmap=cm.coolwarm,
-                       linewidth=0, antialiased=False)
-
-    fig.colorbar(surf, shrink=0.5, aspect=5)
-
-    plt.show()
-    '''
-
-    
     return
 
 
