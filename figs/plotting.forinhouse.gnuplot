@@ -180,13 +180,13 @@ set size .5,1
 set origin 0.05,0
 set title 'N_{2}O at 534 eV'
 set yrange [0:425]
-set xrange [0:1]
-set xtics 0,.2,1
+set xrange [0:2]
+set xtics 0,.2,2
 unset colorbox
-splot nnofile(i) mat u ($1/64):($2/2.):3 notitle
+splot nnofile(i) mat u ($1/64*2.):($2/2.):3 notitle
 set origin 0.5,0
 set title 'CO_{2} at 534 eV'
-splot coofile(i) mat u ($1/64):($2/2.):3 notitle
+splot coofile(i) mat u ($1/64*2.):($2/2.):3 notitle
 unset multiplot
 }
 #    EOF
