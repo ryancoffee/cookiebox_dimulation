@@ -164,29 +164,28 @@ set fontpath
 set psdir
 set fit brief errorvariables nocovariancevariables errorscaling prescale nowrap v5
 GNUTERM = "qt"
-nnofile(i) = sprintf('data_sinograms/inhouse.%02i.full_NNO',i)
-coofile(i) = sprintf('data_sinograms/inhouse.%02i.full_OCO',i)
+infile(en,i) = sprintf('data_sinograms/photon%i_widerange.%02i.full',en,i)
 ## Last datafile plotted: "data_sinograms/inhouse.00.full_OCO"
 set palette model CMY rgbformulae 7,5,15
-do for [i=0:9] {
+do for [i=0:4] {
 set term png size 800,500
 set xlabel 'angle [{/Symbol p}]'
 set ylabel 'energy [eV]'
-set output sprintf('figs/plotting.n2o.co2.v2.img%i.png',i)
+set output sprintf('figs/plotting.570_600.img%i.png',i)
 set multiplot
 set bmargin screen .15
 set tmargin screen .9
 set size .5,1
 set origin 0.05,0
-set title 'N_{2}O at 534 eV'
 set yrange [0:425]
 set xrange [0:2]
-set xtics 0,.2,2
+set xtics 0,.5,2
 unset colorbox
-splot nnofile(i) mat u ($1/64*2.):($2/2.):3 notitle
+set title 'h{/Symbol n} = 570 eV'
+splot infile(570,i) mat u ($1/64*2.):($2/2.):3 notitle
 set origin 0.5,0
-set title 'CO_{2} at 534 eV'
-splot coofile(i) mat u ($1/64*2.):($2/2.):3 notitle
+set title 'h{/Symbol n} = 600 eV'
+splot infile(600,i) mat u ($1/64*2.):($2/2.):3 notitle
 unset multiplot
 }
 #    EOF
