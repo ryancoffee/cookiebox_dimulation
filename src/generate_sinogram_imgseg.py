@@ -63,9 +63,6 @@ def main():
         img = h5f.create_group('img%05i'%i)
 
         img.attrs['npulses'] = int(np.random.uniform(2,4))
-        img.attrs['esase'] = np.random.normal(ecentral,etotalwidth,(img.attrs['npulses'],))
-        img.attrs['ewidths'] = np.random.gamma(1.5,.125,(img.attrs['npulses'],))+.5
-        img.attrs['ephases'] = np.random.normal(0.,np.pi/8,(img.attrs['npulses'],))
         # rather than this, let's eventually switch to using a dict for the Auger features and then for every ncounts photoelectron, we pick from this distribution an Auger electron.
         img.attrs['carrier'] = np.random.uniform(0.,2.*np.pi)
         img.attrs['streakamp'] = streakamp
@@ -76,10 +73,13 @@ def main():
             for a in range(nangles):
                 ens[-1].append([])
 
-        h = np.zeros((nenergies,nangles),dtype=int)
+        #h = np.zeros((nenergies,nangles),dtype=int)
 
         for p in range(img.attrs['npulses']):
             pulsegrp = img.create_group('pulse%02i'%p)
+            pulsegrp.attrs['phase'] = np.random.normal(0.,np.pi/8)
+            pulsegrp.attrs['esase'] = np.random.normal(ecentral,etotalwidth)
+            pulsegrp.attrs['ewidth'] = np.random.gamma(1.5,.125)+.5
             c0 = 1.
             c2 = -1.0 #np.random.uniform(-1,1) 
             c4 = 0 #np.random.uniform(-(c0+c2),c0+c2)
@@ -90,10 +90,12 @@ def main():
                 ncounts = int(poldist[a] * scale)
                 augercounts = int(scale)
                 if ncounts > 0:
-                    streak = img.attrs['streakamp']*np.cos(angles[a]-img.attrs['ephases'][p]+img.attrs['carrier'])
+                    streak = img.attrs['streakamp']*np.cos(angles[a]-pulsegrp.attrs['phase']+img.attrs['carrier'])
                     centers = list(np.random.choice(list(h5f['photos'].attrs.keys()),int(np.sqrt(ncounts))))
                     for c in centers:
-                        ens[p][a] = list(np.random.normal(img.attrs['esase'][p] + float(c) + float(streak),float(h5f['photos'].attrs[c][0]),int(np.sqrt(ncounts)*h5f['photos'].attrs[c][1])))
+                        ens[p][a] = list(np.random.normal(pulsegrp.attrs['esase'] + float(c) + float(streak)
+                            , np.sqrt( np.power(float(pulsegrp.attrs['ewidth']),int(2)) + np.power(float(h5f['photos'].attrs[c][0]),int(2)) )
+                            , int(np.sqrt(ncounts)*h5f['photos'].attrs[c][1])))
                         '''
                     centers = list(np.random.choice(list(h5f['valencephotos'].attrs.keys()),int(np.sqrt(ncounts//10))))
                     for c in centers:
