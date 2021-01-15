@@ -19,10 +19,11 @@ def main():
         scale = int(sys.argv[4])
 
     outhead = sys.argv[1]
-    nangles = 256 
-    nenergies = 512 
+    nangles = 64 
+    nenergies = 64 
     emin = 0
-    emax = 512 
+    emax = 128 
+    maxpulses = 3
 
     etotalwidth = 20.
     ecentral = 600.
@@ -62,7 +63,7 @@ def main():
     for i in range(nimages):
         img = h5f.create_group('img%05i'%i)
 
-        img.attrs['npulses'] = int(np.random.uniform(2,4))
+        img.attrs['npulses'] = int(np.random.uniform(1,maxpulses+1))
         # rather than this, let's eventually switch to using a dict for the Auger features and then for every ncounts photoelectron, we pick from this distribution an Auger electron.
         img.attrs['carrier'] = np.random.uniform(0.,2.*np.pi)
         img.attrs['streakamp'] = streakamp
@@ -73,7 +74,6 @@ def main():
             for a in range(nangles):
                 ens[-1].append([])
 
-        #h = np.zeros((nenergies,nangles),dtype=int)
 
         for p in range(img.attrs['npulses']):
             pulsegrp = img.create_group('pulse%02i'%p)
@@ -85,7 +85,7 @@ def main():
             c4 = 0 #np.random.uniform(-(c0+c2),c0+c2)
             pulsegrp.create_dataset('legcoeffs',data=[c0, 0., c2, 0., c4])
             poldist = np.polynomial.legendre.Legendre(pulsegrp['legcoeffs'])(np.cos(angles[:-1]))
-            pulsehist = np.zeros((nenergies,nangles),dtype=int)
+            pulsehist = np.zeros((nenergies,nangles),dtype=np.uint8)
             for a in range(nangles):
                 ncounts = int(poldist[a] * scale)
                 augercounts = int(scale)
@@ -104,13 +104,9 @@ def main():
                     for c in centers:
                         ens[p][a] += list(np.random.normal(img.attrs['esase'][p] + float(c) + float(streak),float(h5f['augers'].attrs[c]),int(np.sqrt(augercounts))))
                         '''
-                    #h[:,a] += np.histogram(ens[a],energies)[0]
                     pulsehist[:,a] = np.histogram(ens[p][a],energies)[0]
                 pulsegrp.create_dataset('hits_ang%02i'%a,data=ens[p][a])
             pulsegrp.create_dataset('hist',data=pulsehist)
-
-        #img.create_dataset('hist',data=h)
-        #img.create_dataset('energies',data=energies[:-1])
 
     h5f.close()
 
