@@ -2174,3 +2174,1303 @@ processing image 58 chunk 21 inside pid 17062
 processing image 59 chunk 21 inside pid 17062
 processing image 60 chunk 21 inside pid 17062
 processing image 61 chunk 21 inside pid 17062
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.29.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.37.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.22.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.18.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.25.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.63.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.65.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.6.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.24.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.40.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.87.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.27.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.28.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.21.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.0.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.12.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.55.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.7.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.36.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.41.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.8.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.78.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.16.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.51.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.26.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.58.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.46.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.84.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.43.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.31.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.5.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.85.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.88.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.17.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.79.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.1.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.50.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.54.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.15.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.60.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.38.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.4.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.93.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.77.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.73.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.95.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.10.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.48.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.74.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.52.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.9.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.61.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.62.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.83.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.45.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.97.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.76.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.39.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.75.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.82.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.47.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.59.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.92.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.44.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.81.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.64.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.96.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.94.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.14.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.11.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.53.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.20.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.30.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.2.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.86.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.98.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.57.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.42.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.99.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.13.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.19.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.34.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.32.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.80.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.69.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.23.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.71.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.33.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.56.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.3.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.68.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.90.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.70.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.89.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.67.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.91.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.49.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.72.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.35.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
+Traceback (most recent call last):
+  File "./src/generate_sinogram_imgseg.py", line 117, in <module>
+    main()
+  File "./src/generate_sinogram_imgseg.py", line 33, in main
+    h5f = h5py.File('%s.ImgSegSim.h5'%(outhead),'w')
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 406, in __init__
+    fid = make_fid(name, mode, userblock_size,
+  File "/home/coffee/.local/lib/python3.8/site-packages/h5py/_hl/files.py", line 179, in make_fid
+    fid = h5f.create(name, h5f.ACC_TRUNC, fapl=fapl, fcpl=fcpl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5f.pyx", line 108, in h5py.h5f.create
+OSError: Unable to create file (unable to open file: name = './data_sinogram/streaking.66.roaster.ImgSegSim.h5', errno = 2, error message = 'No such file or directory', flags = 13, o_flags = 242)
