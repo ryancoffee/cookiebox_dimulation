@@ -1,0 +1,37 @@
+From: Andrei Kamalov <andrei.kamalov@gmail.com>
+Sent: Tuesday, March 2, 2021 10:02 PM
+To: Coffee, Ryan <coffee@slac.stanford.edu>
+Subject: Simulations seem mostly fine, need to compute new axis
+ 
+Hey Ryan,
+
+I think the simulation results are mostly correct, although their time axis is not scaled correctly and the axis will need to be fixed.
+
+This is a long e-mail, it is probably faster to call me.
+
+collection efficiency:
+I gave you a number to multiply the number of hits by to return the collection efficiency.  I cannot reproduce that number.  My simulation populates a cone of electrons with uniform azimuthal and polar angles +/- 5 degrees both.
+The fraction of the solid angle 4*pi that this populates is found by (wikipedia): 
+￼
+for my cone of +/- 5 degrees, theta here is 5.
+
+I get that my cone is 4*pi*sin(2.5 degrees)^2= 4*pi* 0.001903 steradians
+The ratio of my cone's solid angle to a complete sphere's solid angle is ( 4*pi* 0.001903) / (4*pi)) = 0.001903
+
+My simulation flies 2500 electrons per central energy value.  So say that there is a run where 300 electrons hit the detector.  The collection efficiency for my generated cone is 300/2500.  The efficiency for a spherical wave that is evenly distributed across all solid angle as opposed to my 0.001903 cone is: (300/2500)*0.001903, or 300 * 7.61e-7.  The efficiency is the number of hits detected times 7.61e-7. 
+
+I cannot figure out how I initially got 3.49e-5 as the multiplier.
+
+
+axis rescaling
+I misunderstood some of simion's wording when it imported a .STL file of an eToF.  During import, simion correctly measures the dimensions of the ToF in inches.  It asks for "scale", which I initially interpreted as the number of simion grid points per unit of length.  I asked for 500 grid points per unit length (inch).  What simion actually meant was that the .STL drawing would have it's dimensions multiplied so that 500 of simion's native length units (mm) would be set to the length of one of my units of length (inch).  Simion created a potential array where 1 inch of the eToF drawing was equated to 500 mm.  For scale, the 15 inch real distance between MCP front and the eToF nose entry became a 7.5 m simulation.
+
+This miraculously is not a problem except for the time axis needing to be re-scaled.  My unit of length is off by a factor of 20 (since 1 inch is actually ~25 mm instead of the 500 mm).  This means my units of energy and potential (scale as length^2) are off by a factor of 400.  If I re-scale my supplied energies and potentials to match the scaling factors, I get correct results, as tested by launching un-retarded electrons at the MCP and recovering their time of flight, and comparing that value to a general physics time of flight calculation.
+
+When I re-run my simulations with scaled energy values, I get the same graph shapes as before - this was initially surprising but makes sense.  The unscaled simulation energies were regular electrons in an oversized eToF, which look just like very slow electrons in a regular sized eToF.  The collection efficiencies look the same because the blown up eToF has a 20*27mm = 0.54m MCP diameter.  The resolution looks similar, but the time axis has to be changed to units of picoseconds.  The simulation shows that the flight tube won't be the limiting factor in eToF resolution, but the digitizer will be since you can't read out signal on a picosecond timescale.
+
+I am re-running the simulations overnight to get correct axis, but the shape of the plots should not change.
+
+miscellaneous:
+I have the distance between flight tube nose entry to MCP as 15 inches in a .STL file.  I am not sure where you are getting 275 mm.  did you mean 375?
+
