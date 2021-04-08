@@ -29,16 +29,19 @@ def my_matmul():
         print("s_out = {}".format(s_out))
 
 def main():
-    print("{}".format(tf.executing_eagerly()))
-    init_val = tf.random.normal((10,5),5,2)
-    var = tf.Variable(init_val,name='var')
-    print("pre-run: \n{}".format(var))
-    with tf.Session() as sess:
-        sess.run(init)
-        post_var = sess.run(var)
-    print("\npost run: \n{}".format(post_var))
+    print('{}'.format(tf.executing_eagerly()))
+    init_val = np.random.normal(5,2,(10,2)).T
+    w = np.arange(10).reshape((-1,1))
 
-    my_matmul()
+    var = tf.matmul(init_val,w)
+    print("pre-run: \n{}".format(var))
+    a = tf.constant([[1.,  0.4,  0.5],
+                 [0.4, 0.2,  0.25],
+                 [0.5, 0.25, 0.35]])
+    res = tf.matmul(tf.linalg.pinv(a), a)
+    print('{}'.format(res))
+
+    #my_matmul()
 
     return 0
 
