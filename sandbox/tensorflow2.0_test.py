@@ -8,26 +8,6 @@
 import numpy as np
 import tensorflow as tf
 
-def my_matmul():
-    x_data = np.random.randn(5,10)
-    w_data = np.arange(10)
-    w_data.shape = (10,1)
-    print("x_data = \n{}".format(x_data))
-    print("w_data = \n{}".format(w_data))
-    with tf.Graph().as_default():
-        x = tf.placeholder(tf.float32,shape = (5,10))
-        w = tf.placeholder(tf.float32,shape = (10,1))
-        b = tf.fill((5,1),float(1))
-        xw = tf.matmul(x,w)
-        wxb = xw + b
-        s = tf.reduce_max(wxb)
-        with tf.Session() as sess:
-            wxb_out = sess.run(wxb,feed_dict={x: x_data, w: w_data})
-            s_out = sess.run(s,feed_dict={x: x_data, w: w_data})
-
-        print("wxb_out = \n{}".format(wxb_out))
-        print("s_out = {}".format(s_out))
-
 def main():
     print('{}'.format(tf.executing_eagerly()))
     init_val = np.random.normal(5,2,(10,2)).T
@@ -41,7 +21,18 @@ def main():
     res = tf.matmul(tf.linalg.pinv(a), a)
     print('{}'.format(res))
 
-    #my_matmul()
+    t = np.arange(1024,dtype=float).reshape((-1,1))
+    t0=64.
+    w=16.
+    phi=1.
+    y = np.exp(-((t-t0)/w)**2)*np.cos(t*2*np.pi/w+phi).T
+    Y = tf.signal.dct(y,type=2)
+    #Y = tf.signal.dct(np.row_stack((y,np.flip(y,axis=0))),type=2)
+    #y_back = tf.signal.dct(Y,type=3)
+    #y_back2 = tf.signal.idct(Y*np.arange(len(Y))/len(Y),type=4)
+    #np.savetxt('temp.dat',np.column_stack((t,y,y_back[:len(y),0],y_back2[:len(y),0])),fmt='%.3f')
+    np.savetxt('temp_y.dat',y.T,fmt='%.3f')
+    np.savetxt('temp_Y.dat',np.array(Y).T,fmt='%.3f')
 
     return 0
 
