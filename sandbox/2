@@ -1,0 +1,48 @@
+#!/usr/bin/python3
+
+import numpy as np
+import h5py
+
+def cossq(x,w,c):
+    inds = np.where(np.abs(x.astype(float)-c)<w)
+    y = np.zeros(x.shape)
+    y[inds] = 0.5*(1+np.cos(np.pi*(x[inds].astype(float)-c)/w))
+    return y
+
+def gauss(x,w,c):
+    return np.exp(-((x.astype(float)-c)/w)**2)
+
+def build_XY(nenergies=128,nangles=64):
+    x = np.arange(nenergies,dtype=float)
+    w = 5.
+    amp = 30.
+    rng = np.random.default_rng()
+    ncenters = rng.poisson(3)
+    centers = rng.random(ncenters)*x.shape[0]
+    ymat = np.zeros((x.shape[0],nangles),dtype=float)
+    for c in centers:
+        phi = np.random.normal(np.pi,2)
+        for a in range(nangles):
+            kick = amp*np.cos(a*2.*np.pi/nangles + phi)
+            ymat[:,a] += cossq(x,w,c+kick) # this produces the 2D PDF
+    cmat = np.cumsum(ymat,axis=0)
+    # the number of draws for each angle should be proportional to the total sum of that angle
+    drawscale = 10
+    hits = []
+    for a in range(nangles):
+        cum = cmat[-1,a]
+        draws = int(drawscale*cum)
+        drawpoints = np.sort(rng.random(draws))
+        hits.append(list(np.interp(drawpoints,cmat[:,a]/cum,x)))
+
+    return hits,ymat
+
+def main():
+    with h5py.File('simdata.h5') as f:
+        for i in range(10):
+            f.create_group('shot_%03i')
+            X,Y = build_XY(nenergies = 128, nangles = 64)
+    return
+
+if __name__ == '__main__':
+    main()
