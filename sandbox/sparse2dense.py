@@ -5,6 +5,7 @@ import h5py
 import sys
 import re
 import numpy as np
+import multiprocessing as mp
 
 def sparse2dense(h5name,split=0.1):
     rng = np.random.default_rng()
@@ -39,23 +40,35 @@ def sparse2dense(h5name,split=0.1):
                 np.savetxt(oYname,f[k]['Ypdf'][()].T,fmt='%.3f',header=headstr)
     return X_train,Y_train,X_test,Y_test
 
-def main():
-    if len(sys.argv)<3:
-        print('syntax:%s <infname.h5> <testsplit [0..1]> '%sys.argv[0])
+class Params:
+    def __init__(self,iname,split=0.1):
+        self.infname = iname
+        self.testsplit = split
+        self.oname = '%s_dense.h5'%iname
+        m = re.search('(^.*)\.h5',self.infname)
+        if m:
+            self.ofname = '%s_dense.h5'%m.group(1)
         return
-    infname = sys.argv[1]
-    m = re.search('(^.*)\.h5',infname)
-    if not m:
-        print('failed file match')
-        return
-    densename = '%s_dense.h5'%m.group(1)
-    split = float(sys.argv[2])
-    X_train,Y_train,X_test,Y_test = sparse2dense(infname,split=split)
-    with h5py.File(densename,'a') as f:
+
+def runprocess(params):
+    X_train,Y_train,X_test,Y_test = sparse2dense(params.infname,split=params.testsplit)
+    with h5py.File(params.ofname,'a') as f:
         f.create_dataset('Y_train',data=Y_train,dtype=np.float32)
         f.create_dataset('X_train',data=X_train,dtype=np.float32)
         f.create_dataset('Y_test',data=Y_test,dtype=np.float32)
         f.create_dataset('X_test',data=X_test,dtype=np.float32)
+
+def main():
+    if len(sys.argv)<3:
+        print('syntax:%s <testsplit> <infname1.h5> <>infname2.h5> ... '%sys.argv[0])
+        return
+    testsplit = float(sys.argv[1])
+    infnames = sys.argv[2:]
+    paramslist = [Params('%s'%(iname),split = testsplit) for iname in infnames]
+
+    with mp.Pool(processes=len(paramslist)) as pool:
+        pool.map(runprocess,paramslist)
+
     return
 
 if __name__ == '__main__':
