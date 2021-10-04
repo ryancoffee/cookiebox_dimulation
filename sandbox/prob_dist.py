@@ -81,7 +81,7 @@ class Params:
 
 def runprocess(params):
     m = re.search('(^.*)\.h5',params.ofname)
-    print(params.ofname)
+    #print(params.ofname)
     if not m:
         print('failed filename match')
         return
@@ -121,13 +121,13 @@ def runprocess(params):
 
 
 def main():
-    if len(sys.argv)<4:
-        print('syntax: %s <outfilename.h5> <nimages> <nthreads>'%sys.argv[0])
+    if len(sys.argv)<5:
+        print('syntax: %s <outfilename.h5> <nimages> <nchannels> <nthreads>'%sys.argv[0])
         return
 
-    paramslist = [Params('%s'%(sys.argv[1]),int(sys.argv[2]) ) for i in range(int(sys.argv[3]))]
+    paramslist = [Params('%s'%(sys.argv[1]),int(sys.argv[2])) for i in range(int(sys.argv[4]))]
     for p in paramslist:
-        p.setnangles(128).setdrawscale(5)
+        p.setnangles(int(sys.argv[3])).setdrawscale(2)
 
     with mp.Pool(processes=len(paramslist)) as pool:
         pool.map(runprocess,paramslist)
